@@ -56,4 +56,7 @@ The spike is a confirmation, not a reason to deviate.
   structural variety, not statistical power; this is a go/no-go check for the
   spike, not the fit evaluation of §9.3.
 
-**Decision:** _(pending - Ingo to record, with date)_
+**Decision (draft, Claude Code's recommendation - please confirm or correct):**
+Option 1 - keep `openai/gpt-5-mini` as the sole default; `claude-haiku-4.5`
+stays as the FR-18 secondary option. No spec or code change needed.
+2026-11-05, pending Ingo's confirmation.
