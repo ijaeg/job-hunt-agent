@@ -55,7 +55,8 @@ SEARCHES: list[dict[str, Any]] = [
 
 # Schlüssel mit Kontaktdaten Dritter: werden vor dem Speichern entfernt
 CONTACT_KEY_PATTERN = re.compile(
-    r"ansprech|kontakt|telefon|e-?mail|fax|mobilnummer|mobiltelefon|handy", re.I)
+    r"ansprech|kontakt|telefon|e-?mail|fax|mobilnummer|mobiltelefon|handy", re.I
+)
 EMAIL_PATTERN = re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+")
 PHONE_PATTERN = re.compile(r"(?:\+49|0049|\b0)[\d\s/()-]{6,}\d")
 
@@ -65,8 +66,12 @@ PHONE_PATTERN = re.compile(r"(?:\+49|0049|\b0)[\d\s/()-]{6,}\d")
 # ---------------------------------------------------------------------------
 
 
-def call(client: httpx.Client, path: str, params: dict[str, Any] | None = None,
-         headers: dict[str, str] | None = None) -> dict[str, Any]:
+def call(
+    client: httpx.Client,
+    path: str,
+    params: dict[str, Any] | None = None,
+    headers: dict[str, str] | None = None,
+) -> dict[str, Any]:
     """Ruft einen Endpunkt auf und liefert Status, Dauer und JSON (oder Fehlertext).
 
     Bei 429, 5xx oder Timeout wird einmal nach 2 Sekunden wiederholt.
@@ -78,17 +83,28 @@ def call(client: httpx.Client, path: str, params: dict[str, Any] | None = None,
             elapsed_ms = round((time.perf_counter() - start) * 1000)
         except httpx.HTTPError as exc:
             elapsed_ms = round((time.perf_counter() - start) * 1000)
-            result: dict[str, Any] = {"status": None, "error": type(exc).__name__,
-                                      "ms": elapsed_ms, "json": None}
+            result: dict[str, Any] = {
+                "status": None,
+                "error": type(exc).__name__,
+                "ms": elapsed_ms,
+                "json": None,
+            }
         else:
             try:
                 body: Any = resp.json()
             except ValueError:
                 body = None
-            result = {"status": resp.status_code, "ms": elapsed_ms, "json": body,
-                      "error": None if resp.is_success else resp.text[:300]}
-        retryable = result["status"] is None or result["status"] == 429 or (
-            result["status"] is not None and result["status"] >= 500)
+            result = {
+                "status": resp.status_code,
+                "ms": elapsed_ms,
+                "json": body,
+                "error": None if resp.is_success else resp.text[:300],
+            }
+        retryable = (
+            result["status"] is None
+            or result["status"] == 429
+            or (result["status"] is not None and result["status"] >= 500)
+        )
         result["attempts"] = attempt
         if retryable and attempt == 1:
             time.sleep(2)
@@ -222,22 +238,34 @@ def run(client: httpx.Client) -> dict[str, Any]:
             save(f"search/{name}.json", scrub(r["json"], removed_keys))
         if sample_body is None and r["status"] == 200 and items:
             sample_body = r["json"]
-        q1.append({"params": params, "status": r["status"], "ms": r["ms"],
-                   "total": total(r["json"]), "returned": len(items), "error": r["error"]})
+        q1.append(
+            {
+                "params": params,
+                "status": r["status"],
+                "ms": r["ms"],
+                "total": total(r["json"]),
+                "returned": len(items),
+                "error": r["error"],
+            }
+        )
         for item in items:
             ref = ref_of(item)
             if ref is not None and ref not in refnrs:
                 refnrs.append(ref)
-        print(f"    {params['was']} / {params['wo']}: Status {r['status']}, "
-              f"{len(items)} von {total(r['json'])}")
+        print(
+            f"    {params['was']} / {params['wo']}: Status {r['status']}, "
+            f"{len(items)} von {total(r['json'])}"
+        )
     report["q1_search"] = q1
     is_dict = isinstance(sample_body, dict)
     report["q1_response_keys"] = sorted(sample_body.keys()) if is_dict else None
     sample_items = offers(sample_body)
     report["q1_offer_keys"] = sorted(sample_items[0].keys()) if sample_items else None
-    report["q1_facet_keys"] = (sorted(sample_body["facetten"].keys())
-                               if isinstance(sample_body, dict)
-                               and isinstance(sample_body.get("facetten"), dict) else None)
+    report["q1_facet_keys"] = (
+        sorted(sample_body["facetten"].keys())
+        if isinstance(sample_body, dict) and isinstance(sample_body.get("facetten"), dict)
+        else None
+    )
 
     base = SEARCHES[0]
 
@@ -259,9 +287,9 @@ def run(client: httpx.Client) -> dict[str, Any]:
         "total_without_filter": total(r_all["json"]),
         "total_zeitarbeit_false": total(r_no_temp["json"]),
         "status_zeitarbeit_false": r_no_temp["status"],
-        "offer_fields_matching_zeitarbeit": keys_with(offers(r_all["json"])[:3],
-                                                      re.compile("zeitarbeit|arbeitnehmerueberl",
-                                                                 re.I)),
+        "offer_fields_matching_zeitarbeit": keys_with(
+            offers(r_all["json"])[:3], re.compile("zeitarbeit|arbeitnehmerueberl", re.I)
+        ),
     }
 
     # Q4: Paginierung
@@ -271,8 +299,11 @@ def run(client: httpx.Client) -> dict[str, Any]:
     timings += [p1["ms"], p2["ms"]]
     refs1 = {ref_of(i) for i in offers(p1["json"])}
     refs2 = {ref_of(i) for i in offers(p2["json"])}
-    report["q4_pagination"] = {"page1": len(refs1), "page2": len(refs2),
-                               "overlap": len(refs1 & refs2)}
+    report["q4_pagination"] = {
+        "page1": len(refs1),
+        "page2": len(refs2),
+        "overlap": len(refs1 & refs2),
+    }
 
     # Q5: Details
     print(f"Q5  Details für bis zu {MAX_DETAILS} Anzeigen ...")
@@ -286,8 +317,13 @@ def run(client: httpx.Client) -> dict[str, Any]:
             used = "v3"
             r = call(client, f"/pc/v3/jobdetails/{enc}")
         timings.append(r["ms"])
-        entry: dict[str, Any] = {"refnr": ref, "endpoint": used, "status": r["status"],
-                                 "ms": r["ms"], "error": r["error"]}
+        entry: dict[str, Any] = {
+            "refnr": ref,
+            "endpoint": used,
+            "status": r["status"],
+            "ms": r["ms"],
+            "error": r["error"],
+        }
         if isinstance(r["json"], dict):
             detail_keys.update(r["json"].keys())
             field, length = longest_text(r["json"])
@@ -301,8 +337,9 @@ def run(client: httpx.Client) -> dict[str, Any]:
         "by_endpoint": {e: sum(1 for d in ok if d["endpoint"] == e) for e in ("v4", "v3")},
         "statuses": sorted({str(d["status"]) for d in q5}),
         "top_level_keys": sorted(detail_keys),
-        "longest_text_fields": sorted({d["longest_text_field"] for d in ok
-                                       if d.get("longest_text_field")}),
+        "longest_text_fields": sorted(
+            {d["longest_text_field"] for d in ok if d.get("longest_text_field")}
+        ),
         "text_len_min": min((d["longest_text_len"] for d in ok), default=None),
         "text_len_max": max((d["longest_text_len"] for d in ok), default=None),
         "items": q5,
@@ -311,8 +348,9 @@ def run(client: httpx.Client) -> dict[str, Any]:
 
     # Q6: Fehlerverhalten
     print("Q6  Fehlerfälle ...")
-    bad_key = call(client, "/pc/v6/jobs", params={"was": "Python", "size": 1},
-                   headers={"X-API-Key": "falsch"})
+    bad_key = call(
+        client, "/pc/v6/jobs", params={"was": "Python", "size": 1}, headers={"X-API-Key": "falsch"}
+    )
     bad_ref = call(client, f"/pc/v4/jobdetails/{encode_refnr('00000-0000000000-S')}")
     report["q6_errors"] = {
         "wrong_api_key": {"status": bad_key["status"], "error": bad_key["error"]},
