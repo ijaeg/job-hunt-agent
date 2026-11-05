@@ -69,9 +69,8 @@ including the explicit middleware-list order.
   (observed with the real model in the one real-model run, § D-5 in
   `spikes/NOTES.md`).
 
-**Decision (draft, Claude Code's recommendation - please confirm or correct):**
-Option 1 - carry the spike's `RejectionLockMiddleware` design (hook, state
-field, and the `[HumanInTheLoopMiddleware, RejectionLockMiddleware]` list
-order) into the real agent unchanged; add the proposed §5.4 footnote and the
-system-prompt instruction under Consequences.
-2026-11-05, pending Ingo's confirmation.
+**Decision:** Option 1 - carry the spike's `RejectionLockMiddleware` design
+(hook, state field, and the `[HumanInTheLoopMiddleware,
+RejectionLockMiddleware]` list order) into the real agent unchanged; add the
+proposed §5.4 footnote and the system-prompt instruction under Consequences.
+- Ingo, 2026-11-05

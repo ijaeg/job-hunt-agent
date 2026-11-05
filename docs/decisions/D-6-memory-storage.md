@@ -73,9 +73,7 @@ Option 3: `SqliteStore` for `memories`, a hand-written table for `tracker`
   shared file (simpler `NFR-01` setup, one path to back up/delete) unless a
   later problem shows otherwise.
 
-**Decision (draft, Claude Code's recommendation - please confirm or correct):**
-Option 3 - `SqliteStore` for `memories` (FR-15), an own table for `tracker`
-and the profile (FR-09/FR-11/FR-14) in `storage.py`; one shared SQLite file
-unless a later problem shows otherwise. Propose the FR-15 AC1 wording tweak
-under Consequences.
-2026-11-05, pending Ingo's confirmation.
+**Decision:** Option 3 - `SqliteStore` for `memories` (FR-15), an own table
+for `tracker` and the profile (FR-09/FR-11/FR-14) in `storage.py`; one
+shared SQLite file unless a later problem shows otherwise. Propose the
+FR-15 AC1 wording tweak under Consequences. - Ingo, 2026-11-05
