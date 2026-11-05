@@ -1,0 +1,586 @@
+{
+  "started": "2026-11-05T09:15:37+00:00",
+  "q1_search": [
+    {
+      "params": {
+        "was": "Python Entwickler",
+        "wo": "Hamburg",
+        "umkreis": 25
+      },
+      "status": 200,
+      "ms": 125,
+      "total": 4,
+      "returned": 4,
+      "error": null
+    },
+    {
+      "params": {
+        "was": "AI Engineer",
+        "wo": "Hamburg",
+        "umkreis": 50
+      },
+      "status": 200,
+      "ms": 76,
+      "total": 42,
+      "returned": 25,
+      "error": null
+    },
+    {
+      "params": {
+        "was": "Java Entwickler",
+        "wo": "Hamburg",
+        "umkreis": 25
+      },
+      "status": 200,
+      "ms": 64,
+      "total": 9,
+      "returned": 9,
+      "error": null
+    },
+    {
+      "params": {
+        "was": "Machine Learning",
+        "wo": "Berlin",
+        "umkreis": 25
+      },
+      "status": 200,
+      "ms": 95,
+      "total": 18,
+      "returned": 18,
+      "error": null
+    },
+    {
+      "params": {
+        "was": "Softwareentwickler",
+        "wo": "München",
+        "umkreis": 25
+      },
+      "status": 200,
+      "ms": 90,
+      "total": 103,
+      "returned": 25,
+      "error": null
+    }
+  ],
+  "q1_response_keys": [
+    "ergebnisliste",
+    "facetten",
+    "maxErgebnisse",
+    "page",
+    "size",
+    "woOutput"
+  ],
+  "q1_offer_keys": [
+    "aenderungsdatum",
+    "alleBerufe",
+    "arbeitszeitSchichtNachtWochenende",
+    "arbeitszeitTeilzeitAbend",
+    "arbeitszeitTeilzeitFlexibel",
+    "arbeitszeitTeilzeitNachmittag",
+    "arbeitszeitTeilzeitVormittag",
+    "arbeitszeitVollzeit",
+    "artDerVerguetung",
+    "chiffrenummer",
+    "datumErsteVeroeffentlichung",
+    "eintrittszeitraum",
+    "entfernung",
+    "externeURL",
+    "firma",
+    "gehaltsspanneBis",
+    "gehaltsspanneVon",
+    "hauptberuf",
+    "homeofficemoeglich",
+    "istGeringfuegigeBeschaeftigung",
+    "quereinstiegGeeignet",
+    "referenznummer",
+    "stellenangebotsTitel",
+    "stellenangebotsart",
+    "stellenlokationen",
+    "verguetungsangabe",
+    "veroeffentlichungszeitraum",
+    "vertragsdauer"
+  ],
+  "q1_facet_keys": [
+    "angebotsart",
+    "arbeitgeber",
+    "arbeitsort",
+    "arbeitsort_plz",
+    "arbeitszeit",
+    "befristung",
+    "behinderung",
+    "beruf",
+    "berufsfeld",
+    "branche",
+    "eintrittsdatum",
+    "externestellenboersen",
+    "pav",
+    "quereinstieg",
+    "schulbildung",
+    "topberuf",
+    "topberufsfeld",
+    "verguetung",
+    "veroeffentlichtseit",
+    "zeitarbeit"
+  ],
+  "q2_published_since": {
+    "1": {
+      "status": 200,
+      "total": 1
+    },
+    "7": {
+      "status": 200,
+      "total": 3
+    },
+    "28": {
+      "status": 200,
+      "total": 4
+    }
+  },
+  "q3_temp_agency": {
+    "total_without_filter": 4,
+    "total_zeitarbeit_false": 1,
+    "status_zeitarbeit_false": 200,
+    "offer_fields_matching_zeitarbeit": []
+  },
+  "q4_pagination": {
+    "page1": 4,
+    "page2": 0,
+    "overlap": 0
+  },
+  "q5_details": {
+    "requested": 40,
+    "ok": 40,
+    "by_endpoint": {
+      "v4": 40,
+      "v3": 0
+    },
+    "statuses": [
+      "200"
+    ],
+    "top_level_keys": [
+      "aenderungsdatum",
+      "allianzpartnerName",
+      "allianzpartnerUrl",
+      "alternativBeruf1",
+      "alternativBeruf2",
+      "arbeitgeberKundennummerHash",
+      "arbeitszeitSchichtNachtWochenende",
+      "arbeitszeitTeilzeitAbend",
+      "arbeitszeitTeilzeitFlexibel",
+      "arbeitszeitTeilzeitNachmittag",
+      "arbeitszeitTeilzeitVormittag",
+      "arbeitszeitVollzeit",
+      "artDerVerguetung",
+      "befristungInMonaten",
+      "chiffrenummer",
+      "datumErsteVeroeffentlichung",
+      "eintrittszeitraum",
+      "externeURL",
+      "firma",
+      "gehaltsspanneBis",
+      "gehaltsspanneVon",
+      "hauptberuf",
+      "homeofficemoeglich",
+      "homeofficeprozent",
+      "homeofficetyp",
+      "istArbeitnehmerUeberlassung",
+      "istBehinderungGefordert",
+      "istBetreut",
+      "istGeringfuegigeBeschaeftigung",
+      "istPrivateArbeitsvermittlung",
+      "quereinstiegGeeignet",
+      "referenznummer",
+      "stellenangebotsBeschreibung",
+      "stellenangebotsTitel",
+      "stellenangebotsart",
+      "stellenlokationen",
+      "verguetungsangabe",
+      "veroeffentlichungszeitraum",
+      "vertragsdauer"
+    ],
+    "longest_text_fields": [
+      "stellenangebotsBeschreibung"
+    ],
+    "text_len_min": 284,
+    "text_len_max": 9712,
+    "items": [
+      {
+        "refnr": "17338-c2de5ff0cd55000215-S",
+        "endpoint": "v4",
+        "status": 200,
+        "ms": 46,
+        "error": null,
+        "longest_text_field": "stellenangebotsBeschreibung",
+        "longest_text_len": 3239
+      },
+      {
+        "refnr": "12265-215995_JB5289168-S",
+        "endpoint": "v4",
+        "status": 200,
+        "ms": 59,
+        "error": null,
+        "longest_text_field": "stellenangebotsBeschreibung",
+        "longest_text_len": 2671
+      },
+      {
+        "refnr": "12265-523126_JB5287797-S",
+        "endpoint": "v4",
+        "status": 200,
+        "ms": 54,
+        "error": null,
+        "longest_text_field": "stellenangebotsBeschreibung",
+        "longest_text_len": 3267
+      },
+      {
+        "refnr": "13545-DZTBHCDPFNHF7DSR-S",
+        "endpoint": "v4",
+        "status": 200,
+        "ms": 47,
+        "error": null,
+        "longest_text_field": "stellenangebotsBeschreibung",
+        "longest_text_len": 4269
+      },
+      {
+        "refnr": "13509-000021100c7004-S",
+        "endpoint": "v4",
+        "status": 200,
+        "ms": 46,
+        "error": null,
+        "longest_text_field": "stellenangebotsBeschreibung",
+        "longest_text_len": 4524
+      },
+      {
+        "refnr": "12336-a26f539j0436667-S",
+        "endpoint": "v4",
+        "status": 200,
+        "ms": 47,
+        "error": null,
+        "longest_text_field": "stellenangebotsBeschreibung",
+        "longest_text_len": 3820
+      },
+      {
+        "refnr": "13185-507253-1801047-0-S",
+        "endpoint": "v4",
+        "status": 200,
+        "ms": 58,
+        "error": null,
+        "longest_text_field": "stellenangebotsBeschreibung",
+        "longest_text_len": 2984
+      },
+      {
+        "refnr": "12336-a26f1192j0456063-S",
+        "endpoint": "v4",
+        "status": 200,
+        "ms": 48,
+        "error": null,
+        "longest_text_field": "stellenangebotsBeschreibung",
+        "longest_text_len": 345
+      },
+      {
+        "refnr": "12336-a26f1192j0456061-S",
+        "endpoint": "v4",
+        "status": 200,
+        "ms": 62,
+        "error": null,
+        "longest_text_field": "stellenangebotsBeschreibung",
+        "longest_text_len": 306
+      },
+      {
+        "refnr": "13644-313865-S",
+        "endpoint": "v4",
+        "status": 200,
+        "ms": 44,
+        "error": null,
+        "longest_text_field": "stellenangebotsBeschreibung",
+        "longest_text_len": 3947
+      },
+      {
+        "refnr": "10001-1003964360-S",
+        "endpoint": "v4",
+        "status": 200,
+        "ms": 56,
+        "error": null,
+        "longest_text_field": "stellenangebotsBeschreibung",
+        "longest_text_len": 4747
+      },
+      {
+        "refnr": "13635-d780e451_JB5286154-S",
+        "endpoint": "v4",
+        "status": 200,
+        "ms": 58,
+        "error": null,
+        "longest_text_field": "stellenangebotsBeschreibung",
+        "longest_text_len": 4200
+      },
+      {
+        "refnr": "19522-0068291613-S",
+        "endpoint": "v4",
+        "status": 200,
+        "ms": 54,
+        "error": null,
+        "longest_text_field": "stellenangebotsBeschreibung",
+        "longest_text_len": 3813
+      },
+      {
+        "refnr": "13755-44517070-1019-S",
+        "endpoint": "v4",
+        "status": 200,
+        "ms": 47,
+        "error": null,
+        "longest_text_field": "stellenangebotsBeschreibung",
+        "longest_text_len": 3515
+      },
+      {
+        "refnr": "12288-4971252625-S",
+        "endpoint": "v4",
+        "status": 200,
+        "ms": 47,
+        "error": null,
+        "longest_text_field": "stellenangebotsBeschreibung",
+        "longest_text_len": 3447
+      },
+      {
+        "refnr": "10001-1003900679-S",
+        "endpoint": "v4",
+        "status": 200,
+        "ms": 42,
+        "error": null,
+        "longest_text_field": "stellenangebotsBeschreibung",
+        "longest_text_len": 5067
+      },
+      {
+        "refnr": "19913-3074751792188001-S",
+        "endpoint": "v4",
+        "status": 200,
+        "ms": 48,
+        "error": null,
+        "longest_text_field": "stellenangebotsBeschreibung",
+        "longest_text_len": 7098
+      },
+      {
+        "refnr": "10001-1003964383-S",
+        "endpoint": "v4",
+        "status": 200,
+        "ms": 47,
+        "error": null,
+        "longest_text_field": "stellenangebotsBeschreibung",
+        "longest_text_len": 4418
+      },
+      {
+        "refnr": "10001-1003893191-S",
+        "endpoint": "v4",
+        "status": 200,
+        "ms": 59,
+        "error": null,
+        "longest_text_field": "stellenangebotsBeschreibung",
+        "longest_text_len": 9712
+      },
+      {
+        "refnr": "10001-1003822592-S",
+        "endpoint": "v4",
+        "status": 200,
+        "ms": 44,
+        "error": null,
+        "longest_text_field": "stellenangebotsBeschreibung",
+        "longest_text_len": 3034
+      },
+      {
+        "refnr": "19913-3085001793142000-S",
+        "endpoint": "v4",
+        "status": 200,
+        "ms": 48,
+        "error": null,
+        "longest_text_field": "stellenangebotsBeschreibung",
+        "longest_text_len": 7272
+      },
+      {
+        "refnr": "19913-3087851793401200-S",
+        "endpoint": "v4",
+        "status": 200,
+        "ms": 63,
+        "error": null,
+        "longest_text_field": "stellenangebotsBeschreibung",
+        "longest_text_len": 6790
+      },
+      {
+        "refnr": "19913-3085121793142000-S",
+        "endpoint": "v4",
+        "status": 200,
+        "ms": 53,
+        "error": null,
+        "longest_text_field": "stellenangebotsBeschreibung",
+        "longest_text_len": 7770
+      },
+      {
+        "refnr": "10001-1003942812-S",
+        "endpoint": "v4",
+        "status": 200,
+        "ms": 43,
+        "error": null,
+        "longest_text_field": "stellenangebotsBeschreibung",
+        "longest_text_len": 4800
+      },
+      {
+        "refnr": "19913-3070401792188001-S",
+        "endpoint": "v4",
+        "status": 200,
+        "ms": 59,
+        "error": null,
+        "longest_text_field": "stellenangebotsBeschreibung",
+        "longest_text_len": 5738
+      },
+      {
+        "refnr": "19913-3056331792188001-S",
+        "endpoint": "v4",
+        "status": 200,
+        "ms": 47,
+        "error": null,
+        "longest_text_field": "stellenangebotsBeschreibung",
+        "longest_text_len": 7159
+      },
+      {
+        "refnr": "19913-3087731793401200-S",
+        "endpoint": "v4",
+        "status": 200,
+        "ms": 75,
+        "error": null,
+        "longest_text_field": "stellenangebotsBeschreibung",
+        "longest_text_len": 6809
+      },
+      {
+        "refnr": "19913-3000711792188001-S",
+        "endpoint": "v4",
+        "status": 200,
+        "ms": 51,
+        "error": null,
+        "longest_text_field": "stellenangebotsBeschreibung",
+        "longest_text_len": 6275
+      },
+      {
+        "refnr": "12634-BB-641245-7878-2165-S",
+        "endpoint": "v4",
+        "status": 200,
+        "ms": 47,
+        "error": null,
+        "longest_text_field": "stellenangebotsBeschreibung",
+        "longest_text_len": 3266
+      },
+      {
+        "refnr": "10001-1003824856-S",
+        "endpoint": "v4",
+        "status": 200,
+        "ms": 50,
+        "error": null,
+        "longest_text_field": "stellenangebotsBeschreibung",
+        "longest_text_len": 2320
+      },
+      {
+        "refnr": "17338-61cf767722ad450056-S",
+        "endpoint": "v4",
+        "status": 200,
+        "ms": 50,
+        "error": null,
+        "longest_text_field": "stellenangebotsBeschreibung",
+        "longest_text_len": 2292
+      },
+      {
+        "refnr": "13644-313096-S",
+        "endpoint": "v4",
+        "status": 200,
+        "ms": 45,
+        "error": null,
+        "longest_text_field": "stellenangebotsBeschreibung",
+        "longest_text_len": 4154
+      },
+      {
+        "refnr": "12336-a26f1192j0455715-S",
+        "endpoint": "v4",
+        "status": 200,
+        "ms": 55,
+        "error": null,
+        "longest_text_field": "stellenangebotsBeschreibung",
+        "longest_text_len": 284
+      },
+      {
+        "refnr": "13319-897207/1_625569LS-S",
+        "endpoint": "v4",
+        "status": 200,
+        "ms": 47,
+        "error": null,
+        "longest_text_field": "stellenangebotsBeschreibung",
+        "longest_text_len": 2241
+      },
+      {
+        "refnr": "10001-1003891308-S",
+        "endpoint": "v4",
+        "status": 200,
+        "ms": 52,
+        "error": null,
+        "longest_text_field": "stellenangebotsBeschreibung",
+        "longest_text_len": 3429
+      },
+      {
+        "refnr": "13755-44520300-1020-S",
+        "endpoint": "v4",
+        "status": 200,
+        "ms": 67,
+        "error": null,
+        "longest_text_field": "stellenangebotsBeschreibung",
+        "longest_text_len": 4828
+      },
+      {
+        "refnr": "13509-000021113ef002-S",
+        "endpoint": "v4",
+        "status": 200,
+        "ms": 49,
+        "error": null,
+        "longest_text_field": "stellenangebotsBeschreibung",
+        "longest_text_len": 4810
+      },
+      {
+        "refnr": "12288-4989500127-S",
+        "endpoint": "v4",
+        "status": 200,
+        "ms": 57,
+        "error": null,
+        "longest_text_field": "stellenangebotsBeschreibung",
+        "longest_text_len": 4068
+      },
+      {
+        "refnr": "15548-1650634-1-S",
+        "endpoint": "v4",
+        "status": 200,
+        "ms": 50,
+        "error": null,
+        "longest_text_field": "stellenangebotsBeschreibung",
+        "longest_text_len": 4607
+      },
+      {
+        "refnr": "19913-3079631793833201-S",
+        "endpoint": "v4",
+        "status": 200,
+        "ms": 48,
+        "error": null,
+        "longest_text_field": "stellenangebotsBeschreibung",
+        "longest_text_len": 7139
+      }
+    ]
+  },
+  "q6_errors": {
+    "wrong_api_key": {
+      "status": 403,
+      "error": " "
+    },
+    "unknown_refnr": {
+      "status": 404,
+      "error": "{\n  \"timestamp\" : \"2026-11-05T09:16:07.736861978Z\",\n  \"messages\" : [ {\n    \"code\" : \"STELLENANGEBOT_NICHT_GEFUNDEN\"\n  } ]\n}"
+    }
+  },
+  "q7_timing_ms": {
+    "calls": 52,
+    "median": 54,
+    "max": 125
+  },
+  "removed_contact_keys": [],
+  "finished": "2026-11-05T09:16:08+00:00"
+}
