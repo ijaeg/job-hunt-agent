@@ -1,0 +1,19 @@
+# Secrets
+.env
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+
+# Tooling caches and reports
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+
+# Raw API responses from the job board spike: contain third-party contact data
+# (names in ad texts) and employer content - kept local only (D-3).
+# The aggregated report has no ad texts and IS committed.
+spikes/fixtures/*
+!spikes/fixtures/spike_report.json
