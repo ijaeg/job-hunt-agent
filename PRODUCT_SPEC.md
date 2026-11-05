@@ -4,10 +4,10 @@
 |---|---|
 | **Project** | Turing College – AI Engineering, Sprint 3 project ("Building with AI Agents") |
 | **Author** | Ingo Jäger |
-| **Status** | v0.1.1 – first draft, 2026-11-05 (changes: see §15) |
+| **Status** | v0.1.2 – first draft, 2026-11-05 (changes: see §15) |
 | **Audience** | Developer (implementation guide) and Turing College tutor (review guide) |
 | **Stack** | Python 3.13 (uv), Streamlit, LangChain `create_agent` (LangGraph runtime) against the OpenRouter API (OpenAI-compatible), SQLite (`SqliteSaver` checkpointer, tracker, long-term memory), `httpx`, Pydantic, LangSmith |
-| **Time budget** | Thu 2026-11-05 to Mon 2026-11-23 (8–9 h on weekdays, max. 6 h on weekend days), including tests, evaluation, documentation and review preparation (see §13). The course estimates 18 hours; the larger scope is deliberate (portfolio project, measured decisions, tests) and prioritised so that the core journey is complete first |
+| **Time budget** | Fri 2026-11-06 to Mon 2026-11-23 (submission; the review may take place afterwards). Implementation by Claude Code; Ingo (business owner) about 1–2 hours a day for decisions, commit approvals and code reading; no project work from Fri 11-13 to Sun 11-15 noon (see §13). The course estimates 18 hours; the larger scope is deliberate (portfolio project, measured decisions, tests) and ordered so that the core journey is complete first |
 
 ---
 
@@ -525,7 +525,7 @@ docs/
 | Medium 1 – Calculate and display token usage and costs | FR-18 AC2 | Must (buffer) |
 | Easy 3 – Choose the LLM from a list | FR-18 AC1 | Should |
 | Easy 4 – Main model settings as fields | FR-18 AC1 | Should |
-| Medium 6 – Extra function tools with UI to enable/disable them | FR-12, FR-18 AC1 | Could – only if the core journey is complete by the gate date (§13) |
+| Medium 6 – Extra function tools with UI to enable/disable them | FR-12, FR-18 AC1 | Could – after the core journey (gate 1, §13) |
 
 Not claimed: Medium 3 and Hard 5 (the external API is the core data source, not an additional tool or source); Hard 3 (evaluation is tool trajectory and rubric agreement, not Ragas/DeepEval); Hard 4 (learning from feedback, out of scope).
 
@@ -535,27 +535,25 @@ The bonus target "at least 2 medium and 1 hard" is met by Must items alone (Medi
 
 ---
 
-## 13. Plan (draft, as of 2026-11-05)
+## 13. Plan (agreed 2026-11-05)
 
-> **Draft – not yet agreed.** Dates are a first proposal and are reviewed together before they apply; afterwards they are updated as the project progresses.
+Implementation by Claude Code; decisions, commit approvals and the labelling of the fit set by Ingo. The plan is updated as the project progresses.
 
-**Capacity:** 8–9 h on weekdays, max. 6 h on Saturdays and Sundays.
+| Period | Claude Code builds | Ingo decides, checks, learns |
+|---|---|---|
+| Fri 11-06 | Tooling and CI, `config.py`, `.env.example`; spikes D-4 (model, extraction on 5 real listings) and D-5 (interrupt/resume in Streamlit) | Starts the spikes; decision files D-4, D-5, D-6 (evening or Sat) |
+| Sat 11-07 – Sun 11-08 | Cleaned fixture set and ad-text cleaning (FR-22), BA client, fit rubric (§7) with tests | Confirms the rubric start values (decision file) |
+| Mon 11-09 – Wed 11-11 | Tools, agent, middleware, HITL, profile (FR-14), Streamlit UI of the core journey | Approves commits; **Wed evening: gate 1 – core journey complete** |
+| Thu 11-12 | Fixes, buffer | Visit preparation; if time allows, walk-through of the architecture diagram (about 1 h) |
+| Fri 11-13 – Sun 11-15 noon | – | **No project work** |
+| Sun 11-15 afternoon – Mon 11-16 | Tracker view, long-term memory, threads, demo mode (FR-11, FR-13 – FR-15, FR-19) | Short status check |
+| Tue 11-17 – Wed 11-18 | Scenario sets, evaluation runs, safety tests, LangSmith traces | **Labels 16–20 listings (about 2 h)**; reviews the results (decision file) |
+| Thu 11-19 – Fri 11-20 | Should items (FR-12, FR-17, tool toggles for Medium 6), fixes from the evaluation | Approves commits |
+| Sat 11-21 | **Feature freeze.** README, screenshots | Reads the README |
+| Sun 11-22 | Review question list, demo route | Review preparation |
+| Mon 11-23 | – | **Submission**, review booking |
 
-| Date | Focus |
-|---|---|
-| Thu 11-05 | Spike D-1 to D-3 (done), spec v0.1 |
-| Fri 11-06 | External review of spec v0.1; spike D-4 (model, structured extraction on 5 listings) and D-5 (interrupt/resume in Streamlit with `SqliteSaver`); spec v0.2; tooling and CI |
-| Sat 11-07 – Sun 11-08 | Cleaned fixture set, BA client, rubric and PII cleaning with tests |
-| Mon 11-09 – Wed 11-11 | Tools, agent, middleware, HITL; core journey on the console, then in Streamlit |
-| Thu 11-12 – Fri 11-13 | Tracker, memory, threads; demo mode; scenario sets and fit labels |
-| Sat 11-14 – Sun 11-15 | **Core journey complete (gate).** Evaluation runs; LangSmith traces |
-| Mon 11-16 – Tue 11-17 | Should items (agent steps panel, `list_tracker`, tool toggles), safety tests |
-| Wed 11-18 | **Feature freeze.** README, screenshots |
-| Thu 11-19 | Submit project and book the review |
-| Fri 11-20 – Sun 11-22 | Review preparation (question list, demo route), buffer |
-| Mon 11-23 | Deadline |
-
-**Cut rule:** if the core journey is not complete on Sun 11-15, no Should or Could item is started.
+**Rule:** nothing is cut. If gate 1 is not reached on Wed 11-11, the Should items move later; the core journey keeps priority.
 
 ---
 
@@ -575,7 +573,7 @@ The bonus target "at least 2 medium and 1 hard" is met by Must items alone (Medi
 | R-3 | Extraction errors lead to wrong categories | Evidence check (FR-05 AC2), "unknown" instead of guessing, fit evaluation with error analysis |
 | R-4 | Latency of `assess_fit` | Max. 8 listings, parallel calls, progress labels; measured in §9 |
 | R-5 | HITL across Streamlit reruns is fiddly | Spike D-5 on day 2, before the agent is built |
-| R-6 | Scope larger than time | Core journey first, gate on 11-15, cut rule |
+| R-6 | Scope larger than time | Core journey first (gate 1 on 11-11), Should items move later instead of being cut; submission on 11-23 with the review afterwards |
 | R-7 | Evaluation validity | Small sets, one labeller; dev/test separation; stated in the README |
 
 ---
@@ -586,3 +584,4 @@ The bonus target "at least 2 medium and 1 hard" is met by Must items alone (Medi
 |---|---|---|
 | v0.1 | 2026-11-05 | First draft from product brief v2, council verdict (2026-11-05) and spike D-1 to D-3 |
 | v0.1.1 | 2026-11-05 | §13 marked as draft (dates not yet agreed); §12.3 and D-4/D-5 refer to §13 instead of fixed dates |
+| v0.1.2 | 2026-11-05 | §13 replaced by the agreed plan (implementation by Claude Code, visit 11-13 to 11-15, gate 1 on 11-11, submission 11-23); time budget, §12.3 and R-6 adjusted |
