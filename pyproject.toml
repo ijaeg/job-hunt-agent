@@ -1,7 +1,7 @@
 [project]
 name = "job-hunt-agent"
 version = "0.1.0"
-description = "Add your description here"
+description = "Streamlit agent that searches the German Federal Employment Agency job board, assesses listing fit against a user profile, and shortlists results with human-approved tracker and memory writes"
 readme = "README.md"
 authors = [
     { name = "ijaeg", email = "ijaeg@protonmail.com" }
@@ -9,11 +9,41 @@ authors = [
 requires-python = ">=3.13"
 dependencies = [
     "httpx>=0.28.1",
+    "langchain>=1.4.9",
+    "langchain-openai>=1.7.4",
+    "langgraph>=1.2.20",
+    "langgraph-checkpoint-sqlite>=3.1.3",
+    "pydantic>=2.14.3",
+    "python-dotenv>=1.2.4",
+    "pyyaml>=6.0.3",
+    "streamlit>=1.66.1",
 ]
-
-[project.scripts]
-job-hunt-agent = "job_hunt_agent:main"
 
 [build-system]
 requires = ["uv_build>=0.12.17,<0.13.0"]
 build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "mypy>=2.4.1",
+    "pytest>=9.2.0",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.17.3",
+    "types-pyyaml>=6.0.12.20261103",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM"]
+
+[tool.mypy]
+python_version = "3.13"
+ignore_missing_imports = true
+check_untyped_defs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--cov=job_hunt_agent --cov-report=term-missing"
