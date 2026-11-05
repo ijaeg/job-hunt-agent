@@ -64,6 +64,12 @@ date).
 
 ## Hand-over to the coach
 
+**Prompts are part of the record.** As the first step of every work package,
+save the prompt verbatim as `docs/prompts/WP-<NN>-<short-name>.md` (two-digit
+number, next free one) with a header: date and `Related:` line (requirement and
+decision IDs). Include it in the first commit of the package. Never put keys or
+ad text into a prompt file.
+
 At the end of every work session, append an entry to `docs/session_log.md`:
 date, what was done (with requirement IDs), state of the checks (pytest / ruff /
 mypy), new or open decision files, and what comes next. Evaluation and spike
