@@ -4,9 +4,9 @@
 |---|---|
 | **Project** | Turing College – AI Engineering, Sprint 3 project ("Building with AI Agents") |
 | **Author** | Ingo Jäger |
-| **Status** | v0.1.2 – first draft, 2026-11-05 (changes: see §15) |
+| **Status** | v0.1.3 – first draft, 2026-11-05 (changes: see §15) |
 | **Audience** | Developer (implementation guide) and Turing College tutor (review guide) |
-| **Stack** | Python 3.13 (uv), Streamlit, LangChain `create_agent` (LangGraph runtime) against the OpenRouter API (OpenAI-compatible), SQLite (`SqliteSaver` checkpointer, tracker, long-term memory), `httpx`, Pydantic, LangSmith |
+| **Stack** | Python 3.13 (uv), Streamlit, LangChain `create_agent` (LangGraph runtime) against the OpenRouter API (OpenAI-compatible), SQLite (`SqliteSaver` checkpointer, `SqliteStore` for long-term memory, own tables for tracker and profile), `httpx`, Pydantic, LangSmith |
 | **Time budget** | Fri 2026-11-06 to Mon 2026-11-23 (submission; the review may take place afterwards). Implementation by Claude Code; Ingo (business owner) about 1–2 hours a day for decisions, commit approvals and code reading; no project work from Fri 11-13 to Sun 11-15 noon (see §13). The course estimates 18 hours; the larger scope is deliberate (portfolio project, measured decisions, tests) and ordered so that the core journey is complete first |
 
 ---
@@ -125,6 +125,7 @@ Searches the BA job board (v6 search endpoint, D-1).
 - AC4: "No results" (`maxErgebnisse = 0`, list key missing) is a normal result with `total = 0`, not an error (D-1).
 - AC5: Listings already seen in this thread are marked (`seen: true`) using the state field `seen_refs` (§5.3).
 - AC6: Arguments outside the allowed ranges are clamped and the clamping is reported in the tool result.
+- AC7: The tool description asks for plain keywords. Boolean operators and quote syntax proposed by the model (e.g. `AI OR "Machine Learning"`, seen in spike D-4) are removed by code before the API call, and the removal is reported in `notes`. Whether the BA API supports such syntax is unverified.
 
 #### FR-03 Search refinement by the agent (Must)
 - AC1: The system prompt states the target: a shortlist of 3–8 assessable listings. With `total > 50` the agent narrows (more specific keywords, smaller radius, shorter publication age); with `total < 3` it broadens or asks the user.
@@ -181,7 +182,8 @@ Assesses up to 8 listings per call against the profile.
 - AC2: The UI shows the exact proposed change (tool, listing or preference, values) with three buttons; the agent resumes with `Command(resume=...)` on the same thread.
 - AC3: After `reject`, the agent confirms that nothing was stored. A **rejection lock** in state (`rejected_actions`: hash of tool name and arguments) prevents the same action from being proposed again in this thread; the agent explains instead.
 - AC4: No write tool can execute without a recorded approval, also not via retry or after resuming a thread (tested, §9.3).
-- AC5: The interrupt/resume flow works across Streamlit reruns (spike D-5 before implementation).
+- AC5: The interrupt/resume flow works across Streamlit reruns and app restarts: the pending interrupt is read from the checkpointer (`get_state(config).interrupts`), not from Streamlit session state; one shared SQLite connection (`check_same_thread=False`, cached with `st.cache_resource`) (D-5).
+- AC6: The system prompt states that approval happens automatically outside the conversation, so the agent proposes write actions directly instead of asking the user for permission in text (observed in spike D-5).
 
 #### FR-11 Tracker view (Must)
 - AC1: A tracker page lists all entries of the user with status, follow-up date and note; entries with a follow-up date in the past are highlighted.
@@ -204,7 +206,7 @@ Assesses up to 8 listings per call against the profile.
 
 #### FR-15 Tool `remember` and long-term memory (Must)
 - Input: `kind` (`excluded_employer` / `preference`), `value`.
-- AC1: Stores the item in the SQLite table `memories` per user; runs only after approval (FR-10).
+- AC1: Stores the item in a SQLite-backed LangGraph store (`SqliteStore`), namespaced per user (`("memories", user_id)`); runs only after approval (FR-10). The tool reaches the store via `ToolRuntime.store` (D-6).
 - AC2: Stored items are loaded into the agent's context at the start of every thread.
 - AC3: The memory view lists all items; the user can delete each one.
 - AC4: `excluded_employer` items are applied by code in FR-06 (as an exclusion reason "excluded by you").
@@ -245,6 +247,7 @@ Assesses up to 8 listings per call against the profile.
 - AC2: In addition, `PIIMiddleware` runs with `apply_to_tool_results=True` for `email` (built-in) and a custom detector for phone numbers; the built-in `url` detector is **not** used because it would remove the links to the listings.
 - AC3: The five listings from the spike with contact names (D-3) are part of the test set for AC1; the test passes when no name remains.
 - AC4: The README documents which data is stored (profile, tracker, memories, threads), where (local SQLite file), what is sent to the model (cleaned ad texts, profile without personal identifiers) and how each can be deleted.
+- AC5: Cleaning applies to free-text fields only (`stellenangebotsBeschreibung`, title), never to IDs or structured fields. The phone detector (AC1, AC2) requires phone context (e.g. "Tel", "Telefon", "+49", typical grouping) and must **not** match reference numbers: a test with real `referenznummer` values such as `19522-0068291613-S` passes when they stay unchanged. (Found in WP-01: the D-1 spike regex masked this reference number as `19522-[TELEFON]-S`.)
 
 #### FR-23 Prompt injection via ad texts (Must)
 - AC1: Ad texts are passed to the model inside clearly marked data blocks; the system prompt states that instructions inside listings are data, not commands.
@@ -299,7 +302,7 @@ Tools read and write this state through `ToolRuntime` (e.g. `search_jobs` update
 | 5 | `HumanInTheLoopMiddleware` | `after_model` | Interrupt before write tools | FR-10 |
 | 6 | Tool error handling (own) | `wrap_tool_call` | Exceptions → `not_applicable_reason` | FR-21 AC3 |
 
-The exact hook order of #4 and #5 is verified in spike D-5.
+The table shows the order of **execution**. `after_model` hooks run in **reverse** list order (found in spike D-5 by reading `langchain/agents/factory.py`), so in code the rejection lock is listed **after** `HumanInTheLoopMiddleware`: `middleware=[…, HumanInTheLoopMiddleware(...), RejectionLockMiddleware()]`. The lock uses `before_model` and `after_model` and the state field `rejected_actions` (D-5).
 
 ### 5.5 Model and provider
 
@@ -466,7 +469,7 @@ src/job_hunt_agent/
     limits.py
     rejection_lock.py
     tool_errors.py
-  storage.py                    SQLite: profiles, tracker, memories
+  storage.py                    SQLite: profiles and tracker tables; SqliteStore setup for memories (D-6)
   models.py                     Pydantic models (§6)
 prompts/
   system.md
@@ -564,14 +567,14 @@ Implementation by Claude Code; decisions, commit approvals and the labelling of 
 | D-1 | Job board API | **Decided (2026-11-05):** BA v6 search + v4 details; `zeitarbeit=false` and `istArbeitnehmerUeberlassung` for the temporary-agency exclusion; structured fields for remote, distance, contract, salary. Details: `spikes/NOTES.md` |
 | D-2 | Ad texts as LLM input | **Decided (2026-11-05):** median 4,200 characters → max. 8 listings per `assess_fit` call, parallel extraction; teasers flagged `low_evidence` |
 | D-3 | Personal data in ad texts | **Decided (2026-11-05):** names of contact persons occur in free text (5 of 40); raw responses stay local; cleaned fixture set committed; cleaning before the model (FR-22) |
-| D-4 | Model and extraction quality | **Open (planned for Fri 11-06, §13):** confirm `openai/gpt-5-mini` for tool calling and `JobRequirements` extraction on 5 real listings; check ZDR availability |
-| D-5 | Interrupt/resume in Streamlit | **Open (planned for Fri 11-06, §13):** `HumanInTheLoopMiddleware` + `SqliteSaver` across reruns; order of rejection lock and HITL; thread-safe SQLite connection |
-| D-6 | Long-term memory storage | **Open:** own SQLite table (as in course module 4) vs. LangGraph store; decide in D-5 |
+| D-4 | Model and extraction quality | **Decided (2026-11-05):** `openai/gpt-5-mini` stays the default; `anthropic/claude-haiku-4.5` is the secondary option (FR-18). Spike on 5 listings × 2 runs, ZDR for both: valid `JobRequirements` 10/10 each; verbatim evidence 97.2 % vs. 94.4 %; mean latency 15.8 s vs. 24.5 s; tool calling 3/3 each. Small sample, go/no-go only. Details: `docs/decisions/D-4-model.md` |
+| D-5 | Interrupt/resume in Streamlit | **Decided (2026-11-05):** spike design carried over unchanged – `RejectionLockMiddleware` listed after HITL (§5.4), interrupt read from the checkpointer, one shared SQLite connection (FR-10 AC5, AC6). 6 automated AppTest checks and one real-model run passed. Details: `docs/decisions/D-5-hitl-streamlit.md` |
+| D-6 | Long-term memory storage | **Decided (2026-11-05):** `SqliteStore` for memories (FR-15); own tables for tracker and profile (FR-09, FR-11, FR-14) in `storage.py`; one shared SQLite file unless a later problem shows otherwise. Details: `docs/decisions/D-6-memory-storage.md` |
 | D-7 | Terms of use of the BA API | **Open:** check whether storing listings (tracker: ID, title, employer, URL only) is allowed; the tracker never stores ad texts |
 | R-1 | API changes or becomes unavailable | Demo mode (FR-19), fixture-based evaluation |
 | R-2 | Agent loop not visible enough in the review | Demo script with refinement (S1), agent steps panel, LangSmith traces |
 | R-3 | Extraction errors lead to wrong categories | Evidence check (FR-05 AC2), "unknown" instead of guessing, fit evaluation with error analysis |
-| R-4 | Latency of `assess_fit` | Max. 8 listings, parallel calls, progress labels; measured in §9 |
+| R-4 | Latency of `assess_fit` | Spike D-4: one extraction takes 15.8 s on average with `gpt-5-mini` (reasoning effort `low`), so 8 listings with 4 parallel calls need more than 30 s – NFR-03 (S1 within 60 s) is at risk. Levers to measure when `assess_fit` is built: lower reasoning effort for the extraction only, a smaller schema, fewer listings per call; progress labels throughout |
 | R-5 | HITL across Streamlit reruns is fiddly | Spike D-5 on day 2, before the agent is built |
 | R-6 | Scope larger than time | Core journey first (gate 1 on 11-11), Should items move later instead of being cut; submission on 11-23 with the review afterwards |
 | R-7 | Evaluation validity | Small sets, one labeller; dev/test separation; stated in the README |
@@ -585,3 +588,4 @@ Implementation by Claude Code; decisions, commit approvals and the labelling of 
 | v0.1 | 2026-11-05 | First draft from product brief v2, council verdict (2026-11-05) and spike D-1 to D-3 |
 | v0.1.1 | 2026-11-05 | §13 marked as draft (dates not yet agreed); §12.3 and D-4/D-5 refer to §13 instead of fixed dates |
 | v0.1.2 | 2026-11-05 | §13 replaced by the agreed plan (implementation by Claude Code, visit 11-13 to 11-15, gate 1 on 11-11, submission 11-23); time budget, §12.3 and R-6 adjusted |
+| v0.1.3 | 2026-11-05 | Decisions D-4, D-5, D-6 recorded (§14); §5.4 note on middleware list order; FR-10 AC5/AC6 (interrupt from checkpointer, system-prompt rule); FR-15 AC1 and §11 (`SqliteStore`); FR-02 AC7 (plain keywords); FR-22 AC5 (clean free text only, phone detector must not match reference numbers); R-4 with spike numbers |
