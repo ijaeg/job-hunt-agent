@@ -4,7 +4,7 @@
 |---|---|
 | **Project** | Turing College – AI Engineering, Sprint 3 project ("Building with AI Agents") |
 | **Author** | Ingo Jäger |
-| **Status** | v0.1.5 – first draft, 2026-11-06 (changes: see §15) |
+| **Status** | v0.1.6 – first draft, 2026-11-06 (changes: see §15) |
 | **Audience** | Developer (implementation guide) and Turing College tutor (review guide) |
 | **Stack** | Python 3.13 (uv), Streamlit, LangChain `create_agent` (LangGraph runtime) against the OpenRouter API (OpenAI-compatible), SQLite (`SqliteSaver` checkpointer, `SqliteStore` for long-term memory, own tables for tracker and profile), `httpx`, Pydantic, LangSmith |
 | **Time budget** | ≈ 50 hours over two weeks (Mon 2026-11-09 to Fri 2026-11-20), including tests, documentation and review preparation; submission by Mon 2026-11-23 |
@@ -230,6 +230,7 @@ Assesses up to 8 listings per call against the profile.
 - AC2: The UI shows a visible banner "Demo data – not live listings".
 - AC3: Demo mode switches on automatically (with a message) when the API is unreachable at start-up.
 - AC4: The fixture set contains no contact names, e-mail addresses or phone numbers (checked by a test, D-3) and includes the prompt-injection listing for S5.
+- AC5: The fixture set consists of cleaned real listings and is committed (D-8). The README names the source (job board of the German Federal Employment Agency), the retrieval date and the purpose (demo and tests only).
 
 ### 4.7 Safety, security and privacy
 
@@ -369,15 +370,17 @@ Defined before any listing is labelled for evaluation (§9.3).
 
 | Dimension | Source | met | partly | not met | unknown |
 |---|---|---|---|---|---|
-| **Skills** (weight 2) | LLM extraction vs. profile | ≥ 70 % of required skills in profile | 40–69 % | < 40 % | no required skills extracted |
+| **Skills** (weight 2) | LLM extraction vs. profile | ≥ 70 % of extracted skills in profile | 40–69 % | < 40 % | no skills extracted |
 | **Location / remote** (weight 1) | API: `entfernung`, `homeofficetyp`, `homeofficeprozent` vs. profile | within radius and remote preference satisfied | within radius, remote not stated | outside radius without full remote | – |
 | **Seniority** (weight 1) | LLM extraction vs. profile | same level | one level apart | two or more levels apart | not mentioned |
 | **Language** (weight 1) | LLM extraction vs. profile | requirement ≤ user's level | one level above | two or more above | not mentioned |
 | **Employment type** (weight 1) | API: `arbeitszeitVollzeit`, `befristungInMonaten` vs. profile | matches | – | does not match | not stated |
 
+**Skills:** every extracted skill counts, whether marked `required` or not (D-9: the model rarely sets `required`). A profile skill matches when it occurs in the extracted skill name as a **whole word**, case-insensitive: "Java" matches "Java" and "Java, Python", but not "JavaScript"; "C" does not match "CI/CD".
+
 **Scoring:** met = 2, partly = 1, not met = 0 points, multiplied by the weight; `unknown` dimensions are left out of both numerator and denominator. Share of reached points: ≥ 75 % → `strong`, 45–74 % → `partial`, < 45 % → `poor`. Any hard exclusion (FR-06) → `excluded`. If more than two dimensions are `unknown`, the category is at most `partial` and `low_evidence` is set.
 
-The thresholds are tuned on the development listings only (§9.3) and documented with their values in `spikes/NOTES.md`.
+The thresholds are tuned on the development listings only (§9.3) and documented with their values in `spikes/NOTES.md`. Start values confirmed in D-9.
 
 ---
 
@@ -401,7 +404,7 @@ No stack trace ever reaches the UI.
 
 ### 9.1 Datasets
 
-- **Cleaned fixture set** (`data/samples/fixtures/`): about 40 listings from the spike responses, contact data removed (FR-22), plus 3 crafted listings (prompt injection, teaser only, temporary agency). Used for demo mode, tests and evaluation.
+- **Cleaned fixture set** (`data/samples/fixtures/listings.json`): 40 listings from the spike responses, contact data removed (FR-22), plus 3 crafted listings (prompt injection, teaser only, temporary agency) – 43 in total, built by `scripts/build_fixtures.py`, committed (D-8). Used for demo mode, tests and evaluation.
 - **Scenario set** for tool-trajectory evaluation: 10 development scenarios, 10 test scenarios; the test scenarios are written after tuning and never used for tuning.
 - **Labelled fit set:** 20 listings labelled by hand with the rubric (§7): 8 development, 12 test.
 
@@ -476,7 +479,9 @@ prompts/
   extract_requirements.md
 data/samples/
   profile_alex.yaml
-  fixtures/                     cleaned listings (committed)
+  fixtures/listings.json        cleaned listings (committed, D-8)
+scripts/
+  build_fixtures.py             builds the fixture set from the raw spike responses
 eval/
   scenarios_dev.yaml, scenarios_test.yaml
   fit_labels.csv
@@ -534,7 +539,7 @@ Not claimed: Medium 3 and Hard 5 (the external API is the core data source, not 
 
 The bonus target "at least 2 medium and 1 hard" is met by Must items alone (Medium 2, Medium 8, Hard 2), with Medium 1 as buffer.
 
-**README sections required (NFR-07):** purpose and persona · screenshots · setup · usage with the demo script · architecture (agent graph with middleware) · model vs. code decisions · agent type choice · tools and function calling · fit rubric · HITL flow · memory and data handling · evaluation results · safety tests · known limitations · ideas for improvement · traceability · note on tooling and AI assistance.
+**README sections required (NFR-07):** purpose and persona · screenshots · setup · usage with the demo script · architecture (agent graph with middleware) · model vs. code decisions · agent type choice · tools and function calling · fit rubric · HITL flow · memory and data handling · evaluation results · safety tests · known limitations · ideas for improvement · traceability · data source and attribution (D-8) · note on tooling and AI assistance.
 
 ---
 
@@ -559,6 +564,8 @@ Nothing is cut in advance: if time runs short, items further down this order mov
 | D-5 | Interrupt/resume in Streamlit | **Decided (2026-11-05):** spike design carried over unchanged – `RejectionLockMiddleware` listed after HITL (§5.4), interrupt read from the checkpointer, one shared SQLite connection (FR-10 AC5, AC6). 6 automated AppTest checks and one real-model run passed. Details: `docs/decisions/D-5-hitl-streamlit.md` |
 | D-6 | Long-term memory storage | **Decided (2026-11-05):** `SqliteStore` for memories (FR-15); own tables for tracker and profile (FR-09, FR-11, FR-14) in `storage.py`; one shared SQLite file unless a later problem shows otherwise. Details: `docs/decisions/D-6-memory-storage.md` |
 | D-7 | Terms of use of the BA API | **Open:** check whether storing listings (tracker: ID, title, employer, URL only) is allowed; the tracker never stores ad texts |
+| D-8 | Fixture content | **Decided (2026-11-06):** the cleaned real listings (43, incl. 3 crafted) are committed; risk judged low for a non-commercial learning repo, removable in one commit if anyone objects; source attribution in the README (FR-19 AC5). Details: `docs/decisions/D-8-fixture-content.md` |
+| D-9 | Rubric start values | **Decided (2026-11-06):** start values of §7 kept (weights, 75 %/45 %, 70 %/40 %); Skills counts all extracted skills, not only `required` ones; demo profile `profile_alex.yaml` confirmed. Whole-word skill matching (§7) replaces the first substring version, which matched "Java" in "JavaScript" (found in the coach review of WP-02). Details: `docs/decisions/D-9-rubric-start-values.md` |
 | R-1 | API changes or becomes unavailable | Demo mode (FR-19), fixture-based evaluation |
 | R-2 | Agent loop not visible enough in the review | Demo script with refinement (S1), agent steps panel, LangSmith traces |
 | R-3 | Extraction errors lead to wrong categories | Evidence check (FR-05 AC2), "unknown" instead of guessing, fit evaluation with error analysis |
@@ -579,3 +586,4 @@ Nothing is cut in advance: if time runs short, items further down this order mov
 | v0.1.3 | 2026-11-05 | Decisions D-4, D-5, D-6 recorded (§14); §5.4 note on middleware list order; FR-10 AC5/AC6 (interrupt from checkpointer, system-prompt rule); FR-15 AC1 and §11 (`SqliteStore`); FR-02 AC7 (plain keywords); FR-22 AC5 (clean free text only, phone detector must not match reference numbers); R-4 with spike numbers |
 | v0.1.4 | 2026-11-06 | Time budget in the header corrected to ≈ 50 hours over two weeks (as in Sprint 1); working mode removed from the header (to be described in the README) |
 | v0.1.5 | 2026-11-06 | §13 "Plan" replaced by "Order of work" without dates (the schedule is not part of the spec); references to §13 and gate 1 in the header, §12.3 and R-6 adjusted |
+| v0.1.6 | 2026-11-06 | Decisions D-8 and D-9 recorded (§14); §7 Skills counts all extracted skills with whole-word matching; FR-19 AC5 (fixtures committed, source attribution); §9.1 and §11 updated to the built fixture set; README sections list adds data source |
