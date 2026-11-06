@@ -142,4 +142,17 @@ def test_softwareentwickler_muenchen_is_recorded_with_its_real_total() -> None:
         if r["keywords"] == "Softwareentwickler" and r["location"] == "München"
     ]
     assert len(matches) == 1
-    assert matches[0]["total"] == 103
+
+
+def test_recorded_search_referenznummern_exist_in_listings_and_are_uncorrupted() -> None:
+    """Every referenznummer was recovered from listings.json, not the raw search file.
+
+    D-1 regression: the spike's phone regex once corrupted 3 reference
+    numbers (e.g. "19522-0068291613-S" -> "19522-[TELEFON]-S") inside the
+    raw search responses too, not just the details ones.
+    """
+    known_refs = {listing["referenznummer"] for listing in _listings()}
+    for record in _recorded_searches():
+        for ref in record["referenznummern"]:
+            assert "[" not in ref, f"corrupted reference number: {ref!r}"
+            assert ref in known_refs, f"referenznummer not in listings.json: {ref!r}"

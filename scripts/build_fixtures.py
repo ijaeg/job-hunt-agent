@@ -235,7 +235,46 @@ def crafted_listings() -> list[dict[str, Any]]:
     ]
 
 
-def build_recorded_searches() -> list[dict[str, Any]]:
+def recover_referenznummer(raw_ref: str, known_refs: set[str]) -> str | None:
+    """Recovers the true referenznummer for one search-result item.
+
+    The raw search responses in ``spikes/fixtures/search/`` were scrubbed by
+    the same context-free phone regex as the details responses (D-1
+    regression), corrupting 3 of them (e.g. ``19522-0068291613-S`` ->
+    ``19522-[TELEFON]-S``) - never recovered from the search file itself,
+    only matched against ``known_refs`` (``listings.json``, already correct
+    - built from the uncorrupted details file names, see
+    ``build_listing_from_details``).
+
+    Args:
+        raw_ref: The (possibly corrupted) ``referenznummer`` from a search
+            response item.
+        known_refs: Every correct referenznummer in ``listings.json``.
+
+    Returns:
+        The matching entry from ``known_refs``, or ``None`` if ``raw_ref``
+        is not corrupted and has no case-insensitive match (never
+        detail-fetched, so not in ``listings.json``), or is corrupted and
+        matches zero or more than one candidate (ambiguous).
+
+    Related: D-1, D-10
+    """
+    if "[" not in raw_ref:
+        for ref in known_refs:
+            if ref.upper() == raw_ref.upper():
+                return ref
+        return None
+
+    prefix, _, suffix = raw_ref.partition("[TELEFON]")
+    candidates = [
+        ref
+        for ref in known_refs
+        if ref.upper().startswith(prefix.upper()) and ref.upper().endswith(suffix.upper())
+    ]
+    return candidates[0] if len(candidates) == 1 else None
+
+
+def build_recorded_searches(known_refs: set[str]) -> list[dict[str, Any]]:
     """Replays the 5 raw D-1 search responses as (query, total, refs) records.
 
     No ad text and no listing fields beyond the reference number - just
@@ -245,16 +284,26 @@ def build_recorded_searches() -> list[dict[str, Any]]:
     "Softwareentwickler" / "München": 103 results) instead of being capped
     at the committed fixture set's own size (43).
 
+    ``referenznummern`` only ever contains entries from ``known_refs``
+    (``listings.json``) - a search result never detail-fetched, or a
+    corrupted one that cannot be unambiguously recovered, is simply
+    dropped from the list; ``total`` always stays the real recorded count,
+    independent of how many of those references happen to be in the
+    committed listing set.
+
     Related: FR-03 AC1, FR-03 AC3, D-1, D-10
     """
     records = []
     for query in RECORDED_QUERIES:
         body = json.loads((SEARCH_DIR / query["file"]).read_text(encoding="utf-8"))
-        refs = [
-            item["referenznummer"]
-            for item in body.get("ergebnisliste") or []
-            if isinstance(item, dict) and isinstance(item.get("referenznummer"), str)
-        ]
+        refs = []
+        for item in body.get("ergebnisliste") or []:
+            raw_ref = item.get("referenznummer") if isinstance(item, dict) else None
+            if not isinstance(raw_ref, str):
+                continue
+            recovered = recover_referenznummer(raw_ref, known_refs)
+            if recovered is not None:
+                refs.append(recovered)
         records.append(
             {
                 "keywords": query["keywords"],
@@ -280,7 +329,8 @@ def main() -> int:
     OUT_PATH.write_text(json.dumps(listings, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"Wrote {len(listings)} listings to {OUT_PATH}")
 
-    recorded_searches = build_recorded_searches()
+    known_refs = {listing["referenznummer"] for listing in listings}
+    recorded_searches = build_recorded_searches(known_refs)
     RECORDED_SEARCHES_OUT_PATH.write_text(
         json.dumps(recorded_searches, ensure_ascii=False, indent=2), encoding="utf-8"
     )
