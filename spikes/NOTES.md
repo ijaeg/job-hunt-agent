@@ -95,7 +95,7 @@ Script: `spikes/extraction_check.py`. Raw outputs (contain ad text) in `spikes/f
 | "AI roles in Berlin from this week" | `search_jobs`, location Berlin, `published_within_days≤7` | correct | correct |
 | "What's the weather?" | no tool call | correct (no call) | correct (no call) |
 
-Both models: 3/3 correct. `gpt-5-mini` picked a tighter keyword string; `claude-haiku-4.5` expanded "AI" into a long OR-list of synonyms in one case — still a valid search, just more verbose.
+Both models: 3/3 correct. For "AI roles in Berlin", `gpt-5-mini` expanded "AI" into a long OR-list of synonyms (`AI OR "Artificial Intelligence" OR "Machine Learning" OR ML OR Data Scientist OR "Deep Learning"`), while `claude-haiku-4.5` searched for `AI` only (`spikes/d4_results.json`). Whether the BA API supports this syntax is unverified; FR-02 AC7 requires plain keywords and removes operators in code. *(Corrected 2026-11-06: the first version of this paragraph had the two models swapped.)*
 
 ### Ad-text cleaning example (contact-name listing, `13545-dztbhcdpfnhf7dsr-s.json`, temporary-agency listing)
 
