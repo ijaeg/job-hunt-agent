@@ -174,6 +174,74 @@ def test_kontakt_header_also_opens_a_dropped_block() -> None:
     assert counts["contact_lines_removed"] == 3
 
 
+def test_enger_kontakt_sentence_is_not_mistaken_for_a_contact_heading() -> None:
+    """D-10 follow-up 3: "Kontakt" deep in a task sentence does not open a block.
+
+    Found on 2 real D-1 listings: a requirement bullet point survived being
+    recognised as a name but was then dropped anyway by the old
+    unanchored CONTACT_MARKER_PATTERN, together with the rest of the ad.
+    """
+    text = (
+        "- Enger Kontakt mit den technischen Produktverantwortlichen, um sie durch "
+        "fundiertes Wissen ueber die Cloud-Vorteile zur Migration ihrer Anwendungen "
+        "zu bewegen\n"
+        "- Weitere Aufgabe im Team."
+    )
+    cleaned, _ = clean_ad_text(text)
+    assert "Enger Kontakt" in cleaned
+    assert "Weitere Aufgabe im Team." in cleaned
+
+
+def test_im_direkten_kontakt_sentence_is_not_mistaken_for_a_contact_heading() -> None:
+    """D-10 follow-up 3: "Kontakt" as the object of a sentence does not open a block."""
+    text = (
+        "Du stehst im direkten Kontakt mit Kunden und kuemmerst dich um deren Anliegen.\n"
+        "Weitere Aufgabe im Team."
+    )
+    cleaned, _ = clean_ad_text(text)
+    assert "im direkten Kontakt mit Kunden" in cleaned
+    assert "Weitere Aufgabe im Team." in cleaned
+
+
+def test_contact_block_stops_at_the_next_heading_not_the_rest_of_the_ad() -> None:
+    """D-10 follow-up 3: the dropped block is bounded, not everything to the end."""
+    text = (
+        "## Dein Profil\n"
+        "- Erfahrung mit Python.\n\n"
+        "## Kontakt\n"
+        "Personalabteilung\n\n"
+        "## Noch mehr Infos\n"
+        "Diese Stelle ist auch remote moeglich und bietet flexible Arbeitszeiten."
+    )
+    cleaned, _ = clean_ad_text(text)
+    assert "Erfahrung mit Python" in cleaned
+    assert "Personalabteilung" not in cleaned
+    assert "Diese Stelle ist auch remote moeglich" in cleaned
+
+
+def test_contact_block_does_not_swallow_the_next_unseparated_section() -> None:
+    """D-10 follow-up 3: a real listing had a requirements section lost this way.
+
+    "Dein Kontakt...: <Name>" was immediately followed, with no blank line,
+    by a plain-text subsection ("Das bringst du mit") and its full-sentence
+    requirement bullets - the old unbounded line-count cap swallowed 6 of
+    them. A contact-block continuation line is always short; a sentence
+    this long ends the block instead of being dropped.
+    """
+    text = (
+        "Dein Kontakt fuer diese Stelle ist: Lina Rackl\n"
+        "Das bringst du mit\n"
+        "  *  Du hast ein abgeschlossenes technisches Studium oder vergleichbare "
+        "technische Kenntnisse, die du beispielsweise durch mehrjaehrige "
+        "Berufserfahrung erworben hast\n"
+        "  *  Sehr gute Deutschkenntnisse (mind. B2) in Wort und Schrift"
+    )
+    cleaned, _ = clean_ad_text(text)
+    assert "Lina Rackl" not in cleaned
+    assert "abgeschlossenes technisches Studium" in cleaned
+    assert "Sehr gute Deutschkenntnisse" in cleaned
+
+
 def test_job_title_line_is_not_mistaken_for_a_name() -> None:
     """A plain two-word job title with no following phone line survives."""
     text = "Python Entwickler\n\nWir suchen eine engagierte Persoenlichkeit."

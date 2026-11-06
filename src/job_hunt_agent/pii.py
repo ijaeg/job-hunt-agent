@@ -55,11 +55,49 @@ INLINE_NAME_PATTERN = re.compile(
     r"\b(Frau|Herrn?)\s+([A-ZÄÖÜ][\wäöüß\-]*(?:\s+[A-ZÄÖÜ][\wäöüß\-]*){0,2})"
 )
 
-#: A header line that starts a contact block - "Ansprechpartner",
-#: "Kontakt", "Ihr Kontakt", "Ihr Ansprechpartner" (D-3 pattern 4).
-#: Everything from this line to the end of the text is the signature /
-#: contact block in every BA ad seen in the D-1 spike.
-CONTACT_MARKER_PATTERN = re.compile(r"\b(ihr\s+)?ansprechpartner\b|\b(ihr\s+)?kontakt\b", re.I)
+#: A heading-like line that opens a contact block - "Ansprechpartner",
+#: "Kontakt", "Ihr Kontakt", "Ihr Ansprechpartner:", "## Dein:e
+#: Ansprechpartner:in", "**ANSPRECHPARTNER FÜR FACHLICHE FRAGEN**" (D-3
+#: pattern 4). Anchored at the *start* of the line (after only an optional
+#: markdown decoration - heading hashes or bold/italic markers - and an
+#: optional "Ihr(e)"/"Dein(:e)" possessive) - "Enger Kontakt mit..." and
+#: "im direkten Kontakt mit Kunden" do not match because the marker is not
+#: the first word (D-10 follow-up 3: the old unanchored ``search`` matched
+#: "Kontakt"/"Ansprechpartner" anywhere in a line, including ordinary
+#: requirement/task sentences, and then dropped everything to the end of
+#: the ad).
+CONTACT_HEADING_PATTERN = re.compile(
+    r"^\s*(?:#{1,6}|\*{1,3}|_{1,3})?\s*(?:ihre?|dein(?::e)?)?\s*(?:ansprechpartner|kontakt)\b",
+    re.I,
+)
+
+#: A line long enough that it reads as a sentence, not a heading/label -
+#: even when it happens to start with the contact marker. Comfortably
+#: covers "Ihr Ansprechpartner: Herr Jonas Weber" (D-3 pattern 4, name
+#: inline on the heading line itself) and
+#: "**Ansprechpartner: <Name>, Tel: [TELEFON], Mobil: [TELEFON]**" (a real
+#: D-10 follow-up 3 find - name and phone labels combined on one line).
+CONTACT_HEADING_MAX_LENGTH = 90
+
+#: A markdown heading - ends a contact block early, same as a blank line.
+MARKDOWN_HEADING_PATTERN = re.compile(r"^\s*#{1,6}\s")
+
+#: How many lines after a contact-heading line can still be part of the
+#: block, if neither a blank line nor the next heading ends it first
+#: (D-10 follow-up 3: bounded, so a false-positive heading can no longer
+#: eat the rest of the ad - previously unbounded).
+CONTACT_BLOCK_MAX_LINES = 6
+
+#: A contact-block continuation line (name, company, street, phone,
+#: e-mail) is always short - a real listing found during D-10 follow-up 3
+#: had an inline "Dein Kontakt...: <Name>" line directly followed, with no
+#: blank line, by a differently-styled subsection ("Das bringst du mit")
+#: and its full-sentence requirement bullets. Without a length cap the
+#: block swallowed 6 lines of real requirements. Same cap as
+#: ``CONTACT_HEADING_MAX_LENGTH`` - a continuation line this long is a
+#: sentence, not a contact-block entry, and ends the block immediately
+#: without being dropped.
+CONTACT_BLOCK_LINE_MAX_LENGTH = CONTACT_HEADING_MAX_LENGTH
 
 #: A line that is just "<First> <Last>" with no "Frau/Herr" prefix
 #: (D-3 pattern 3: a name immediately before a phone-context line).
@@ -73,39 +111,71 @@ def _has_phone_context(line: str) -> bool:
     return bool(PHONE_CONTEXT_PATTERN.search(line) or PHONE_PREFIX_PATTERN.search(line))
 
 
+def _is_contact_heading(line: str) -> bool:
+    return len(line.strip()) <= CONTACT_HEADING_MAX_LENGTH and bool(
+        CONTACT_HEADING_PATTERN.match(line)
+    )
+
+
 def _drop_contact_lines(text: str) -> tuple[str, int]:
-    """Removes name-signature lines and the trailing contact block.
+    """Removes name-signature lines and a bounded contact block.
 
     Three of the five D-3 name patterns are line-shaped: a standalone
     "Frau/Herr <Name>" signature line (patterns 2 and 5), a bare name line
     immediately followed by a phone-context line (pattern 3), and a
-    contact-marker line that opens the block running to the end of the ad
-    (pattern 4). The fourth and fifth pattern reuse the same two rules.
+    contact-heading line that opens a block of up to
+    ``CONTACT_BLOCK_MAX_LINES`` more lines (pattern 4). A single blank line
+    directly after the heading is normal markdown spacing and is skipped
+    rather than ending the block immediately - real ad content typically
+    reads "## Kontakt\\n\\nHerr X\\n..."; the block still ends at the next
+    blank line, the next heading, or a line too long to be a contact-block
+    entry (``CONTACT_BLOCK_LINE_MAX_LENGTH`` - a name/company/phone line is
+    always short, unlike the next section's sentences), whichever comes
+    first, so it never runs to the end of the ad. The fourth and fifth
+    pattern reuse the same two rules.
 
-    Related: FR-22 AC1, D-3
+    Related: FR-22 AC1, D-3, D-10
     """
     lines = text.split("\n")
     kept: list[str] = []
     removed = 0
-    contact_block = False
+    n = len(lines)
+    i = 0
 
-    for i, line in enumerate(lines):
-        if contact_block:
+    while i < n:
+        line = lines[i]
+        if _is_contact_heading(line):
             removed += 1
-            continue
-        if CONTACT_MARKER_PATTERN.search(line):
-            contact_block = True
-            removed += 1
+            i += 1
+            if i < n and lines[i].strip() == "":
+                removed += 1
+                i += 1
+            remaining = CONTACT_BLOCK_MAX_LINES
+            while i < n and remaining > 0:
+                candidate = lines[i]
+                stripped_candidate = candidate.strip()
+                if (
+                    stripped_candidate == ""
+                    or MARKDOWN_HEADING_PATTERN.match(candidate)
+                    or len(stripped_candidate) > CONTACT_BLOCK_LINE_MAX_LENGTH
+                ):
+                    break
+                removed += 1
+                remaining -= 1
+                i += 1
             continue
         if NAME_SIGNATURE_LINE_PATTERN.match(line):
             removed += 1
+            i += 1
             continue
         if PERSON_NAME_LINE_PATTERN.match(line):
-            next_line = lines[i + 1] if i + 1 < len(lines) else ""
+            next_line = lines[i + 1] if i + 1 < n else ""
             if _has_phone_context(next_line):
                 removed += 1
+                i += 1
                 continue
         kept.append(line)
+        i += 1
 
     return "\n".join(kept), removed
 
