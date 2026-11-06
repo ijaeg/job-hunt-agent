@@ -1,0 +1,21 @@
+# Fictional demo profile matching the Alex persona (spec §3.1).
+# No real CV is stored here (CLAUDE.md invariant 4); loadable with one
+# click in the profile form (FR-14 AC2). Fields match job_hunt_agent.models.Profile
+# exactly - no name, e-mail, phone or address field (FR-14 AC3).
+
+skills:
+  - Python
+  - Java
+  - FastAPI
+  - PostgreSQL
+  - Docker
+  - CI/CD
+seniority: senior
+location: Hamburg
+radius_km: 25
+remote_preference: hybrid
+wants_full_time: true
+wants_permanent: true
+exclude_temp_agency: true
+german_level: basic
+english_level: native

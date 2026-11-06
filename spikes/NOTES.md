@@ -209,3 +209,18 @@ Confirms the whole flow (propose -> interrupt -> approve -> execute -> model con
 ### Manual test checklist
 
 See `docs/manual_tests/D-5-checklist.md`.
+
+## D-8 preparation: pii_check.py on the 40 raw D-1 listings (2026-11-06)
+
+Script: `spikes/pii_check.py`. Per-listing detail (still contains ad text,
+gitignored): `spikes/fixtures/pii_check.json`. Runs the real
+`job_hunt_agent.pii.clean_ad_text` - the same function the BA client and the
+cleaned fixture set (D-8) will use - over all raw listings from the D-1 spike.
+
+- Listings checked: 40
+- E-mail addresses masked: 0
+- Phone numbers masked: 0
+- Contact/name lines removed: 186
+- Listings with a still-suspicious line after cleaning: 0
+
+**Goal met: 0 remaining contact names** after cleaning.
