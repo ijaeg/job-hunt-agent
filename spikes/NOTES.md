@@ -224,3 +224,103 @@ cleaned fixture set (D-8) will use - over all raw listings from the D-1 spike.
 - Listings with a still-suspicious line after cleaning: 0
 
 **Goal met: 0 remaining contact names** after cleaning.
+
+## WP-03 core journey: real-model console run (2026-11-06)
+
+Script: `scripts/run_core_journey.py`. One continuous thread (`core-journey-wp03`), live
+BA API (`job_source=BAClient`, D-10), real model (`openai/gpt-5-mini`, reasoning effort
+`low`). Full per-scenario record (no ad text): `eval/results/core_journey_wp03.json`.
+
+Per-scenario tool calls are the **new** calls that scenario added to the thread (a script
+bug recorded the full cumulative history instead; corrected post-hoc by diffing, not by
+re-running - see the `note` field in the JSON file for the exact fix).
+
+| Scenario | Elapsed (s) | New tool calls | Tokens (in/out, cumulative) |
+|---|---|---|---|
+| S1 | 30.6 | search_jobs, get_job_details ×6, assess_fit | 22,467 / 1,138 |
+| S2 | 7.5 | (none - answered from state) | 32,731 / 2,074 |
+| S3_propose | 2.8 | save_to_tracker (interrupted) | 43,772 / 2,289 |
+| S3_approve | 1.9 | (resume; tool executes, no new proposal) | 55,036 / 2,358 |
+| S4_propose | 2.1 | remember (interrupted) | 66,386 / 2,412 |
+| S4_reject | 2.6 | (resume; tool does not execute) | 77,824 / 2,610 |
+| S6 | 3.2 | (none - off-topic refusal) | 89,360 / 2,732 |
+
+**Confirmed correct, verified directly against the SQLite file (not just the model's own
+words) after the run:**
+- S3 (FR-10 AC1): `save_to_tracker` ran only after approval - the tracker table has
+  exactly the one entry (NTT DATA, Senior AI Engineer, `follow_up_date` 2026-11-13, the
+  user's note).
+- S4 (FR-10 AC3): the rejected `remember` call never persisted - the memory store is
+  empty (`store.search(("memories", "alex")) == []`).
+- S2 (FR-08 AC1): the follow-up question added zero new tool calls, confirming it was
+  answered from the stored assessment, not a new search/assess_fit.
+- S6 (FR-21 AC2): the off-topic question added zero new tool calls and got a short
+  refusal that steered back to job search.
+
+**S1 refinement was NOT shown this run:** exactly one `search_jobs` call; the agent did
+not narrow or broaden. Either the real total for "Python AI" in Hamburg over 14 days
+genuinely did not cross the ">50 narrow" or "<3 broaden" thresholds (plausible - D-1's
+own spike numbers for similarly specific queries were in the single-to-low-double
+digits), or the model simply judged the ~11 results reported in its final answer "good
+enough" without the agent needing to retry. FR-03 AC3 ("the trace of demo scenario S1
+shows at least one refinement") is **not yet demonstrated** by this run; a follow-up run
+with a deliberately broad query (e.g. a generic title with no city restriction, or a
+very short `published_within_days`) is needed before using S1 as the refinement demo
+for the review.
+
+**Minor wording observation (not a code defect, verified against the DB above):** after
+the S4 rejection, the model's own summary said "the tracker call failed" when it meant
+the `remember` (exclusion) call - confusing phrasing, worth tightening in
+`prompts/system.md` later, but the actual behaviour (nothing persisted) was correct.
+
+**Latency (NFR-03, R-4):** S1 took 30.6 s total, of which `assess_fit`'s extraction step
+(6 listings, 4 concurrent) was 14.0 s - well within the 60 s budget. No D-11 decision
+needed this run.
+
+**Found and fixed during this work package, before this run:** `runtime: ToolRuntime[...]
+| None = None` on every tool silently broke the framework's injected-argument detection
+(`_is_injected_arg_type` only recognises the bare/un-wrapped type), so `runtime` stayed
+in the model-facing JSON schema LangChain builds for `bind_tools()` - invisible against
+every scripted-model test (which never calls real `bind_tools()`), but fatal against the
+real `ChatOpenAI.bind_tools()` on the very first live call. Fixed by making `runtime` a
+required, keyword-only parameter (`*, runtime: ToolRuntime[...]`) with no default, the
+documented pattern. A structural argument for always doing at least one real-model smoke
+run before considering tool-layer work done, not just scripted-model tests.
+
+## D-10 Option 4 follow-up: S1 re-run in demo mode, "Softwareentwickler" / München (2026-11-06)
+
+Decision D-10 (Option 4, Ingo): `FixtureSource` now replays the 5 recorded D-1 search
+totals exactly (`data/samples/fixtures/recorded_searches.json`, query params + total +
+reference numbers only, no ad text). Re-ran S1 in demo mode with the real model, same
+agent/thread pattern as the earlier live run, to confirm the narrowing direction now
+fires.
+
+**Turn 1** - "Find Softwareentwickler jobs in München.": one `search_jobs` call
+(keywords "Softwareentwickler", location "München", default radius 25 km / 28 days) -
+`FixtureSource` matched the recorded query exactly and reported **total: 103** (the
+real D-1 number, not the fixture set's own ~6-result ceiling). The model recognised
+"too many results" and asked the user which dimension to narrow (tech stack, seniority,
+employment type, remote, radius, recency) rather than guessing - it did not
+autonomously retry within this turn.
+
+**Turn 2** - "Java, Senior level please.": two `search_jobs` calls, both now outside
+the recorded-query match (different keywords, so the normal filter path over the 43
+committed listings applies): "Java Senior Softwareentwickler" (total 0), then "Senior
+Java Entwickler" with `published_within_days` widened 28->60 (total 0). Both returned
+zero because `FixtureSource`'s keyword match requires every term present in
+title+employer, and none of the 3 München-tagged real listings contain "Senior" and
+"Java" and "Entwickler"/"Developer" together under that exact wording - a known,
+separate limitation of the fixture search's simple AND-of-terms matching, not a D-10
+or replay defect.
+
+**Conclusion:** D-10 Option 4 works as intended - demo mode now genuinely exercises
+*both* refinement directions in one conversation: `total=103` (">50, narrow") on turn
+1, followed by two re-tries with different, more specific keywords and a widened
+publication window on turn 2 (the model's own reaction to two 0-result searches,
+matching FR-03 AC1's "< 3 results -> broaden" instinct even though here it was 0, not
+literally reported as "<3" text - the agent treated "no results" as the broaden
+trigger). No results were ultimately found for the narrowed query - an honest fixture
+limitation (worth revisiting if a cleaner demo ending is wanted later), not hidden here.
+3 total `search_jobs` calls across the two-turn conversation confirm FR-03 AC3 ("the
+trace of demo scenario S1 shows at least one refinement") is now demonstrable in demo
+mode, not only against the live API.
