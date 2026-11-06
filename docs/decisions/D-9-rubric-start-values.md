@@ -212,3 +212,35 @@ against building one yet.
 skills, not only `required: true` ones. Start values (weights, 75 %/45 %,
 70 %/40 %), substring/normalised skill matching, and the demo profile all
 stay as shipped. - Ingo, 2026-11-06
+
+## Addendum (WP-03, 2026-11-06): whole-word matching, no category changes
+
+The substring matching this file originally shipped with was too loose:
+"Java" matched inside "JavaScript", "C" matched inside "CI/CD", "R" matched
+inside "Docke**r**". `skill_matches_profile` now requires a whole-word match
+(case-insensitive, via `(?<!\w)...(?!\w)` lookarounds - plain `\b` fails on
+tokens like "C#"/"C++" since a non-word character on both sides of the
+token leaves no word/non-word transition for `\b` to anchor on).
+
+Re-ran the same 5 D-4 listings (gpt-5-mini run 1, demo profile) with the
+new whole-word matcher:
+
+| Referenznummer | Category (substring, as decided above) | Category (whole-word) | Changed? |
+|---|---|---|---|
+| 10001-1003893191-S | partial | partial | no |
+| 12336-a26f1192j0455715-S | partial | partial | no |
+| 13545-DZTBHCDPFNHF7DSR-S | excluded | excluded | no |
+| 19522-0068291613-S | poor | poor | no |
+| 19913-3087851793401200-S | partial | partial | no |
+
+**No category changed** on this sample. The matched-skill counts did shift
+down for two listings (12336: 1/7 unchanged; 13545: 3/11 -> 2/11, one
+substring false-positive removed; 19522: 0/18 unchanged; 19913: 1/11
+unchanged; 10001: 2/14 unchanged) - all stayed within the same `not_met`
+bucket (share < 40 %) either way, so the fix corrects a real false-positive
+source (confirmed by the dedicated matching tests: "Java"/"JavaScript",
+"C"/"CI/CD", "R"/"Docker") without moving any of these 5 listings' output.
+No further action needed here; worth re-checking once the labelled fit set
+(§9.3) exists, since a larger or differently-shaped sample could expose a
+case where it does flip a category.
+
