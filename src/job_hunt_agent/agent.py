@@ -10,9 +10,11 @@ hard exclusion from an excluded employer already works independently
 (``rubric.hard_exclusions``, read live from the store inside
 ``assess_fit`` - see ``tools/assess.py``). Tracked for a follow-up, not a
 deviation requiring a decision file (CLAUDE.md): it is an incomplete
-feature, not a changed contract.
+feature, not a changed contract. The *profile* (FR-01 AC4), by contrast,
+*is* wired - ``middleware/profile_context.py`` - because autonomous search
+refinement (FR-03 AC1, D-10 addendum) needs it to narrow with.
 
-Related: spec §5, §5.4, FR-10, FR-15 AC2 (gap), D-5, D-6
+Related: spec §5, §5.4, FR-01 AC4, FR-10, FR-15 AC2 (gap), D-5, D-6, D-10
 """
 
 from __future__ import annotations
@@ -31,6 +33,7 @@ from job_hunt_agent.middleware.limits import (
     build_model_call_limit_middleware,
 )
 from job_hunt_agent.middleware.pii_guard import build_pii_middlewares
+from job_hunt_agent.middleware.profile_context import LoadProfileContextMiddleware
 from job_hunt_agent.middleware.rejection_lock import RejectionLockMiddleware
 from job_hunt_agent.middleware.tool_errors import tool_error_middleware
 from job_hunt_agent.state import JobHuntState
@@ -85,6 +88,7 @@ def build_agent(model: Any, conn: sqlite3.Connection) -> Any:
     # without weakening any individual middleware's own type checking.
     middleware: list[Any] = [
         InputGuardMiddleware(),
+        LoadProfileContextMiddleware(),
         *build_pii_middlewares(),
         build_model_call_limit_middleware(),
         ResetSearchCallCounterMiddleware(),

@@ -388,10 +388,16 @@ class FixtureSource:
     (``recorded_searches.json``, sibling to the listing file), ``search``
     replays the *real* recorded total instead of the committed listing
     set's own size (at most ~6 for any query - too small to ever show the
-    ">50, narrow" refinement direction, D-10 Option 4). Any other query
-    falls back to filtering the committed listings as before.
+    ">50, narrow" refinement direction, D-10 Option 4). A query that
+    *narrows* a recorded one (same location, its keywords plus more terms,
+    radius/age the same or smaller) filters that recorded query's own
+    listings - restricted to the ones actually present in ``listings.json``
+    - by the narrower criteria; this can honestly be 0 if none of that
+    recorded query's listings happen to be in the committed set (D-10
+    addendum, 2026-11-06 - no invented numbers either way). Any other query
+    falls back to filtering the full committed listing set as before.
 
-    Related: FR-19 AC1, D-8, D-10
+    Related: FR-03 AC1, FR-19 AC1, D-8, D-10
     """
 
     def __init__(self, fixtures_path: Path | None = None) -> None:
@@ -429,6 +435,38 @@ class FixtureSource:
                 return record
         return None
 
+    def _narrows_recorded_query(
+        self, keywords: str, location: str, radius_km: int, published_within_days: int
+    ) -> dict[str, Any] | None:
+        """A recorded search this query narrows, or ``None`` (D-10 addendum).
+
+        "Narrows": same location; every one of the recorded query's own
+        keyword terms is also present in this query's terms (same topic,
+        possibly more specific - "the recorded keywords plus more terms");
+        radius and publication age are the same or smaller. Excludes an
+        exact match (``_recorded_match`` handles that case instead).
+        """
+        query_terms = {t.lower() for t in keywords.split() if t}
+        for record in self._recorded_searches:
+            if str(record["location"]).strip().lower() != location.strip().lower():
+                continue
+            record_terms = {t.lower() for t in str(record["keywords"]).split() if t}
+            if not record_terms <= query_terms:
+                continue
+            radius_too_wide = radius_km > record["radius_km"]
+            age_too_wide = published_within_days > record["published_within_days"]
+            if radius_too_wide or age_too_wide:
+                continue
+            is_exact = (
+                query_terms == record_terms
+                and radius_km == record["radius_km"]
+                and published_within_days == record["published_within_days"]
+            )
+            if is_exact:
+                continue
+            return record
+        return None
+
     def search(
         self,
         keywords: str,
@@ -444,7 +482,29 @@ class FixtureSource:
         radius_km = _clamp(radius_km, RADIUS_KM_RANGE, "radius_km", notes)
         page = max(page, 1)
 
+        terms = [t.lower() for t in clean_keywords.split() if t]
+
+        def matches(listing: dict[str, Any]) -> bool:
+            if exclude_temp_agency and listing.get("is_temp_agency") is True:
+                return False
+            haystack = f"{listing.get('title', '')} {listing.get('employer', '')}".lower()
+            if terms and not all(term in haystack for term in terms):
+                return False
+            if location and location.lower() not in (listing.get("location") or "").lower():
+                distance = listing.get("distance_km")
+                if distance is None or distance > radius_km:
+                    return False
+            return True
+
         recorded = self._recorded_match(clean_keywords, location, radius_km, published_within_days)
+        narrowed_from = (
+            None
+            if recorded is not None
+            else self._narrows_recorded_query(
+                clean_keywords, location, radius_km, published_within_days
+            )
+        )
+
         if recorded is not None:
             total = int(recorded["total"])
             by_ref = {listing["referenznummer"]: listing for listing in self._listings}
@@ -454,21 +514,19 @@ class FixtureSource:
                 if ref in by_ref
                 and not (exclude_temp_agency and by_ref[ref].get("is_temp_agency") is True)
             ]
+        elif narrowed_from is not None:
+            notes.append(
+                f"narrowed from the recorded query '{narrowed_from['keywords']}' / "
+                f"{narrowed_from['location']} (D-10 addendum)"
+            )
+            candidate_refs = set(narrowed_from["referenznummern"])
+            matching = [
+                listing
+                for listing in self._listings
+                if listing["referenznummer"] in candidate_refs and matches(listing)
+            ]
+            total = len(matching)
         else:
-            terms = [t.lower() for t in clean_keywords.split() if t]
-
-            def matches(listing: dict[str, Any]) -> bool:
-                if exclude_temp_agency and listing.get("is_temp_agency") is True:
-                    return False
-                haystack = f"{listing.get('title', '')} {listing.get('employer', '')}".lower()
-                if terms and not all(term in haystack for term in terms):
-                    return False
-                if location and location.lower() not in (listing.get("location") or "").lower():
-                    distance = listing.get("distance_km")
-                    if distance is None or distance > radius_km:
-                        return False
-                return True
-
             matching = [listing for listing in self._listings if matches(listing)]
             total = len(matching)
 

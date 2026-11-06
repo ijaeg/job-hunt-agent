@@ -575,3 +575,147 @@ def test_fixture_source_without_recorded_searches_file_falls_back(fixture_path: 
     )
     assert total == 0
     assert summaries == []
+
+
+# ---------------------------------------------------------------------------
+# FixtureSource: narrowing a recorded query (D-10 addendum, 2026-11-06)
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+def narrowing_fixture_path(tmp_path: Path) -> Path:
+    """A München recorded search (total 103) with one real matching listing in range.
+
+    ``MUC-JAVA-SENIOR-S`` is both within the recorded query's own reference
+    numbers and the committed listing set - its title matches "Java" and
+    "Senior" so a narrower, on-topic query should find it.
+    ``MUC-OTHER-S`` is in the committed listings but was never part of the
+    recorded München search - a narrowing query must not pick it up.
+    """
+    listings = [
+        {
+            "referenznummer": "MUC-JAVA-SENIOR-S",
+            "title": "Senior Java Softwareentwickler (m/w/d)",
+            "employer": "Beispiel AG München",
+            "location": "München",
+            "distance_km": 5.0,
+            "published_date": "2026-11-01",
+            "remote_type": None,
+            "remote_percent": None,
+            "salary_min": None,
+            "salary_max": None,
+            "full_time": True,
+            "contract_duration": "UNBEFRISTET",
+            "external_url": False,
+            "description": "x" * 1000,
+            "is_temp_agency": False,
+            "is_private_recruiter": False,
+            "contract_months": None,
+            "low_evidence": False,
+        },
+        {
+            "referenznummer": "MUC-OTHER-S",
+            "title": "Senior Java Softwareentwickler, nicht Teil der aufgezeichneten Suche",
+            "employer": "Andere Firma",
+            "location": "München",
+            "distance_km": 5.0,
+            "published_date": "2026-11-01",
+            "remote_type": None,
+            "remote_percent": None,
+            "salary_min": None,
+            "salary_max": None,
+            "full_time": True,
+            "contract_duration": "UNBEFRISTET",
+            "external_url": False,
+            "description": "x" * 1000,
+            "is_temp_agency": False,
+            "is_private_recruiter": False,
+            "contract_months": None,
+            "low_evidence": False,
+        },
+    ]
+    recorded = [
+        {
+            "keywords": "Softwareentwickler",
+            "location": "München",
+            "radius_km": 25,
+            "published_within_days": 28,
+            "total": 103,
+            "referenznummern": ["MUC-JAVA-SENIOR-S"],
+        }
+    ]
+    listings_path = tmp_path / "listings.json"
+    listings_path.write_text(json.dumps(listings), encoding="utf-8")
+    (tmp_path / "recorded_searches.json").write_text(json.dumps(recorded), encoding="utf-8")
+    return listings_path
+
+
+def test_fixture_source_narrowing_query_finds_the_recorded_listing(
+    narrowing_fixture_path: Path,
+) -> None:
+    """D-10 addendum: recorded keywords + more terms, same location, smaller radius."""
+    source = FixtureSource(fixtures_path=narrowing_fixture_path)
+    summaries, total, notes = source.search(
+        "Java Senior Softwareentwickler", "München", radius_km=10, published_within_days=14
+    )
+    assert total == 1
+    assert [s.referenznummer for s in summaries] == ["MUC-JAVA-SENIOR-S"]
+    assert any("narrowed from" in note for note in notes)
+
+
+def test_fixture_source_narrowing_query_excludes_listings_outside_the_recorded_search(
+    narrowing_fixture_path: Path,
+) -> None:
+    """MUC-OTHER-S matches the keywords but was never part of the recorded search."""
+    source = FixtureSource(fixtures_path=narrowing_fixture_path)
+    summaries, total, _ = source.search(
+        "Java Senior Softwareentwickler", "München", radius_km=25, published_within_days=28
+    )
+    assert total == 1
+    assert [s.referenznummer for s in summaries] == ["MUC-JAVA-SENIOR-S"]
+
+
+def test_fixture_source_narrowing_is_honest_about_zero_results(
+    narrowing_fixture_path: Path,
+) -> None:
+    """A narrowing query whose extra term the one recorded listing doesn't match: total 0."""
+    source = FixtureSource(fixtures_path=narrowing_fixture_path)
+    summaries, total, _ = source.search(
+        "Softwareentwickler Kubernetes", "München", radius_km=25, published_within_days=28
+    )
+    assert total == 0
+    assert summaries == []
+
+
+def test_fixture_source_wider_radius_does_not_count_as_narrowing(
+    narrowing_fixture_path: Path,
+) -> None:
+    """A *wider* radius than the recorded query is not a narrowing - falls back to generic."""
+    source = FixtureSource(fixtures_path=narrowing_fixture_path)
+    summaries, total, notes = source.search(
+        "Java Senior Softwareentwickler", "München", radius_km=50, published_within_days=28
+    )
+    # Falls through to the generic path over the whole committed set, so both
+    # München listings (both keyword-matching) are found, not just the recorded one.
+    assert total == 2
+    assert not any("narrowed from" in note for note in notes)
+
+
+def test_fixture_source_dropping_a_recorded_keyword_does_not_count_as_narrowing(
+    narrowing_fixture_path: Path,
+) -> None:
+    """Replacing the recorded keyword entirely falls back to the generic path, not narrowing.
+
+    "Entwickler" is a substring of "Softwareentwickler" (the generic filter
+    matches substrings, not whole words), so the generic path still finds
+    both München listings here - the point of this test is the *absence*
+    of the "narrowed from" note, i.e. this did not take the
+    recorded-query-restricted path, not the resulting count.
+    """
+    source = FixtureSource(fixtures_path=narrowing_fixture_path)
+    summaries, total, notes = source.search(
+        "Java Senior Entwickler", "München", radius_km=25, published_within_days=28
+    )
+    assert not any("narrowed from" in note for note in notes)
+    assert total == 2
+    assert {s.referenznummer for s in summaries} == {"MUC-JAVA-SENIOR-S", "MUC-OTHER-S"}
