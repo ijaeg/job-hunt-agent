@@ -45,10 +45,14 @@ NAME_SIGNATURE_LINE_PATTERN = re.compile(
     r"^\s*(?:Frau|Herrn?)\s+[A-ZÄÖÜ][\wäöüß\-]*(?:\s+[A-ZÄÖÜ][\wäöüß\-]*){0,2}\s*$"
 )
 
-#: Inline "bei Frau <Name>" / "... bei Herrn <Name>" (D-3 pattern 1); the
-#: name is replaced, the surrounding sentence is kept.
+#: Inline "Frau <Name>" / "Herr(n) <Name>" anywhere in a sentence - not just
+#: after "bei" (D-3 pattern 1 was "bei Frau/Herrn <Name>" only; D-10 follow-up
+#: 2 found two real names surviving cleaning in other positions, e.g. "Herr
+#: Salmen gibt Ihnen..." and "...steht Frau Stefanie Ruf gerne..."). Only the
+#: name is replaced, the "Frau"/"Herr(n)" token and the rest of the sentence
+#: are kept.
 INLINE_NAME_PATTERN = re.compile(
-    r"\bbei\s+(Frau|Herrn?)\s+([A-ZÄÖÜ][\wäöüß\-]*(?:\s+[A-ZÄÖÜ][\wäöüß\-]*){0,2})"
+    r"\b(Frau|Herrn?)\s+([A-ZÄÖÜ][\wäöüß\-]*(?:\s+[A-ZÄÖÜ][\wäöüß\-]*){0,2})"
 )
 
 #: A header line that starts a contact block - "Ansprechpartner",
@@ -130,7 +134,7 @@ def clean_ad_text(text: str) -> tuple[str, dict[str, int]]:
     def _mask_inline_name(match: re.Match[str]) -> str:
         nonlocal inline_names_removed
         inline_names_removed += 1
-        return f"bei {match.group(1)} [NAME]"
+        return f"{match.group(1)} [NAME]"
 
     without_inline_names = INLINE_NAME_PATTERN.sub(_mask_inline_name, without_contact_lines)
 

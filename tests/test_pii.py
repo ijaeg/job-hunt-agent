@@ -99,6 +99,26 @@ def test_pattern_1_inline_name_after_bei_frau() -> None:
     assert counts["contact_lines_removed"] == 1
 
 
+def test_inline_name_not_preceded_by_bei_is_still_masked() -> None:
+    """D-10 follow-up 2: "Frau/Herr <Name>" mid-sentence without a "bei" is masked too.
+
+    Found on 2 real München listings: "Herr Salmen gibt Ihnen weitere
+    Informationen" and "...steht Frau Stefanie Ruf gerne unter der
+    Telefonnummer..." - the original pattern only matched after "bei".
+    """
+    text = "Bei Fragen zur Stelle gibt Ihnen Herr Salmen gerne Auskunft."
+    cleaned, counts = clean_ad_text(text)
+    assert "Salmen" not in cleaned
+    assert "Herr [NAME]" in cleaned
+    assert counts["contact_lines_removed"] == 1
+
+    text2 = "Fuer Rueckfragen steht Ihnen Frau Stefanie Ruf gerne zur Verfuegung."
+    cleaned2, counts2 = clean_ad_text(text2)
+    assert "Stefanie Ruf" not in cleaned2
+    assert "Frau [NAME]" in cleaned2
+    assert counts2["contact_lines_removed"] == 1
+
+
 def test_pattern_2_signature_line_is_dropped() -> None:
     """D-3 pattern 2: a standalone "Herr <Name>" signature line is dropped."""
     text = "Ihr Team von Dock 22\n\nHerr Torben Schulz\nDock 22 GmbH\nAm Sandtorkai 23"
