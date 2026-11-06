@@ -484,10 +484,13 @@ class FixtureSource:
 
         terms = [t.lower() for t in clean_keywords.split() if t]
 
-        def matches(listing: dict[str, Any]) -> bool:
+        def matches(listing: dict[str, Any], *, include_description: bool = False) -> bool:
             if exclude_temp_agency and listing.get("is_temp_agency") is True:
                 return False
-            haystack = f"{listing.get('title', '')} {listing.get('employer', '')}".lower()
+            haystack = f"{listing.get('title', '')} {listing.get('employer', '')}"
+            if include_description:
+                haystack = f"{haystack} {listing.get('description', '')}"
+            haystack = haystack.lower()
             if terms and not all(term in haystack for term in terms):
                 return False
             if location and location.lower() not in (listing.get("location") or "").lower():
@@ -519,11 +522,16 @@ class FixtureSource:
                 f"narrowed from the recorded query '{narrowed_from['keywords']}' / "
                 f"{narrowed_from['location']} (D-10 addendum)"
             )
+            # Narrowing checks description too (not just title/employer, unlike the
+            # generic path below) - the whole point of narrowing is the model's
+            # *more specific* terms, which are more likely to only appear in the ad
+            # body (D-10 follow-up 2).
             candidate_refs = set(narrowed_from["referenznummern"])
             matching = [
                 listing
                 for listing in self._listings
-                if listing["referenznummer"] in candidate_refs and matches(listing)
+                if listing["referenznummer"] in candidate_refs
+                and matches(listing, include_description=True)
             ]
             total = len(matching)
         else:

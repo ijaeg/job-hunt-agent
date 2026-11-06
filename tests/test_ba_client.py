@@ -607,7 +607,8 @@ def narrowing_fixture_path(tmp_path: Path) -> Path:
             "full_time": True,
             "contract_duration": "UNBEFRISTET",
             "external_url": False,
-            "description": "x" * 1000,
+            "description": "Infrastruktur als Code mit Terraform gehoert zu deinen Aufgaben. "
+            + "x" * 900,
             "is_temp_agency": False,
             "is_private_recruiter": False,
             "contract_months": None,
@@ -699,6 +700,26 @@ def test_fixture_source_wider_radius_does_not_count_as_narrowing(
     # München listings (both keyword-matching) are found, not just the recorded one.
     assert total == 2
     assert not any("narrowed from" in note for note in notes)
+
+
+def test_fixture_source_narrowing_matches_a_term_only_present_in_the_description(
+    narrowing_fixture_path: Path,
+) -> None:
+    """D-10 follow-up 2: narrowing checks description text, not just title/employer.
+
+    ``MUC-JAVA-SENIOR-S``'s description mentions "Terraform" nowhere in its
+    title, only in its description (``narrowing_fixture_path``).
+    """
+    source = FixtureSource(fixtures_path=narrowing_fixture_path)
+    summaries, total, notes = source.search(
+        "Java Senior Softwareentwickler Terraform",
+        "München",
+        radius_km=10,
+        published_within_days=14,
+    )
+    assert total == 1
+    assert [s.referenznummer for s in summaries] == ["MUC-JAVA-SENIOR-S"]
+    assert any("narrowed from" in note for note in notes)
 
 
 def test_fixture_source_dropping_a_recorded_keyword_does_not_count_as_narrowing(
