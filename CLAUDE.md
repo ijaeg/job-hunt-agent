@@ -76,6 +76,33 @@ mypy), new or open decision files, and what comes next. Evaluation and spike
 results go to `eval/results/` or `spikes/` as CSV or JSON plus a short Markdown
 summary; never only to the terminal.
 
+## Checks before hand-over
+
+Run these yourself, in the same session, before you report a step or a work
+package as done. Report each result with numbers; a failed check is fixed or
+reported, never skipped.
+
+1. **Code checks:** `uv run pytest` (no skipped tests), `uv run ruff check .`,
+   `uv run ruff format --check .`, `uv run mypy src` (plus `app.py pages` once
+   they exist).
+2. **Real-model smoke run:** any change to tools, prompts, middleware or the
+   agent gets at least one run against the real model, not only the mocked
+   one (a mocked model cannot catch schema or binding errors).
+3. **Data integrity** whenever fixtures, recorded searches or evaluation sets
+   change: every `referenznummer` is valid (no `[`, exists where it is
+   referenced); the PII check reports 0 names, e-mail addresses and phone
+   numbers; text cleaning removes at most 10 % of any ad text unless the
+   excess is a contact block (list those cases).
+4. **Data covers the scenario:** before building on a demo or evaluation
+   scenario, check that the data can actually produce it (e.g. a search that
+   must return more than 50 results, listings that must exist in the fixture
+   set). If not, stop and report.
+5. **Docs match the data:** numbers and model names in `spikes/NOTES.md`,
+   decision files and the session log are taken from the result files, not
+   from memory.
+6. **Scope of the package:** if a step turns out much larger than planned,
+   stop at the next clean point and report instead of continuing.
+
 ## Commands
 
 **uv only.** Never run bare `pip`, `python` or `pytest`.
