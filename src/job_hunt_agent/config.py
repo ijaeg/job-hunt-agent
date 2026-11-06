@@ -115,3 +115,21 @@ MAX_MODEL_CALLS_PER_MESSAGE: int = 10
 
 #: Maximum ``search_jobs`` calls per user message (FR-20 AC1, FR-03 AC2).
 MAX_SEARCH_CALLS_PER_MESSAGE: int = 3
+
+#: Maximum user message length in characters (FR-01 AC2).
+MAX_MESSAGE_LENGTH: int = 1000
+
+# ---------------------------------------------------------------------------
+# Storage (spec §5, D-5, D-6)
+# ---------------------------------------------------------------------------
+
+#: One shared SQLite file for the checkpointer, the memory store and the
+#: tracker/profile tables (D-5, D-6); overridable so tests use a temp file.
+DB_PATH: str = os.getenv("DB_PATH", str(PROJECT_ROOT / "data" / "job_hunt_agent.sqlite"))
+
+#: Maximum listings per ``assess_fit`` call (FR-05 AC6).
+MAX_LISTINGS_PER_ASSESS_FIT_CALL: int = 8
+
+#: Maximum concurrent structured-extraction calls within one ``assess_fit``
+#: call (FR-05 AC1).
+MAX_CONCURRENT_EXTRACTIONS: int = 4

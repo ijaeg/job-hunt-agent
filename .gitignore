@@ -17,3 +17,9 @@ __pycache__/
 # The aggregated report has no ad texts and IS committed.
 spikes/fixtures/*
 !spikes/fixtures/spike_report.json
+
+# Local SQLite database: checkpointer, memory store, tracker and profile
+# tables (D-5, D-6). Personal/session data - never committed.
+data/*.sqlite
+data/*.sqlite-wal
+data/*.sqlite-shm
