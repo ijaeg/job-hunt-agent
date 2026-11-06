@@ -341,6 +341,66 @@ gap**, rather than switching the demo to a different query.
 coverage; ruff and `ruff format --check` clean; `mypy src` clean (`app.py`/
 `pages` do not exist yet - no UI work package yet).
 
+**D-10 follow-up 3 (FR-22, found in the coach review): fix a `pii.py`
+over-removal bug**, before any commit.
+
+1. **Root cause.** `CONTACT_MARKER_PATTERN` matched "Kontakt"/
+   "Ansprechpartner" *anywhere* in a line via `search`, not just a
+   heading - a requirement bullet like "Enger Kontakt mit den technischen
+   Produktverantwortlichen..." opened a "contact block" that ran to the
+   end of the ad. Measured on the 40 raw D-1 listings: 5 lost 50-91 % of
+   their text, one lost 19 %.
+2. **Fix.** New `CONTACT_HEADING_PATTERN`: only matches a heading-like
+   line - anchored at the line start, after an optional markdown
+   decoration (`#`, `*`/`**`/`***`, `_`/`__`/`___`) and an optional
+   "Ihr(e)"/"Dein(:e)" possessive, length-capped at 90 characters. The
+   dropped block is bounded (`CONTACT_BLOCK_MAX_LINES = 6`), ends at the
+   first blank line, the next markdown heading, or a continuation line
+   too long to be a contact-block entry (`CONTACT_BLOCK_LINE_MAX_LENGTH`) -
+   one leading blank right after the heading is skipped rather than
+   ending the block immediately (matches common "## Kontakt\n\n<block>"
+   spacing). 6 new tests in `tests/test_pii.py`, including
+   "Enger Kontakt mit ..." and "im direkten Kontakt mit Kunden" staying.
+3. **`spikes/pii_check.py` extended** to report each listing's
+   removed-text share and flag anything above 10 %, separating a
+   legitimate bounded contact-block drop (counterfactual: share without
+   dropping any contact block) from genuine unexplained over-removal.
+4. **Found and fixed 2 more real PII leaks and 1 new over-removal
+   regression** while re-running the extended check - all introduced or
+   exposed by shapes the five D-3 patterns didn't cover:
+   - `**Ansprechpartner: <Name>, Tel: [TELEFON], Mobil: [TELEFON]**`
+     (markdown-bold, not caught because `**` wasn't an allowed leading
+     decoration before).
+   - `**ANSPRECHPARTNER FÜR FACHLICHE FRAGEN**` followed, after one blank
+     line, by two bare `<Name>, <role>, Tel. <nr>` lines - not caught by
+     any D-3 pattern; needed both the `**` decoration fix and the
+     "skip one leading blank" change.
+   - Regression: `"Dein Kontakt für diese Stelle ist: <Name>"` directly
+     followed (no blank line) by a differently-styled subsection and 6
+     full-sentence requirement bullets - swallowed by the line-count
+     budget alone (17 % removed). Fixed by the continuation-line length
+     cap. New test:
+     `tests/test_pii.py::test_contact_block_does_not_swallow_the_next_unseparated_section`.
+5. **Final numbers** (62 listings): 0 listings above 10 % removed
+   (neither explained-by-block nor unexplained); `pii_check.py` still
+   flags 7 lines by its plain keyword search, all manually verified as
+   benign ("Enger Kontakt mit...", "...als führender Ansprechpartner...",
+   etc. - ordinary vocabulary, no name attached). **0 real names leaked.**
+6. **Re-ran S1 in demo mode** after rebuilding the fixtures: same full
+   chain as before (search 103 -> narrowed 0 -> a third, age-widened
+   search, also 0 -> `get_job_details` x6 -> `assess_fit` -> shortlist),
+   56.2 s. **Fit categories for the 6 assessed listings did not change**
+   (`poor, poor, partial, poor, poor, partial`, identical to follow-up 2)
+   even though 2 of the 6 listings' description text changed
+   substantively (the name leak fix, the requirement-bullet restoration) -
+   neither change overlapped with the profile's skills, so the
+   code-computed category was unaffected either way. Full trace:
+   `eval/results/d10_followup3_verification.json`, write-up in
+   `spikes/NOTES.md` § "D-10 follow-up 3".
+
+**Checks after follow-up 3:** `uv run pytest` 233/233 passed, 98 %
+coverage; ruff, `ruff format --check` and `mypy src` clean.
+
 **Next:** show the commit proposal(s) for this work package (one concern
 per commit, per CLAUDE.md) and wait for approval before any commit, push
 or PR. After that, the remaining Must items per spec §13 (tracker view,

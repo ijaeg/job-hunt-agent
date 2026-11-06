@@ -452,3 +452,109 @@ forced "success". Elapsed: 54.3s (within the 60s NFR-03 budget, no D-11
 needed). Full machine-readable trace, no ad text beyond the model's own
 evidence-quoting final message (same pattern as `core_journey_wp03.json`):
 `eval/results/d10_followup2_verification.json`.
+
+
+## D-10 follow-up 3: fix pii.py over-removal, close the loop (2026-11-06)
+
+Coach review found that `CONTACT_MARKER_PATTERN` matched "Kontakt"/
+"Ansprechpartner" *anywhere* in a line, not just a heading - a requirement
+bullet like "Enger Kontakt mit den technischen Produktverantwortlichen..."
+opened a "contact block" that then ran to the end of the ad, silently
+dropping requirement and task lines. Measured on the 40 raw D-1 listings:
+5 lost 50-91% of their text, one lost 19%.
+
+**Fix:** `CONTACT_HEADING_PATTERN` now only matches a heading-like line -
+anchored at the start, after only an optional markdown decoration (`#`,
+`*`/`**`/`***`, `_`/`__`/`___`) and an optional "Ihr(e)"/"Dein(:e)"
+possessive, length-capped at 90 characters so a full sentence that happens
+to start with the marker still doesn't qualify. The dropped block is
+bounded (`CONTACT_BLOCK_MAX_LINES = 6`), ends at the first blank line, the
+next markdown heading, or a continuation line too long to be a contact
+entry (`CONTACT_BLOCK_LINE_MAX_LENGTH`, name/company/phone lines are
+always short) - one leading blank line directly after the heading is
+skipped rather than ending the block immediately, matching the common
+"## Kontakt\n\n<block>" markdown spacing. 6 new tests in `tests/test_pii.py`.
+
+**`spikes/pii_check.py` extended** to report each listing's removed-text
+share and flag anything above 10%, separating a legitimate (bounded)
+contact-block drop from genuine unexplained over-removal (counterfactual:
+what the share would be if no contact block were dropped at all).
+
+Rebuilding the fixtures and re-running the extended check found two more
+real, previously-undetected PII leaks and one new over-removal regression,
+all introduced or exposed by lines that don't fit the simple
+"Frau/Herr <Name>" or "heading, then address block" shapes the original
+D-3 patterns were built from - fixed in the same pass:
+
+1. **`**Ansprechpartner: <Name>, Tel: [TELEFON], Mobil: [TELEFON]**`** - a
+   markdown-bold single-line contact block, name included - not caught
+   before because `CONTACT_HEADING_PATTERN` didn't allow `**` as a leading
+   decoration. Fixed by the decoration alternation above.
+2. **`**ANSPRECHPARTNER FÜR FACHLICHE FRAGEN**`** (also `**`-wrapped)
+   followed, after one blank line, by two bare `<Name>, <role>, Tel. <nr>`
+   lines with no "Frau/Herr" prefix and more on the line than just the
+   name - not caught by any of the five D-3 patterns at all. Fixed by the
+   same decoration fix plus the "skip one leading blank, then continue the
+   block" change (otherwise the blank line right after the heading would
+   have ended the block before reaching the names).
+3. **Over-removal regression**: `"Dein Kontakt für diese Stelle ist:
+   <Name>"` was immediately followed, with no blank line, by a
+   differently-styled subsection ("Das bringst du mit") and six
+   full-sentence requirement bullets - swallowed as "part of the block" by
+   the line-count budget alone (17% of the ad removed). Fixed by the
+   continuation-line length cap: a candidate line longer than 90
+   characters ends the block instead of being dropped.
+
+### Final numbers (62 listings: 40 D-1 + 22 München, D-10 follow-up 2)
+
+- E-mail addresses masked: 5; phone numbers masked: 3; contact/name lines
+  removed: 23
+- Listings above 10% removed: **0** (neither explained-by-block nor
+  unexplained) - the 19121 regression above is now at 1.3%
+- Listings still flagged by `pii_check.py`'s plain keyword search after
+  cleaning: 7 - **all manually verified as benign**, not leaked names:
+  ordinary sentences using "Kontakt"/"Ansprechpartner" as vocabulary
+  ("Enger Kontakt mit...", "...agierst als führender Ansprechpartner...",
+  "...ist zentraler Ansprechpartner für den gesamten Bereich...", two
+  near-duplicate "Enger Kontakt..." task bullets, a two-word benefit
+  bullet "- Persönlichen Ansprechpartner", and a generic "contact us"
+  paragraph with no name attached). `pii_check.py`'s `SUSPICIOUS_PATTERN`
+  is a blunt keyword search by design (see its own docstring) and cannot
+  tell "mentions the word" from "leaked a name" on its own - left
+  unchanged, since narrowing it further would just re-implement
+  `pii.py`'s own heading heuristic and could never flag anything beyond
+  what `pii.py` already catches.
+
+**Goal met: 0 real names leaked, 0 listings over 10% removed**, given the
+7 remaining flagged lines are confirmed non-PII by manual review.
+
+Full per-listing detail (gitignored, still has ad text):
+`spikes/fixtures/pii_check.json`.
+
+### Re-run: did the 6 assessed München listings' fit categories change?
+
+Re-ran "Find Softwareentwickler jobs in München." in demo mode with the
+real model after rebuilding the fixtures. Same chain as the D-10 follow-up
+2 verification: search (103) -> narrowed search (honest 0) -> a third,
+age-widened search (also 0) -> `get_job_details` x6 -> `assess_fit` on the
+same 6 referenznummern -> shortlist. Elapsed 56.2s (within the 60s NFR-03
+budget).
+
+**Categories did not change:** `poor, poor, partial, poor, poor, partial`
+- identical to the follow-up 2 run, in the same order. Two of the six
+listings had their description text change substantively by this fix:
+
+- `10001-1003863378-S` (the `Stefan Müller`/`Andreas Fuchs` name leak,
+  now masked) stayed **partial**.
+- `19121-44499216-1011-S` (the `Lina Rackl` over-removal regression, 6
+  requirement bullets about Unix/C/shell/TCP-IP now restored) stayed
+  **poor**.
+
+Neither change affected the outcome: the removed/restored text in both
+cases doesn't overlap with the profile's Python/FastAPI/PostgreSQL/Docker/
+CI-CD skills, so the rubric's code-computed category was unaffected either
+way - a real name leaking (or not) and a few requirement bullets being
+silently dropped (or not) changed what the model could see, but not
+whether this match is fundamentally a Python-profile-vs-.NET/C#/Unix-ad
+mismatch. Full machine-readable trace, no ad text beyond the model's own
+evidence-quoting final message: `eval/results/d10_followup3_verification.json`.

@@ -1,0 +1,117 @@
+{
+  "description": "D-10 follow-up 3 verification: re-run after fixing pii.py's over-removal bug, to check whether assess_fit categories for the 6 München listings changed. Demo mode, real model. No ad text (tool args/results summarized, never raw listing text).",
+  "date": "2026-11-06",
+  "model": "openai/gpt-5-mini",
+  "mode": "demo (FixtureSource)",
+  "user_message": "Find Softwareentwickler jobs in München.",
+  "elapsed_seconds": 56.2,
+  "tool_calls": [
+    {
+      "name": "search_jobs",
+      "args": {
+        "keywords": "Softwareentwickler",
+        "location": "München",
+        "radius_km": 25,
+        "published_within_days": 28,
+        "exclude_temp_agency": true,
+        "page": 1
+      }
+    },
+    {
+      "name": "search_jobs",
+      "args": {
+        "keywords": "Python Senior Softwareentwickler FastAPI PostgreSQL Docker",
+        "location": "München",
+        "radius_km": 25,
+        "published_within_days": 28,
+        "exclude_temp_agency": true,
+        "page": 1
+      }
+    },
+    {
+      "name": "search_jobs",
+      "args": {
+        "keywords": "Softwareentwickler Python",
+        "location": "München",
+        "radius_km": 25,
+        "published_within_days": 60,
+        "exclude_temp_agency": true,
+        "page": 1
+      }
+    },
+    {
+      "name": "get_job_details",
+      "args": {
+        "referenznummer": "12117-YF-48852-YF-S"
+      }
+    },
+    {
+      "name": "get_job_details",
+      "args": {
+        "referenznummer": "14225-d10be3b2dd249dcf-S"
+      }
+    },
+    {
+      "name": "get_job_details",
+      "args": {
+        "referenznummer": "10001-1003863378-S"
+      }
+    },
+    {
+      "name": "get_job_details",
+      "args": {
+        "referenznummer": "10001-1003935843-S"
+      }
+    },
+    {
+      "name": "get_job_details",
+      "args": {
+        "referenznummer": "19121-44499216-1011-S"
+      }
+    },
+    {
+      "name": "get_job_details",
+      "args": {
+        "referenznummer": "12336-a26f1128j0452080-S"
+      }
+    },
+    {
+      "name": "assess_fit",
+      "args": {
+        "referenznummern": [
+          "12117-YF-48852-YF-S",
+          "14225-d10be3b2dd249dcf-S",
+          "10001-1003863378-S",
+          "10001-1003935843-S",
+          "19121-44499216-1011-S",
+          "12336-a26f1128j0452080-S"
+        ]
+      }
+    }
+  ],
+  "search_results_in_order": [
+    { "total": 103, "notes": [] },
+    {
+      "total": 0,
+      "notes": ["narrowed from the recorded query 'Softwareentwickler' / München (D-10 addendum)"]
+    },
+    { "total": 0, "notes": [] }
+  ],
+  "assess_fit_notes": [
+    "assess_fit extraction: 22.7s for 6 listing(s) (spec §9 NFR-03/R-4 latency tracking)"
+  ],
+  "assess_fit_categories": {
+    "12117-YF-48852-YF-S": "poor",
+    "14225-d10be3b2dd249dcf-S": "poor",
+    "10001-1003863378-S": "partial",
+    "10001-1003935843-S": "poor",
+    "19121-44499216-1011-S": "poor",
+    "12336-a26f1128j0452080-S": "partial"
+  },
+  "categories_changed_vs_followup2": false,
+  "note_on_two_affected_listings": "10001-1003863378-S (the Stefan Mueller/Andreas Fuchs name leak) and 19121-44499216-1011-S (the Lina Rackl over-removal regression) both had their description text change substantively between the follow-up 2 and follow-up 3 runs, but neither listing's fit category changed (partial and poor respectively, both times) - the restored/removed text did not overlap with the profile's Python/FastAPI/PostgreSQL/Docker/CI-CD skills either way.",
+  "search_jobs_call_count": 3,
+  "reached_get_job_details": true,
+  "reached_assess_fit": true,
+  "final_message": "I searched the BA job board for \"Softwareentwickler\" in München and assessed six suitable listings. Note: your stored profile location is Hamburg (25 km radius). You specifically asked for München, so I searched München as requested — below are the results and fit summaries. Tell me which listings you want to save, apply to, or reject, or if you want me to re-run the search for Hamburg (your profile area) instead.\n\nShortlist (reference — title — employer — fit category)\n1. 12117-YF-48852-YF-S — Softwareentwickler — bayoonet AG (München) — poor\n   - Matches: hybrid model (3 days on-site / 2 remote), backend/cloud topics listed (Docker, Kubernetes, REST, IaC), full-time.\n   - Gaps: ad asks for very good German & English; generalist with varied possible focuses (not specifically Python/FastAPI/Postgres); degree/embedded or regulated-domain experience noted. Seniority not stated.\n\n2. 14225-d10be3b2dd249dcf-S — Softwareentwickler - IT — PartSpace GmbH (München / by arrangement remote) — poor\n   - Matches: CI/CD, Azure DevOps, automated tests, agile processes.\n   - Gaps: strong .NET/C# backend focus (not Python/FastAPI); domain-specific skills (CAD/PLM) and other responsibilities that don't match your Python/Postgres stack.\n\n3. 10001-1003863378-S — Softwareentwickler (Landesvermessung) — Landesamt für Digitalisierung, Breitband und Vermessung (München) — partial\n   - Matches: full-time, unbefristet, up to 80% home office, Java and DB work.\n   - Gaps: Java-focused (not Python); requires very good German; domain (surveying/geodata) and security/IT-hardening experience expected.\n\n4. 10001-1003935843-S — Softwareentwickler C#/.NET — Baader Bank AG (Unterschleißheim ~15 km) — poor\n   - Matches: REST APIs, microservices, DB work (mentions Postgress), CI/CD, agile.\n   - Gaps: primarily C#/.NET role (not Python/FastAPI); German language expected (very good) though English is used.\n\n5. 19121-44499216-1011-S — Systemnaher Softwareentwickler — genua GmbH (Kirchheim bei München ~14 km) — poor\n   - Matches: system-level development, C and shell, security-focused company, flexible/mobile work.\n   - Gaps: low overlap with your Python/FastAPI/Postgres stack; requires very good German (B2+) and Unix/C expertise.\n\n6. 12336-a26f1128j0452080-S — Senior Softwareentwickler - .NET MAUI, Blazor & Cloud — TÜV SÜD AG (München) — partial (low-evidence)\n   - Matches: senior title, CI/CD, cloud, Azure DevOps, agile practices.\n   - Gaps: .NET MAUI/Blazor/C# focus (not Python); few explicit Python/Postgres/FastAPI signals.\n\nSummary observations\n- Many Munich-area roles are C#/.NET, Java, or system/C-focused rather than matching your Python / FastAPI / PostgreSQL stack.\n- Several roles require very good German; your profile lists basic German and native English — this reduces fit for those ads.\n- Remote/hybrid options appear in several ads but vary; one state role explicitly allows up to 80% home office.\n- I limited results to 6 assessed listings to keep a focused shortlist. I used up to three search refinements while staying within the BA search rules.\n\nSuggested next steps (choose one)\n- I can save any of these listings to your application tracker (tell me which reference number(s) and status: saved / applied / rejected, optional follow-up date and note). I will call the tracker directly.\n- I can re-run the search centered on Hamburg (your profile location) to find roles closer to you.\n- I can broaden the Munich search to include keywords like \"Python\" + \"Backend\" and increase publication age or radius (if you want more matches), though earlier attempts returned few Python-specific Munich listings.\n- I can filter these six by language requirement or remote percentage and re-assess.\n\nWhich action do you want next? (If you want any listing saved/applied/rejected, give reference numbers and status.)"
+}
