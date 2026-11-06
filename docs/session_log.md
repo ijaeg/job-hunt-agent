@@ -288,6 +288,59 @@ and mypy still clean.
 **Checks after the addendum:** `uv run pytest` 227/227 passed, 98 %
 coverage; ruff and mypy still clean.
 
+**D-10 follow-up 2 (decided by Ingo on 2026-11-06): close the München data
+gap**, rather than switching the demo to a different query.
+
+1. **Fetched real München listing data.** `spikes/fetch_muenchen_details.py`
+   (new) fetched v4 details for all 25 referenznummern of the recorded
+   "Softwareentwickler"/München search from the live BA API directly - one
+   run, polite pacing, deliberately *not* reusing the D-1 spike's own
+   `scrub()` (the function that caused the referenznummer corruption bug
+   in the first place) - raw responses saved unscrubbed, cleaned properly
+   later via `pii.py`. 22 of 25 saved; 3 already 404 (expired since the
+   D-1 search, one day earlier). `scripts/build_fixtures.py` picked them
+   up automatically (65 listings total now); `recorded_searches.json`'s
+   München entry references all 22 (was 0).
+2. **Found and fixed a lossy referenznummer bug, pre-dating this
+   session.** `build_listing_from_details` derived `referenznummer` from
+   the details file's *name*, a one-way slug where `_` and `/` both
+   collapse to `-` - silently wrong for any reference number containing
+   either character (4 of the original 40 listings, 8 of the 22 new
+   ones). Fixed to read the field directly from the details JSON (correct
+   for everything except the 3 phone-regex-corrupted entries, which still
+   use the file name as before). Also improved the other 4 recorded
+   searches' own reference coverage (e.g. AI Engineer/Hamburg 24 -> 25).
+3. **Found and fixed a real PII leak, pre-dating this session.**
+   `spikes/pii_check.py` flagged 2 of the 22 new München listings with a
+   real name surviving cleaning (`Herr Salmen`, `Frau Stefanie Ruf`) -
+   `pii.py`'s `INLINE_NAME_PATTERN` only matched `bei Frau/Herrn <Name>`
+   (D-3 pattern 1), and neither sentence used "bei". Fixed by dropping
+   that requirement; re-ran `pii_check.py` - 0 flagged across all 62
+   listings now. New test: `tests/test_pii.py::test_inline_name_not_preceded_by_bei_is_still_masked`.
+4. **`FixtureSource`'s narrowing path now also checks each candidate's
+   description**, not just title/employer, scoped to narrowing only (the
+   model's narrowed keywords are more likely to only appear in the ad
+   body). New test: `tests/test_ba_client.py::test_fixture_source_narrowing_matches_a_term_only_present_in_the_description`.
+5. **Re-ran S1 in demo mode, "Softwareentwickler" / München, real model**
+   (`eval/results/d10_followup2_verification.json`, full trace in
+   `spikes/NOTES.md` § "D-10 follow-up 2"): search (103) -> narrowed
+   search (honest 0, no München listing mentions Python) -> agent fell
+   back to its own first search's results on its own -> `get_job_details`
+   x6 -> `assess_fit` (6 listings) -> shortlist with fit categories
+   `poor, poor, partial, poor, poor, partial`. **The full ">50, narrow,
+   details, assess_fit" chain now runs end-to-end for this exact demo
+   query** - the gap the previous addendum could only work around is
+   closed. Elapsed 54.3 s (within the 60 s NFR-03 budget, no D-11
+   needed). The agent's own conclusion was an honest negative: München's
+   real market for plain "Softwareentwickler" is mostly .NET/C# and
+   system-level contract roles, not a match for the Python/FastAPI/
+   PostgreSQL profile used for the demo.
+6. Decision recorded as Addendum 2 in `docs/decisions/D-10-demo-search-semantics.md`.
+
+**Checks after follow-up 2:** `uv run pytest` 229/229 passed, 98 %
+coverage; ruff and `ruff format --check` clean; `mypy src` clean (`app.py`/
+`pages` do not exist yet - no UI work package yet).
+
 **Next:** show the commit proposal(s) for this work package (one concern
 per commit, per CLAUDE.md) and wait for approval before any commit, push
 or PR. After that, the remaining Must items per spec §13 (tracker view,

@@ -231,3 +231,85 @@ zero) totals when narrowing a recorded query. No further fixture change
 needed to "make München work"; if a guaranteed non-zero narrow-to-assess
 demo is wanted later, use "AI Engineer"/Hamburg or a fresh spike run that
 detail-fetches München's own results. - Ingo, 2026-11-06
+
+## Addendum 2 (2026-11-06, decided by Ingo): close the München data gap
+
+The previous addendum's "AI Engineer"/Hamburg workaround was a fallback,
+not what was wanted - Ingo decided to close the actual gap: fetch
+München's own real listing data instead of recommending a different demo
+query.
+
+### What changed
+
+`spikes/fetch_muenchen_details.py` (new) fetched v4 details for all 25
+referenznummern of the recorded "Softwareentwickler"/München search from
+the live BA API directly - one run, polite pacing, reusing
+`ba_api_spike.py`'s `call`/`encode_refnr` but *not* its `scrub()` (raw
+responses saved unscrubbed; cleaning happens properly via `pii.py` inside
+`scripts/build_fixtures.py`, same as every other raw response, D-3). 22 of
+25 saved; 3 already 404 (expired since the D-1 search ran, 2026-11-05 -
+one calendar day earlier). `recorded_searches.json`'s München entry now
+references real listings instead of none.
+
+Closing the gap surfaced two bugs that predate this session, both fixed
+as part of the same change (not spec deviations or rubric changes - plain
+correctness fixes within this task's own scope):
+
+1. **`build_listing_from_details` derived `referenznummer` from the
+   details file's name**, a one-way slug (`_` and `/` both collapse to
+   `-`). Silently wrong for any reference number containing either
+   character - 4 of the original 40 committed listings, 8 of the 22 new
+   ones (confirmed: no existing test hardcoded the wrong values). Fixed to
+   read the field directly from the details JSON, which carries the
+   correct value for every listing except the 3 the phone regex corrupted
+   in-place (D-1/D-4 regression) - those 3 still fall back to the file
+   name, which is unaffected by that corruption. This also *improved* the
+   other 4 recorded searches' own reference-number coverage (e.g.
+   AI Engineer/Hamburg 24 -> 25 of its real results now linked).
+2. **A genuine PII leak**, found by re-running `spikes/pii_check.py` over
+   the new listings: 2 of the 22 new München ads still carried a real
+   name after cleaning (`Herr Salmen`, `Frau Stefanie Ruf`) because
+   `pii.py`'s `INLINE_NAME_PATTERN` only matched `bei Frau/Herrn <Name>`
+   (D-3 pattern 1) - neither sentence used "bei". Fixed by dropping that
+   requirement; `pii_check.py` now reports 0 flagged listings across all
+   62. Two new tests (`tests/test_pii.py`,
+   `tests/test_ba_client.py::test_fixture_source_narrowing_matches_a_term_only_present_in_the_description`).
+   Full write-up: `spikes/NOTES.md` § "D-8 preparation: pii_check.py".
+
+`ba_client.FixtureSource`'s narrowing path now also checks each
+candidate's *description*, not just title/employer - the model's narrowed
+keywords are more likely to only appear in the ad body than in the title.
+Scoped to the narrowing path only (not the generic fallback), per Ingo's
+instruction; the exact-recorded-replay path is unchanged.
+
+### Re-run: "Find Softwareentwickler jobs in München." (real model, demo mode)
+
+| # | `search_jobs` call | Result |
+|---|---|---|
+| 1 | `Softwareentwickler` / München, 25 km, 28 days | **total: 103** (exact replay) |
+| 2 | `Python Softwareentwickler` / München, 25 km, 28 days | narrowed - **total: 0** (honest: none of München's own 22 listings mention Python anywhere, title or description) |
+
+Full trace: `search_jobs` (103) -> `search_jobs` (narrowed, 0) ->
+`get_job_details` x6 -> `assess_fit` (6 listings) -> shortlist with fit
+categories `poor, poor, partial, poor, poor, partial` (code-computed, spec
+§1.2/§7, never set by the model). **This is the first time this specific
+query reaches `get_job_details`/`assess_fit`** - the full chain the first
+addendum could not yet demo.
+
+After the narrowed search came back empty, the agent did not ask the user
+next - it fell back to its own first (broad) search's non-temp-agency
+results and assessed fit for 6 of them directly. It then told the user,
+correctly and without being asked, that München's real market for plain
+"Softwareentwickler" is mostly .NET/C# and system-level contract roles,
+not a match for the Python/FastAPI/PostgreSQL profile used for this demo -
+an honest negative result, not a forced "success". Elapsed: 54.3s (within
+the 60s NFR-03 budget - no D-11 needed). Full machine-readable trace, no
+raw ad text beyond the model's own evidence-quoting final message (same
+pattern already committed in `eval/results/core_journey_wp03.json`):
+`eval/results/d10_followup2_verification.json`.
+
+**Decision:** the München data gap is closed - the demo query now
+genuinely exercises the full ">50, narrow, details, assess_fit" chain with
+real BA data, not a substitute query. Both bugs found while closing the
+gap (lossy referenznummer recovery, the inline-name PII gap) are fixed and
+covered by new tests. - Ingo, 2026-11-06

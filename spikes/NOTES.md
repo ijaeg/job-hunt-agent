@@ -366,3 +366,89 @@ specified - confirmed by the trace above - but "Softwareentwickler"/München spe
 cannot demo the full "narrow -> details -> assess_fit" chain with the current fixture
 data. "AI Engineer"/Hamburg (24 of its listings are in `listings.json`) is a better
 candidate if a guaranteed non-zero narrowed result is wanted for the review.
+
+## D-8 preparation: pii_check.py on the raw D-1 listings (2026-11-06)
+
+Script: `spikes/pii_check.py`. Per-listing detail (still contains ad text,
+gitignored): `spikes/fixtures/pii_check.json`. Runs the real
+`job_hunt_agent.pii.clean_ad_text` - the same function the BA client and the
+cleaned fixture set (D-8) will use - over all raw listings collected so far
+(40 from D-1, plus 22 from D-10 follow-up 2's München detail fetch - 62
+total).
+
+First run (before the fix below): 2 of the 22 new München listings still
+carried a real name after cleaning - `10001-1003853660-s.json` ("Herr
+Salmen gibt Ihnen weitere Informationen...") and `14751-417a24069-s.json`
+("...steht Frau Stefanie Ruf gerne unter der Telefonnummer..."). `pii.py`'s
+`INLINE_NAME_PATTERN` only matched `bei Frau/Herrn <Name>` (D-3
+pattern 1) - neither sentence used "bei", so the name wasn't touched.
+Fixed by dropping the "bei" requirement (matches `Frau/Herr(n) <Name>`
+anywhere in a sentence now); re-ran `scripts/build_fixtures.py` and
+`pii_check.py` after the fix.
+
+- Listings checked: 62
+- E-mail addresses masked: 5
+- Phone numbers masked: 3
+- Contact/name lines removed: 280
+- Listings with a still-suspicious line after cleaning: 0
+
+**Goal met: 0 remaining contact names** after cleaning.
+
+## D-10 follow-up 2: München data gap closed (2026-11-06)
+
+`spikes/fetch_muenchen_details.py` fetched v4 details for the 25
+referenznummern of the recorded "Softwareentwickler"/München search
+directly from the live BA API (one run, polite pacing, reusing
+`ba_api_spike.py`'s `call`/`encode_refnr`): 22 saved, 3 already 404
+(expired since the D-1 search ran, 2026-11-05). `scripts/build_fixtures.py`
+cleaned and added them; `recorded_searches.json`'s München entry now
+references all 22 (was 0).
+
+Closing the gap also exposed and fixed two latent bugs, both pre-dating
+this session:
+
+1. **Lossy referenznummer recovery.** `build_listing_from_details` derived
+   `referenznummer` from the details file's *name* (a one-way slug - every
+   `_` and `/` collapses to `-`), not from the correct value already
+   sitting in the file's own `referenznummer` field. Silently wrong for
+   any reference number containing `_` or `/` - 4 of the original 40
+   listings, 8 of the 22 new ones. Fixed: read the field directly (it is
+   correct for every listing except the 3 the phone regex corrupted
+   in-place, D-1/D-4 - those 3 still fall back to the file name, which
+   stayed correct for them). München's recorded search now references all
+   22 of its own listings (was 14 before this fix); the other 4 recorded
+   searches gained reference numbers too (Python/Hamburg 2->4,
+   AI Engineer/Hamburg 24->25, Java/Hamburg 7->9, Machine Learning/Berlin
+   unchanged at 10).
+2. **PII leak in two new listings** - see the pii_check.py entry above.
+
+`ba_client.FixtureSource`'s narrowing path (D-10 addendum) now also checks
+each candidate's *description*, not just title/employer - "the whole point
+of narrowing is the model's more specific terms, which are more likely to
+only appear in the ad body" (`src/job_hunt_agent/ba_client.py`). 2 new
+tests (`tests/test_ba_client.py`, `tests/test_pii.py`).
+
+### Re-run: "Find Softwareentwickler jobs in München." (real model, demo mode)
+
+| # | `search_jobs` call | Result |
+|---|---|---|
+| 1 | `Softwareentwickler` / München, 25 km, 28 days | **total: 103** (exact replay) |
+| 2 | `Python Softwareentwickler` / München, 25 km, 28 days | narrowed from the recorded query - **total: 0** (honest: none of München's own listings mention Python) |
+
+Full trace: `search_jobs` (103) -> `search_jobs` (narrowed, 0) ->
+`get_job_details` x6 -> `assess_fit` (6 listings) -> shortlist. **This is
+the first time this specific query reaches `get_job_details`/`assess_fit`**
+- the full "narrow -> details -> assess_fit" chain the D-10 addendum could
+not yet demo.
+
+After the narrowed search came back empty, the agent fell back to the 6
+listings from its own first (broad, non-temp-agency) search result rather
+than asking the user - fetched details and assessed fit for all 6:
+`poor, poor, partial, poor, poor, partial` (categories are code-computed,
+spec §1.2/§7, not set by the model). It correctly told the user München's
+real market for this keyword is mostly .NET/C# and system-level roles, not
+a match for the profile's Python/FastAPI stack - an honest result, not a
+forced "success". Elapsed: 54.3s (within the 60s NFR-03 budget, no D-11
+needed). Full machine-readable trace, no ad text beyond the model's own
+evidence-quoting final message (same pattern as `core_journey_wp03.json`):
+`eval/results/d10_followup2_verification.json`.
