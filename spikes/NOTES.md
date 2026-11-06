@@ -224,3 +224,337 @@ cleaned fixture set (D-8) will use - over all raw listings from the D-1 spike.
 - Listings with a still-suspicious line after cleaning: 0
 
 **Goal met: 0 remaining contact names** after cleaning.
+
+## WP-03 core journey: real-model console run (2026-11-06)
+
+Script: `scripts/run_core_journey.py`. One continuous thread (`core-journey-wp03`), live
+BA API (`job_source=BAClient`, D-10), real model (`openai/gpt-5-mini`, reasoning effort
+`low`). Full per-scenario record (no ad text): `eval/results/core_journey_wp03.json`.
+
+Per-scenario tool calls are the **new** calls that scenario added to the thread (a script
+bug recorded the full cumulative history instead; corrected post-hoc by diffing, not by
+re-running - see the `note` field in the JSON file for the exact fix).
+
+| Scenario | Elapsed (s) | New tool calls | Tokens (in/out, cumulative) |
+|---|---|---|---|
+| S1 | 30.6 | search_jobs, get_job_details ×6, assess_fit | 22,467 / 1,138 |
+| S2 | 7.5 | (none - answered from state) | 32,731 / 2,074 |
+| S3_propose | 2.8 | save_to_tracker (interrupted) | 43,772 / 2,289 |
+| S3_approve | 1.9 | (resume; tool executes, no new proposal) | 55,036 / 2,358 |
+| S4_propose | 2.1 | remember (interrupted) | 66,386 / 2,412 |
+| S4_reject | 2.6 | (resume; tool does not execute) | 77,824 / 2,610 |
+| S6 | 3.2 | (none - off-topic refusal) | 89,360 / 2,732 |
+
+**Confirmed correct, verified directly against the SQLite file (not just the model's own
+words) after the run:**
+- S3 (FR-10 AC1): `save_to_tracker` ran only after approval - the tracker table has
+  exactly the one entry (NTT DATA, Senior AI Engineer, `follow_up_date` 2026-11-13, the
+  user's note).
+- S4 (FR-10 AC3): the rejected `remember` call never persisted - the memory store is
+  empty (`store.search(("memories", "alex")) == []`).
+- S2 (FR-08 AC1): the follow-up question added zero new tool calls, confirming it was
+  answered from the stored assessment, not a new search/assess_fit.
+- S6 (FR-21 AC2): the off-topic question added zero new tool calls and got a short
+  refusal that steered back to job search.
+
+**S1 refinement was NOT shown this run:** exactly one `search_jobs` call; the agent did
+not narrow or broaden. Either the real total for "Python AI" in Hamburg over 14 days
+genuinely did not cross the ">50 narrow" or "<3 broaden" thresholds (plausible - D-1's
+own spike numbers for similarly specific queries were in the single-to-low-double
+digits), or the model simply judged the ~11 results reported in its final answer "good
+enough" without the agent needing to retry. FR-03 AC3 ("the trace of demo scenario S1
+shows at least one refinement") is **not yet demonstrated** by this run; a follow-up run
+with a deliberately broad query (e.g. a generic title with no city restriction, or a
+very short `published_within_days`) is needed before using S1 as the refinement demo
+for the review.
+
+**Minor wording observation (not a code defect, verified against the DB above):** after
+the S4 rejection, the model's own summary said "the tracker call failed" when it meant
+the `remember` (exclusion) call - confusing phrasing, worth tightening in
+`prompts/system.md` later, but the actual behaviour (nothing persisted) was correct.
+
+**Latency (NFR-03, R-4):** S1 took 30.6 s total, of which `assess_fit`'s extraction step
+(6 listings, 4 concurrent) was 14.0 s - well within the 60 s budget. No D-11 decision
+needed this run.
+
+**Found and fixed during this work package, before this run:** `runtime: ToolRuntime[...]
+| None = None` on every tool silently broke the framework's injected-argument detection
+(`_is_injected_arg_type` only recognises the bare/un-wrapped type), so `runtime` stayed
+in the model-facing JSON schema LangChain builds for `bind_tools()` - invisible against
+every scripted-model test (which never calls real `bind_tools()`), but fatal against the
+real `ChatOpenAI.bind_tools()` on the very first live call. Fixed by making `runtime` a
+required, keyword-only parameter (`*, runtime: ToolRuntime[...]`) with no default, the
+documented pattern. A structural argument for always doing at least one real-model smoke
+run before considering tool-layer work done, not just scripted-model tests.
+
+## D-10 Option 4 follow-up: S1 re-run in demo mode, "Softwareentwickler" / München (2026-11-06)
+
+Decision D-10 (Option 4, Ingo): `FixtureSource` now replays the 5 recorded D-1 search
+totals exactly (`data/samples/fixtures/recorded_searches.json`, query params + total +
+reference numbers only, no ad text). Re-ran S1 in demo mode with the real model, same
+agent/thread pattern as the earlier live run, to confirm the narrowing direction now
+fires.
+
+**Turn 1** - "Find Softwareentwickler jobs in München.": one `search_jobs` call
+(keywords "Softwareentwickler", location "München", default radius 25 km / 28 days) -
+`FixtureSource` matched the recorded query exactly and reported **total: 103** (the
+real D-1 number, not the fixture set's own ~6-result ceiling). The model recognised
+"too many results" and asked the user which dimension to narrow (tech stack, seniority,
+employment type, remote, radius, recency) rather than guessing - it did not
+autonomously retry within this turn.
+
+**Turn 2** - "Java, Senior level please.": two `search_jobs` calls, both now outside
+the recorded-query match (different keywords, so the normal filter path over the 43
+committed listings applies): "Java Senior Softwareentwickler" (total 0), then "Senior
+Java Entwickler" with `published_within_days` widened 28->60 (total 0). Both returned
+zero because `FixtureSource`'s keyword match requires every term present in
+title+employer, and none of the 3 München-tagged real listings contain "Senior" and
+"Java" and "Entwickler"/"Developer" together under that exact wording - a known,
+separate limitation of the fixture search's simple AND-of-terms matching, not a D-10
+or replay defect.
+
+**Conclusion:** D-10 Option 4 works as intended - demo mode now genuinely exercises
+*both* refinement directions in one conversation: `total=103` (">50, narrow") on turn
+1, followed by two re-tries with different, more specific keywords and a widened
+publication window on turn 2 (the model's own reaction to two 0-result searches,
+matching FR-03 AC1's "< 3 results -> broaden" instinct even though here it was 0, not
+literally reported as "<3" text - the agent treated "no results" as the broaden
+trigger). No results were ultimately found for the narrowed query - an honest fixture
+limitation (worth revisiting if a cleaner demo ending is wanted later), not hidden here.
+3 total `search_jobs` calls across the two-turn conversation confirm FR-03 AC3 ("the
+trace of demo scenario S1 shows at least one refinement") is now demonstrable in demo
+mode, not only against the live API.
+
+## D-10 addendum: corrupted referenznummern fixed, autonomous narrowing re-run (2026-11-06)
+
+Full write-up: `docs/decisions/D-10-demo-search-semantics.md` § "Addendum". Summary:
+
+**Fix 1:** `recorded_searches.json` had 3 corrupted reference numbers (the raw D-1
+search responses were scrubbed by the same context-free phone regex as the details
+responses). `scripts/build_fixtures.py::recover_referenznummer()` now matches every
+referenznummer against `listings.json` (prefix/suffix around the `[TELEFON]` artifact
+for a corrupted one), never trusts the scrubbed search file directly, and drops any
+reference never detail-fetched rather than keeping an unverifiable guess.
+
+**Fix 2:** `prompts/system.md` now tells the model to narrow *autonomously*, using the
+profile, before asking the user; a new `LoadProfileContextMiddleware` makes the profile
+actually visible to the model (it was not, before). `FixtureSource` gained a
+narrowing-match path: a query that keeps a recorded query's keywords as a subset is
+filtered to that recorded search's own referenznummern (restricted to `listings.json`) -
+honestly 0 if none overlap, never invented either way.
+
+**Re-run, "Find Softwareentwickler jobs in München.", demo mode, real model:**
+
+| # | search_jobs call | total |
+|---|---|---|
+| 1 | Softwareentwickler / München, 25 km, 28 days | 103 (exact replay) |
+| 2 | Senior Softwareentwickler Python FastAPI / München, 25 km, 28 days (narrowed) | 0 |
+| 3 | Softwareentwickler Python Java Docker PostgreSQL CI/CD / München, 25 km, 60 days | 0 |
+
+The agent narrowed on its own across 2 attempts (using profile skills + seniority),
+within the 3-call limit, without asking first - then stopped and asked the user,
+correctly diagnosing that the Hamburg-based profile radius wasn't helping a München
+query. It never reached `get_job_details` or `assess_fit` for this query.
+
+**Honest conclusion:** this is a data-coverage gap, not a logic bug. München's recorded
+search's own 25 reference numbers have zero overlap with the 40 detail-fetched listings
+in `listings.json` (the original D-1 spike's 40-detail budget was spent on the 4 other
+searches, which run before München in `spikes/ba_api_spike.py`'s list). No narrowing of
+*that specific recorded search* can honestly return anything but 0. The mechanism itself
+(autonomous, profile-driven narrowing; honest non-invented totals) works exactly as
+specified - confirmed by the trace above - but "Softwareentwickler"/München specifically
+cannot demo the full "narrow -> details -> assess_fit" chain with the current fixture
+data. "AI Engineer"/Hamburg (24 of its listings are in `listings.json`) is a better
+candidate if a guaranteed non-zero narrowed result is wanted for the review.
+
+## D-8 preparation: pii_check.py on the raw D-1 listings (2026-11-06)
+
+Script: `spikes/pii_check.py`. Per-listing detail (still contains ad text,
+gitignored): `spikes/fixtures/pii_check.json`. Runs the real
+`job_hunt_agent.pii.clean_ad_text` - the same function the BA client and the
+cleaned fixture set (D-8) will use - over all raw listings collected so far
+(40 from D-1, plus 22 from D-10 follow-up 2's München detail fetch - 62
+total).
+
+First run (before the fix below): 2 of the 22 new München listings still
+carried a real name after cleaning - `10001-1003853660-s.json` ("Herr
+Salmen gibt Ihnen weitere Informationen...") and `14751-417a24069-s.json`
+("...steht Frau Stefanie Ruf gerne unter der Telefonnummer..."). `pii.py`'s
+`INLINE_NAME_PATTERN` only matched `bei Frau/Herrn <Name>` (D-3
+pattern 1) - neither sentence used "bei", so the name wasn't touched.
+Fixed by dropping the "bei" requirement (matches `Frau/Herr(n) <Name>`
+anywhere in a sentence now); re-ran `scripts/build_fixtures.py` and
+`pii_check.py` after the fix.
+
+- Listings checked: 62
+- E-mail addresses masked: 5
+- Phone numbers masked: 3
+- Contact/name lines removed: 280
+- Listings with a still-suspicious line after cleaning: 0
+
+**Goal met: 0 remaining contact names** after cleaning.
+
+## D-10 follow-up 2: München data gap closed (2026-11-06)
+
+`spikes/fetch_muenchen_details.py` fetched v4 details for the 25
+referenznummern of the recorded "Softwareentwickler"/München search
+directly from the live BA API (one run, polite pacing, reusing
+`ba_api_spike.py`'s `call`/`encode_refnr`): 22 saved, 3 already 404
+(expired since the D-1 search ran, 2026-11-05). `scripts/build_fixtures.py`
+cleaned and added them; `recorded_searches.json`'s München entry now
+references all 22 (was 0).
+
+Closing the gap also exposed and fixed two latent bugs, both pre-dating
+this session:
+
+1. **Lossy referenznummer recovery.** `build_listing_from_details` derived
+   `referenznummer` from the details file's *name* (a one-way slug - every
+   `_` and `/` collapses to `-`), not from the correct value already
+   sitting in the file's own `referenznummer` field. Silently wrong for
+   any reference number containing `_` or `/` - 4 of the original 40
+   listings, 8 of the 22 new ones. Fixed: read the field directly (it is
+   correct for every listing except the 3 the phone regex corrupted
+   in-place, D-1/D-4 - those 3 still fall back to the file name, which
+   stayed correct for them). München's recorded search now references all
+   22 of its own listings (was 14 before this fix); the other 4 recorded
+   searches gained reference numbers too (Python/Hamburg 2->4,
+   AI Engineer/Hamburg 24->25, Java/Hamburg 7->9, Machine Learning/Berlin
+   unchanged at 10).
+2. **PII leak in two new listings** - see the pii_check.py entry above.
+
+`ba_client.FixtureSource`'s narrowing path (D-10 addendum) now also checks
+each candidate's *description*, not just title/employer - "the whole point
+of narrowing is the model's more specific terms, which are more likely to
+only appear in the ad body" (`src/job_hunt_agent/ba_client.py`). 2 new
+tests (`tests/test_ba_client.py`, `tests/test_pii.py`).
+
+### Re-run: "Find Softwareentwickler jobs in München." (real model, demo mode)
+
+| # | `search_jobs` call | Result |
+|---|---|---|
+| 1 | `Softwareentwickler` / München, 25 km, 28 days | **total: 103** (exact replay) |
+| 2 | `Python Softwareentwickler` / München, 25 km, 28 days | narrowed from the recorded query - **total: 0** (honest: none of München's own listings mention Python) |
+
+Full trace: `search_jobs` (103) -> `search_jobs` (narrowed, 0) ->
+`get_job_details` x6 -> `assess_fit` (6 listings) -> shortlist. **This is
+the first time this specific query reaches `get_job_details`/`assess_fit`**
+- the full "narrow -> details -> assess_fit" chain the D-10 addendum could
+not yet demo.
+
+After the narrowed search came back empty, the agent fell back to the 6
+listings from its own first (broad, non-temp-agency) search result rather
+than asking the user - fetched details and assessed fit for all 6:
+`poor, poor, partial, poor, poor, partial` (categories are code-computed,
+spec §1.2/§7, not set by the model). It correctly told the user München's
+real market for this keyword is mostly .NET/C# and system-level roles, not
+a match for the profile's Python/FastAPI stack - an honest result, not a
+forced "success". Elapsed: 54.3s (within the 60s NFR-03 budget, no D-11
+needed). Full machine-readable trace, no ad text beyond the model's own
+evidence-quoting final message (same pattern as `core_journey_wp03.json`):
+`eval/results/d10_followup2_verification.json`.
+
+
+## D-10 follow-up 3: fix pii.py over-removal, close the loop (2026-11-06)
+
+Coach review found that `CONTACT_MARKER_PATTERN` matched "Kontakt"/
+"Ansprechpartner" *anywhere* in a line, not just a heading - a requirement
+bullet like "Enger Kontakt mit den technischen Produktverantwortlichen..."
+opened a "contact block" that then ran to the end of the ad, silently
+dropping requirement and task lines. Measured on the 40 raw D-1 listings:
+5 lost 50-91% of their text, one lost 19%.
+
+**Fix:** `CONTACT_HEADING_PATTERN` now only matches a heading-like line -
+anchored at the start, after only an optional markdown decoration (`#`,
+`*`/`**`/`***`, `_`/`__`/`___`) and an optional "Ihr(e)"/"Dein(:e)"
+possessive, length-capped at 90 characters so a full sentence that happens
+to start with the marker still doesn't qualify. The dropped block is
+bounded (`CONTACT_BLOCK_MAX_LINES = 6`), ends at the first blank line, the
+next markdown heading, or a continuation line too long to be a contact
+entry (`CONTACT_BLOCK_LINE_MAX_LENGTH`, name/company/phone lines are
+always short) - one leading blank line directly after the heading is
+skipped rather than ending the block immediately, matching the common
+"## Kontakt\n\n<block>" markdown spacing. 6 new tests in `tests/test_pii.py`.
+
+**`spikes/pii_check.py` extended** to report each listing's removed-text
+share and flag anything above 10%, separating a legitimate (bounded)
+contact-block drop from genuine unexplained over-removal (counterfactual:
+what the share would be if no contact block were dropped at all).
+
+Rebuilding the fixtures and re-running the extended check found two more
+real, previously-undetected PII leaks and one new over-removal regression,
+all introduced or exposed by lines that don't fit the simple
+"Frau/Herr <Name>" or "heading, then address block" shapes the original
+D-3 patterns were built from - fixed in the same pass:
+
+1. **`**Ansprechpartner: <Name>, Tel: [TELEFON], Mobil: [TELEFON]**`** - a
+   markdown-bold single-line contact block, name included - not caught
+   before because `CONTACT_HEADING_PATTERN` didn't allow `**` as a leading
+   decoration. Fixed by the decoration alternation above.
+2. **`**ANSPRECHPARTNER FÜR FACHLICHE FRAGEN**`** (also `**`-wrapped)
+   followed, after one blank line, by two bare `<Name>, <role>, Tel. <nr>`
+   lines with no "Frau/Herr" prefix and more on the line than just the
+   name - not caught by any of the five D-3 patterns at all. Fixed by the
+   same decoration fix plus the "skip one leading blank, then continue the
+   block" change (otherwise the blank line right after the heading would
+   have ended the block before reaching the names).
+3. **Over-removal regression**: `"Dein Kontakt für diese Stelle ist:
+   <Name>"` was immediately followed, with no blank line, by a
+   differently-styled subsection ("Das bringst du mit") and six
+   full-sentence requirement bullets - swallowed as "part of the block" by
+   the line-count budget alone (17% of the ad removed). Fixed by the
+   continuation-line length cap: a candidate line longer than 90
+   characters ends the block instead of being dropped.
+
+### Final numbers (62 listings: 40 D-1 + 22 München, D-10 follow-up 2)
+
+- E-mail addresses masked: 5; phone numbers masked: 3; contact/name lines
+  removed: 23
+- Listings above 10% removed: **0** (neither explained-by-block nor
+  unexplained) - the 19121 regression above is now at 1.3%
+- Listings still flagged by `pii_check.py`'s plain keyword search after
+  cleaning: 7 - **all manually verified as benign**, not leaked names:
+  ordinary sentences using "Kontakt"/"Ansprechpartner" as vocabulary
+  ("Enger Kontakt mit...", "...agierst als führender Ansprechpartner...",
+  "...ist zentraler Ansprechpartner für den gesamten Bereich...", two
+  near-duplicate "Enger Kontakt..." task bullets, a two-word benefit
+  bullet "- Persönlichen Ansprechpartner", and a generic "contact us"
+  paragraph with no name attached). `pii_check.py`'s `SUSPICIOUS_PATTERN`
+  is a blunt keyword search by design (see its own docstring) and cannot
+  tell "mentions the word" from "leaked a name" on its own - left
+  unchanged, since narrowing it further would just re-implement
+  `pii.py`'s own heading heuristic and could never flag anything beyond
+  what `pii.py` already catches.
+
+**Goal met: 0 real names leaked, 0 listings over 10% removed**, given the
+7 remaining flagged lines are confirmed non-PII by manual review.
+
+Full per-listing detail (gitignored, still has ad text):
+`spikes/fixtures/pii_check.json`.
+
+### Re-run: did the 6 assessed München listings' fit categories change?
+
+Re-ran "Find Softwareentwickler jobs in München." in demo mode with the
+real model after rebuilding the fixtures. Same chain as the D-10 follow-up
+2 verification: search (103) -> narrowed search (honest 0) -> a third,
+age-widened search (also 0) -> `get_job_details` x6 -> `assess_fit` on the
+same 6 referenznummern -> shortlist. Elapsed 56.2s (within the 60s NFR-03
+budget).
+
+**Categories did not change:** `poor, poor, partial, poor, poor, partial`
+- identical to the follow-up 2 run, in the same order. Two of the six
+listings had their description text change substantively by this fix:
+
+- `10001-1003863378-S` (the `Stefan Müller`/`Andreas Fuchs` name leak,
+  now masked) stayed **partial**.
+- `19121-44499216-1011-S` (the `Lina Rackl` over-removal regression, 6
+  requirement bullets about Unix/C/shell/TCP-IP now restored) stayed
+  **poor**.
+
+Neither change affected the outcome: the removed/restored text in both
+cases doesn't overlap with the profile's Python/FastAPI/PostgreSQL/Docker/
+CI-CD skills, so the rubric's code-computed category was unaffected either
+way - a real name leaking (or not) and a few requirement bullets being
+silently dropped (or not) changed what the model could see, but not
+whether this match is fundamentally a Python-profile-vs-.NET/C#/Unix-ad
+mismatch. Full machine-readable trace, no ad text beyond the model's own
+evidence-quoting final message: `eval/results/d10_followup3_verification.json`.

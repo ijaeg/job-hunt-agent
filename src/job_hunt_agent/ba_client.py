@@ -2,9 +2,10 @@
 
 :class:`BAClient` talks to the real v6 search and v4 details endpoints
 (D-1); :class:`FixtureSource` reads the cleaned fixture set instead
-(FR-19 AC1) with the same two methods, so the tools layer (``tools/``, not
-built in this work package) can swap one for the other without changing
-its own code.
+(FR-19 AC1) with the same two methods, so the tools layer (``tools/``)
+can swap one for the other (injected via
+:class:`job_hunt_agent.context.AgentContext`) without changing its own
+code - see the :class:`JobSource` protocol below.
 
 Related: FR-02, FR-04, FR-19 AC1, spec §8, D-1, D-2
 """
@@ -17,7 +18,7 @@ import re
 import time
 from datetime import date
 from pathlib import Path
-from typing import Any
+from typing import Any, Protocol, runtime_checkable
 
 import httpx
 
@@ -27,6 +28,36 @@ from job_hunt_agent.pii import clean_ad_text
 
 #: Listings under this length are flagged low-evidence (FR-04 AC5).
 LOW_EVIDENCE_THRESHOLD = 600
+
+
+@runtime_checkable
+class JobSource(Protocol):
+    """Structural interface shared by :class:`BAClient` and :class:`FixtureSource`.
+
+    Tools depend on this protocol, not on either concrete class, so the
+    agent context (``AgentContext.job_source``) can hold either without any
+    tool code branching on which one it is (FR-19 AC1).
+
+    ``@runtime_checkable``: ``AgentContext`` is itself type-checked by
+    Pydantic (every ``@tool``'s auto-built args schema resolves
+    ``ToolRuntime``'s generic parameters, which walks into this dataclass's
+    field types) - a plain, non-runtime-checkable ``Protocol`` makes that
+    ``isinstance`` check raise ``TypeError`` at tool-definition time, not at
+    a call site.
+    """
+
+    def search(
+        self,
+        keywords: str,
+        location: str,
+        radius_km: int = 25,
+        published_within_days: int = 28,
+        exclude_temp_agency: bool = True,
+        page: int = 1,
+    ) -> tuple[list[JobSummary], int, list[str]]: ...
+
+    def get_details(self, referenznummer: str) -> JobDetails: ...
+
 
 #: Allowed ranges for clamped search arguments (FR-02 signature, AC6).
 RADIUS_KM_RANGE = (5, 200)
@@ -46,7 +77,11 @@ class BAJobNotFoundError(BAClientError):
 
 
 class BAUnavailableError(BAClientError):
-    """403, a timeout, 429 or 5xx after the one retry of spec §8 was exhausted."""
+    """A timeout, 429 or 5xx after the one retry of spec §8 was exhausted."""
+
+
+class BAForbiddenError(BAUnavailableError):
+    """403 (key rejected) - spec §8 gives this its own user-facing message, never retried."""
 
 
 class BAMalformedResponseError(BAClientError):
@@ -188,7 +223,7 @@ class BAClient:
                 last_exc = exc
             else:
                 if response.status_code == 403:
-                    raise BAUnavailableError("the job board rejected the request (403)")
+                    raise BAForbiddenError("the job board rejected the request (403)")
                 if response.status_code >= 500 or response.status_code == 429:
                     if attempt < config.BA_MAX_RETRIES:
                         time.sleep(config.BA_RETRY_DELAY_SECONDS)
@@ -323,6 +358,24 @@ class BAClient:
         return details
 
 
+def _job_summary_from_fixture_listing(listing: dict[str, Any]) -> JobSummary:
+    return JobSummary(
+        referenznummer=listing["referenznummer"],
+        title=listing["title"],
+        employer=listing.get("employer"),
+        location=listing.get("location"),
+        distance_km=listing.get("distance_km"),
+        published_date=_parse_date(listing.get("published_date")),
+        remote_type=listing.get("remote_type"),
+        remote_percent=listing.get("remote_percent"),
+        salary_min=listing.get("salary_min"),
+        salary_max=listing.get("salary_max"),
+        full_time=listing.get("full_time"),
+        contract_duration=listing.get("contract_duration"),
+        external_url=bool(listing.get("external_url")),
+    )
+
+
 class FixtureSource:
     """Demo-mode stand-in for :class:`BAClient` (FR-19 AC1).
 
@@ -331,7 +384,20 @@ class FixtureSource:
     :class:`BAClient`'s signatures so the tools layer can use either
     interchangeably.
 
-    Related: FR-19 AC1, D-8
+    For a query that exactly matches one of the 5 real D-1 searches
+    (``recorded_searches.json``, sibling to the listing file), ``search``
+    replays the *real* recorded total instead of the committed listing
+    set's own size (at most ~6 for any query - too small to ever show the
+    ">50, narrow" refinement direction, D-10 Option 4). A query that
+    *narrows* a recorded one (same location, its keywords plus more terms,
+    radius/age the same or smaller) filters that recorded query's own
+    listings - restricted to the ones actually present in ``listings.json``
+    - by the narrower criteria; this can honestly be 0 if none of that
+    recorded query's listings happen to be in the committed set (D-10
+    addendum, 2026-11-06 - no invented numbers either way). Any other query
+    falls back to filtering the full committed listing set as before.
+
+    Related: FR-03 AC1, FR-19 AC1, D-8, D-10
     """
 
     def __init__(self, fixtures_path: Path | None = None) -> None:
@@ -341,12 +407,72 @@ class FixtureSource:
         raw = json.loads(path.read_text(encoding="utf-8"))
         self._listings: list[dict[str, Any]] = raw
 
+        recorded_path = path.parent / "recorded_searches.json"
+        self._recorded_searches: list[dict[str, Any]] = (
+            json.loads(recorded_path.read_text(encoding="utf-8")) if recorded_path.exists() else []
+        )
+
+    def _recorded_match(
+        self, keywords: str, location: str, radius_km: int, published_within_days: int
+    ) -> dict[str, Any] | None:
+        """A recorded search this query exactly replays, or ``None`` (D-10 Option 4).
+
+        Matched on keywords/location (case-insensitive, trimmed), radius and
+        published-within-days; ``exclude_temp_agency`` is not part of the
+        match (the D-1 spike recorded these totals without that filter) and
+        is still applied afterwards to whichever listings from the
+        committed set happen to overlap.
+        """
+        key = (keywords.strip().lower(), location.strip().lower(), radius_km, published_within_days)
+        for record in self._recorded_searches:
+            record_key = (
+                str(record["keywords"]).strip().lower(),
+                str(record["location"]).strip().lower(),
+                record["radius_km"],
+                record["published_within_days"],
+            )
+            if key == record_key:
+                return record
+        return None
+
+    def _narrows_recorded_query(
+        self, keywords: str, location: str, radius_km: int, published_within_days: int
+    ) -> dict[str, Any] | None:
+        """A recorded search this query narrows, or ``None`` (D-10 addendum).
+
+        "Narrows": same location; every one of the recorded query's own
+        keyword terms is also present in this query's terms (same topic,
+        possibly more specific - "the recorded keywords plus more terms");
+        radius and publication age are the same or smaller. Excludes an
+        exact match (``_recorded_match`` handles that case instead).
+        """
+        query_terms = {t.lower() for t in keywords.split() if t}
+        for record in self._recorded_searches:
+            if str(record["location"]).strip().lower() != location.strip().lower():
+                continue
+            record_terms = {t.lower() for t in str(record["keywords"]).split() if t}
+            if not record_terms <= query_terms:
+                continue
+            radius_too_wide = radius_km > record["radius_km"]
+            age_too_wide = published_within_days > record["published_within_days"]
+            if radius_too_wide or age_too_wide:
+                continue
+            is_exact = (
+                query_terms == record_terms
+                and radius_km == record["radius_km"]
+                and published_within_days == record["published_within_days"]
+            )
+            if is_exact:
+                continue
+            return record
+        return None
+
     def search(
         self,
         keywords: str,
         location: str,
         radius_km: int = 25,
-        published_within_days: int = 28,  # noqa: ARG002 - fixtures have no real publish-age filter
+        published_within_days: int = 28,
         exclude_temp_agency: bool = True,
         page: int = 1,
     ) -> tuple[list[JobSummary], int, list[str]]:
@@ -358,10 +484,13 @@ class FixtureSource:
 
         terms = [t.lower() for t in clean_keywords.split() if t]
 
-        def matches(listing: dict[str, Any]) -> bool:
+        def matches(listing: dict[str, Any], *, include_description: bool = False) -> bool:
             if exclude_temp_agency and listing.get("is_temp_agency") is True:
                 return False
-            haystack = f"{listing.get('title', '')} {listing.get('employer', '')}".lower()
+            haystack = f"{listing.get('title', '')} {listing.get('employer', '')}"
+            if include_description:
+                haystack = f"{haystack} {listing.get('description', '')}"
+            haystack = haystack.lower()
             if terms and not all(term in haystack for term in terms):
                 return False
             if location and location.lower() not in (listing.get("location") or "").lower():
@@ -370,29 +499,48 @@ class FixtureSource:
                     return False
             return True
 
-        matching = [listing for listing in self._listings if matches(listing)]
-        total = len(matching)
+        recorded = self._recorded_match(clean_keywords, location, radius_km, published_within_days)
+        narrowed_from = (
+            None
+            if recorded is not None
+            else self._narrows_recorded_query(
+                clean_keywords, location, radius_km, published_within_days
+            )
+        )
+
+        if recorded is not None:
+            total = int(recorded["total"])
+            by_ref = {listing["referenznummer"]: listing for listing in self._listings}
+            matching = [
+                by_ref[ref]
+                for ref in recorded["referenznummern"]
+                if ref in by_ref
+                and not (exclude_temp_agency and by_ref[ref].get("is_temp_agency") is True)
+            ]
+        elif narrowed_from is not None:
+            notes.append(
+                f"narrowed from the recorded query '{narrowed_from['keywords']}' / "
+                f"{narrowed_from['location']} (D-10 addendum)"
+            )
+            # Narrowing checks description too (not just title/employer, unlike the
+            # generic path below) - the whole point of narrowing is the model's
+            # *more specific* terms, which are more likely to only appear in the ad
+            # body (D-10 follow-up 2).
+            candidate_refs = set(narrowed_from["referenznummern"])
+            matching = [
+                listing
+                for listing in self._listings
+                if listing["referenznummer"] in candidate_refs
+                and matches(listing, include_description=True)
+            ]
+            total = len(matching)
+        else:
+            matching = [listing for listing in self._listings if matches(listing)]
+            total = len(matching)
+
         start = (page - 1) * 25
         page_items = matching[start : start + 25]
-
-        summaries = [
-            JobSummary(
-                referenznummer=listing["referenznummer"],
-                title=listing["title"],
-                employer=listing.get("employer"),
-                location=listing.get("location"),
-                distance_km=listing.get("distance_km"),
-                published_date=_parse_date(listing.get("published_date")),
-                remote_type=listing.get("remote_type"),
-                remote_percent=listing.get("remote_percent"),
-                salary_min=listing.get("salary_min"),
-                salary_max=listing.get("salary_max"),
-                full_time=listing.get("full_time"),
-                contract_duration=listing.get("contract_duration"),
-                external_url=bool(listing.get("external_url")),
-            )
-            for listing in page_items
-        ]
+        summaries = [_job_summary_from_fixture_listing(listing) for listing in page_items]
         return summaries, total, notes
 
     def get_details(self, referenznummer: str) -> JobDetails:

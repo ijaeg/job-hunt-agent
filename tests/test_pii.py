@@ -99,6 +99,26 @@ def test_pattern_1_inline_name_after_bei_frau() -> None:
     assert counts["contact_lines_removed"] == 1
 
 
+def test_inline_name_not_preceded_by_bei_is_still_masked() -> None:
+    """D-10 follow-up 2: "Frau/Herr <Name>" mid-sentence without a "bei" is masked too.
+
+    Found on 2 real München listings: "Herr Salmen gibt Ihnen weitere
+    Informationen" and "...steht Frau Stefanie Ruf gerne unter der
+    Telefonnummer..." - the original pattern only matched after "bei".
+    """
+    text = "Bei Fragen zur Stelle gibt Ihnen Herr Salmen gerne Auskunft."
+    cleaned, counts = clean_ad_text(text)
+    assert "Salmen" not in cleaned
+    assert "Herr [NAME]" in cleaned
+    assert counts["contact_lines_removed"] == 1
+
+    text2 = "Fuer Rueckfragen steht Ihnen Frau Stefanie Ruf gerne zur Verfuegung."
+    cleaned2, counts2 = clean_ad_text(text2)
+    assert "Stefanie Ruf" not in cleaned2
+    assert "Frau [NAME]" in cleaned2
+    assert counts2["contact_lines_removed"] == 1
+
+
 def test_pattern_2_signature_line_is_dropped() -> None:
     """D-3 pattern 2: a standalone "Herr <Name>" signature line is dropped."""
     text = "Ihr Team von Dock 22\n\nHerr Torben Schulz\nDock 22 GmbH\nAm Sandtorkai 23"
@@ -152,6 +172,74 @@ def test_kontakt_header_also_opens_a_dropped_block() -> None:
     cleaned, counts = clean_ad_text(text)
     assert "Beispiel GmbH" not in cleaned
     assert counts["contact_lines_removed"] == 3
+
+
+def test_enger_kontakt_sentence_is_not_mistaken_for_a_contact_heading() -> None:
+    """D-10 follow-up 3: "Kontakt" deep in a task sentence does not open a block.
+
+    Found on 2 real D-1 listings: a requirement bullet point survived being
+    recognised as a name but was then dropped anyway by the old
+    unanchored CONTACT_MARKER_PATTERN, together with the rest of the ad.
+    """
+    text = (
+        "- Enger Kontakt mit den technischen Produktverantwortlichen, um sie durch "
+        "fundiertes Wissen ueber die Cloud-Vorteile zur Migration ihrer Anwendungen "
+        "zu bewegen\n"
+        "- Weitere Aufgabe im Team."
+    )
+    cleaned, _ = clean_ad_text(text)
+    assert "Enger Kontakt" in cleaned
+    assert "Weitere Aufgabe im Team." in cleaned
+
+
+def test_im_direkten_kontakt_sentence_is_not_mistaken_for_a_contact_heading() -> None:
+    """D-10 follow-up 3: "Kontakt" as the object of a sentence does not open a block."""
+    text = (
+        "Du stehst im direkten Kontakt mit Kunden und kuemmerst dich um deren Anliegen.\n"
+        "Weitere Aufgabe im Team."
+    )
+    cleaned, _ = clean_ad_text(text)
+    assert "im direkten Kontakt mit Kunden" in cleaned
+    assert "Weitere Aufgabe im Team." in cleaned
+
+
+def test_contact_block_stops_at_the_next_heading_not_the_rest_of_the_ad() -> None:
+    """D-10 follow-up 3: the dropped block is bounded, not everything to the end."""
+    text = (
+        "## Dein Profil\n"
+        "- Erfahrung mit Python.\n\n"
+        "## Kontakt\n"
+        "Personalabteilung\n\n"
+        "## Noch mehr Infos\n"
+        "Diese Stelle ist auch remote moeglich und bietet flexible Arbeitszeiten."
+    )
+    cleaned, _ = clean_ad_text(text)
+    assert "Erfahrung mit Python" in cleaned
+    assert "Personalabteilung" not in cleaned
+    assert "Diese Stelle ist auch remote moeglich" in cleaned
+
+
+def test_contact_block_does_not_swallow_the_next_unseparated_section() -> None:
+    """D-10 follow-up 3: a real listing had a requirements section lost this way.
+
+    "Dein Kontakt...: <Name>" was immediately followed, with no blank line,
+    by a plain-text subsection ("Das bringst du mit") and its full-sentence
+    requirement bullets - the old unbounded line-count cap swallowed 6 of
+    them. A contact-block continuation line is always short; a sentence
+    this long ends the block instead of being dropped.
+    """
+    text = (
+        "Dein Kontakt fuer diese Stelle ist: Lina Rackl\n"
+        "Das bringst du mit\n"
+        "  *  Du hast ein abgeschlossenes technisches Studium oder vergleichbare "
+        "technische Kenntnisse, die du beispielsweise durch mehrjaehrige "
+        "Berufserfahrung erworben hast\n"
+        "  *  Sehr gute Deutschkenntnisse (mind. B2) in Wort und Schrift"
+    )
+    cleaned, _ = clean_ad_text(text)
+    assert "Lina Rackl" not in cleaned
+    assert "abgeschlossenes technisches Studium" in cleaned
+    assert "Sehr gute Deutschkenntnisse" in cleaned
 
 
 def test_job_title_line_is_not_mistaken_for_a_name() -> None:

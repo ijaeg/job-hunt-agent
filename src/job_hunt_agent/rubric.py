@@ -15,6 +15,8 @@ Related: FR-06 AC1-AC4, spec §7, D-9
 
 from __future__ import annotations
 
+import re
+
 from job_hunt_agent.models import (
     FitAssessment,
     FitCategory,
@@ -71,22 +73,48 @@ def _normalize(text: str) -> str:
     return text.strip().lower()
 
 
+def _whole_word_pattern(token: str) -> re.Pattern[str]:
+    """A case-insensitive "whole word" pattern for ``token`` inside a larger string.
+
+    Plain ``\\b`` fails on tokens that end or start with a non-word
+    character (``C#``, ``C++``, ``CI/CD``): ``\\b`` only fires at a
+    word/non-word transition, so ``\\bC#\\b`` never matches at all (``#``
+    is non-word on both sides, so there is no trailing word boundary to
+    anchor on). Lookarounds anchored on "not a word character" give the
+    same whole-word guarantee without that failure mode.
+    """
+    return re.compile(rf"(?<!\w){re.escape(token)}(?!\w)", re.IGNORECASE)
+
+
 def skill_matches_profile(requirement_name: str, profile_skills: list[str]) -> bool:
     """Whether an extracted skill counts as present in the profile.
 
-    **Start value, open in D-9.** LLM-extracted skill names are often
-    verbose compound phrases (e.g. "Programmiersprachen: Java, Python, C#"),
-    not the short tokens a profile uses ("Python"). An *exact* name match
-    would almost never fire on real extractions (confirmed on the 5 D-4
-    listings, see D-9); this implementation instead matches if a profile
-    skill token appears as a case-insensitive substring of the requirement
-    name, or vice versa for a short requirement name. D-9 shows where this
-    differs from exact matching and from a small synonym list.
+    **D-9 (2026-11-06, revised in WP-03):** whole-word, case-insensitive
+    matching of a profile skill token against the requirement name, exactly
+    as spec §7 describes ("required skills in profile"). The previous
+    implementation matched on a plain substring, which let "Java" match
+    "JavaScript", "C" match "CI/CD" and "R" match "Docke**r**" - false
+    matches that overstated fit. Whole-word matching fixes those while
+    still matching "Python" inside "Programmiersprachen: Java, Python, C#"
+    (comma/space on both sides count as non-word).
+
+    **Known limitation, by design of the whole-word rule:** a version
+    suffix directly after the token with no separator breaks the trailing
+    boundary - "C++" does **not** match "C++17" (the "1" right after "++"
+    is a word character, so ``(?!\\w)`` fails), while "C#" **does** match
+    "C#/.NET" (the "/" right after is non-word). This asymmetry is an
+    accepted consequence of using a word-character boundary, not a bug;
+    revisit only if real extractions turn out to append bare version
+    numbers to skill tokens often enough to matter (none of the 5 D-4
+    listings did).
 
     Related: FR-05 AC1, spec §7 "Skills", D-9
     """
-    req = _normalize(requirement_name)
-    return any(_normalize(skill) in req or req in _normalize(skill) for skill in profile_skills)
+    return any(
+        _whole_word_pattern(skill.strip()).search(requirement_name)
+        for skill in profile_skills
+        if skill.strip()
+    )
 
 
 def hard_exclusions(

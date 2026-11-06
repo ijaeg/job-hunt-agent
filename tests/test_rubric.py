@@ -95,6 +95,47 @@ def test_skill_matches_profile_no_match() -> None:
     assert not skill_matches_profile("Kubernetes orchestration", ["Python", "Java"])
 
 
+def test_skill_matches_profile_java_does_not_match_javascript() -> None:
+    """WP-03: whole-word matching - "Java" must not match inside "JavaScript"."""
+    assert not skill_matches_profile("JavaScript", ["Java"])
+
+
+def test_skill_matches_profile_c_does_not_match_ci_cd() -> None:
+    """WP-03: "C" must not match inside "CI/CD"."""
+    assert not skill_matches_profile("CI/CD", ["C"])
+
+
+def test_skill_matches_profile_r_does_not_match_docker() -> None:
+    """WP-03: "R" must not match inside "Docker"."""
+    assert not skill_matches_profile("Docker", ["R"])
+
+
+def test_skill_matches_profile_c_sharp_matches_c_sharp_dot_net() -> None:
+    """WP-03: "C#" matches "C#/.NET" - the "/" right after is a non-word boundary."""
+    assert skill_matches_profile("C#/.NET", ["C#"])
+
+
+def test_skill_matches_profile_c_plus_plus_does_not_match_versioned_suffix() -> None:
+    """WP-03: "C++" does NOT match "C++17" - "1" right after is a word character.
+
+    Documented, accepted asymmetry of whole-word matching (see
+    ``skill_matches_profile``'s docstring): a bare version suffix with no
+    separator breaks the trailing boundary, unlike "C#/.NET" above where
+    the next character ("/") is non-word.
+    """
+    assert not skill_matches_profile("C++17", ["C++"])
+
+
+def test_skill_matches_profile_ci_cd_matches_hyphenated_suffix() -> None:
+    """WP-03: "CI/CD" matches "CI/CD-Pipelines" - "-" is a non-word boundary."""
+    assert skill_matches_profile("CI/CD-Pipelines", ["CI/CD"])
+
+
+def test_skill_matches_profile_python_in_compound_german_phrase() -> None:
+    """WP-03: "Python" matches inside a comma-separated German skill list."""
+    assert skill_matches_profile("Programmiersprachen: Java, Python, C#", ["Python"])
+
+
 # ---------------------------------------------------------------------------
 # hard_exclusions (FR-06 AC1-AC4)
 # ---------------------------------------------------------------------------
