@@ -324,3 +324,45 @@ limitation (worth revisiting if a cleaner demo ending is wanted later), not hidd
 3 total `search_jobs` calls across the two-turn conversation confirm FR-03 AC3 ("the
 trace of demo scenario S1 shows at least one refinement") is now demonstrable in demo
 mode, not only against the live API.
+
+## D-10 addendum: corrupted referenznummern fixed, autonomous narrowing re-run (2026-11-06)
+
+Full write-up: `docs/decisions/D-10-demo-search-semantics.md` § "Addendum". Summary:
+
+**Fix 1:** `recorded_searches.json` had 3 corrupted reference numbers (the raw D-1
+search responses were scrubbed by the same context-free phone regex as the details
+responses). `scripts/build_fixtures.py::recover_referenznummer()` now matches every
+referenznummer against `listings.json` (prefix/suffix around the `[TELEFON]` artifact
+for a corrupted one), never trusts the scrubbed search file directly, and drops any
+reference never detail-fetched rather than keeping an unverifiable guess.
+
+**Fix 2:** `prompts/system.md` now tells the model to narrow *autonomously*, using the
+profile, before asking the user; a new `LoadProfileContextMiddleware` makes the profile
+actually visible to the model (it was not, before). `FixtureSource` gained a
+narrowing-match path: a query that keeps a recorded query's keywords as a subset is
+filtered to that recorded search's own referenznummern (restricted to `listings.json`) -
+honestly 0 if none overlap, never invented either way.
+
+**Re-run, "Find Softwareentwickler jobs in München.", demo mode, real model:**
+
+| # | search_jobs call | total |
+|---|---|---|
+| 1 | Softwareentwickler / München, 25 km, 28 days | 103 (exact replay) |
+| 2 | Senior Softwareentwickler Python FastAPI / München, 25 km, 28 days (narrowed) | 0 |
+| 3 | Softwareentwickler Python Java Docker PostgreSQL CI/CD / München, 25 km, 60 days | 0 |
+
+The agent narrowed on its own across 2 attempts (using profile skills + seniority),
+within the 3-call limit, without asking first - then stopped and asked the user,
+correctly diagnosing that the Hamburg-based profile radius wasn't helping a München
+query. It never reached `get_job_details` or `assess_fit` for this query.
+
+**Honest conclusion:** this is a data-coverage gap, not a logic bug. München's recorded
+search's own 25 reference numbers have zero overlap with the 40 detail-fetched listings
+in `listings.json` (the original D-1 spike's 40-detail budget was spent on the 4 other
+searches, which run before München in `spikes/ba_api_spike.py`'s list). No narrowing of
+*that specific recorded search* can honestly return anything but 0. The mechanism itself
+(autonomous, profile-driven narrowing; honest non-invented totals) works exactly as
+specified - confirmed by the trace above - but "Softwareentwickler"/München specifically
+cannot demo the full "narrow -> details -> assess_fit" chain with the current fixture
+data. "AI Engineer"/Hamburg (24 of its listings are in `listings.json`) is a better
+candidate if a guaranteed non-zero narrowed result is wanted for the review.

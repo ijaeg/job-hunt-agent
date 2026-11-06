@@ -245,6 +245,49 @@ run as written).
 **Checks after D-10:** `uv run pytest` 208/208 passed, 98 % coverage; ruff
 and mypy still clean.
 
+**D-10 addendum (decided by Ingo on 2026-11-06), before any commit:**
+
+1. **Corrupted referenznummern in `recorded_searches.json`:** 3 of the
+   entries were corrupted (same D-1 phone-regex regression, but inside the
+   raw *search* responses this time, not just the details ones -
+   `19522-0068291613-S` -> `19522-[TELEFON]-S` and 2 others). Fixed:
+   `scripts/build_fixtures.py::recover_referenznummer()` never trusts a
+   referenznummer from the scrubbed search file - matches it against
+   `listings.json` instead (exact for an uncorrupted one, prefix/suffix
+   around `[TELEFON]` for a corrupted one, dropped if ambiguous or never
+   detail-fetched). New tests: `test_recorded_search_referenznummern_exist_in_listings_and_are_uncorrupted`
+   plus 6 unit tests in the new `tests/test_build_fixtures.py`.
+2. **Autonomous narrowing (FR-03 AC1):** `prompts/system.md` now tells the
+   model to narrow *on its own* using the profile before asking the user.
+   This needed the profile to actually reach the model - new middleware
+   `middleware/profile_context.py` (`LoadProfileContextMiddleware`)
+   injects it once, on a thread's first model call, wired into `agent.py`
+   right after the input guard. `ba_client.FixtureSource` gained
+   `_narrows_recorded_query`: a query that keeps a recorded query's
+   keywords as a subset (same location, radius/age same or smaller) is
+   restricted to *that specific recorded search's* own referenznummern
+   (intersected with `listings.json`), not the full 43-listing set -
+   honestly 0 if there is no overlap. 5 new tests in `tests/test_ba_client.py`,
+   3 new in `tests/test_middleware_profile_context.py`.
+3. **Re-ran S1 in demo mode, "Softwareentwickler" / München, real model**
+   (`eval/results/d10_addendum_verification.json`, full trace in
+   `spikes/NOTES.md` § "D-10 addendum"): the agent narrowed autonomously
+   across 2 attempts using the profile's skills and seniority, within the
+   3-call limit, without asking first - then stopped and correctly
+   diagnosed that the Hamburg-based profile wasn't helping a München
+   query. Both narrowed searches returned 0; **the trace does not reach
+   "details -> assess_fit"** for this specific query. Confirmed honest,
+   not a bug: München's recorded search has zero overlap between its own
+   25 referenznummern and the 40 detail-fetched listings in
+   `listings.json` (the D-1 spike's fetch budget was spent on the other 4
+   searches first). The mechanism itself works exactly as specified;
+   "AI Engineer"/Hamburg (24 of its listings are in the committed set) is
+   the better candidate if a guaranteed non-zero narrow-to-assess demo is
+   wanted for the review.
+
+**Checks after the addendum:** `uv run pytest` 227/227 passed, 98 %
+coverage; ruff and mypy still clean.
+
 **Next:** show the commit proposal(s) for this work package (one concern
 per commit, per CLAUDE.md) and wait for approval before any commit, push
 or PR. After that, the remaining Must items per spec §13 (tracker view,

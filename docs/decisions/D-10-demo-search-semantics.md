@@ -127,3 +127,107 @@ the live run's entry.
 `recorded_searches.json` fixture file; demo mode now genuinely shows the
 ">50, narrow" refinement direction for "Softwareentwickler" / München
 (total 103). - Ingo, 2026-11-06
+
+## Addendum (2026-11-06, decided by Ingo): corrupted referenznummern, and autonomous narrowing
+
+Two follow-up fixes, both decided by Ingo the same day.
+
+### 1. `recorded_searches.json` had 3 corrupted reference numbers
+
+The raw D-1 search responses (`spikes/fixtures/search/*.json`) were scrubbed
+by the same context-free phone regex as the details responses (the
+original D-1/D-4 regression) - corrupting 3 referenznummern inside the
+search results too, not just inside the details files (e.g.
+`19522-0068291613-S` -> `19522-[TELEFON]-S`). `build_recorded_searches()`
+was reading `referenznummer` straight from those scrubbed search files, so
+`recorded_searches.json` shipped with 3 corrupted entries.
+
+Fixed: `scripts/build_fixtures.py::recover_referenznummer()` never reads a
+referenznummer from the search files as truth - every one is matched
+against the already-correct `listings.json` (built from the details
+files' names, never corrupted), either by case-insensitive equality (an
+uncorrupted entry) or by prefix/suffix around the `[TELEFON]` artifact (a
+corrupted one, unambiguous match required). A reference that was never
+detail-fetched (not in `listings.json` at all - true for all 25 of
+München's own recorded results) is simply dropped from
+`referenznummern`, never kept as an unverifiable guess. New test:
+`tests/test_fixtures.py::test_recorded_search_referenznummern_exist_in_listings_and_are_uncorrupted`
+(every referenznummer in the committed file exists in `listings.json` and
+contains no `[`), plus 6 unit tests for `recover_referenznummer` itself in
+`tests/test_build_fixtures.py`.
+
+### 2. Autonomous narrowing (FR-03 AC1), not "ask first"
+
+`prompts/system.md` now tells the model to narrow **on its own**, using
+the profile (skills, seniority, radius) and a shorter publication age,
+when a search returns more than 50 results - only asking the user if that
+still is not enough. This needed the profile to actually be visible to the
+model, which it was not before: a new middleware,
+`middleware/profile_context.py`
+(`LoadProfileContextMiddleware`), injects a one-off message describing the
+selected user's profile the first time a thread calls the model. Wired
+into `agent.py` right after the input guard.
+
+`ba_client.FixtureSource` gained a second match path,
+`_narrows_recorded_query`: a query that keeps a recorded query's keywords
+as a subset of its own (same location, radius and publication age the
+same or smaller) is treated as narrowing that specific recorded search -
+filtered to *that search's own* referenznummern, restricted further to
+`listings.json`, never to the full 43-listing committed set. `total` is
+the honest count of that intersection, which can legitimately be 0 if none
+of a recorded query's own results happen to be in the committed set (true
+for München, confirmed below) - no number is ever invented either
+direction. A query that drops or changes a recorded query's keywords
+instead of extending them falls through to the ordinary, unrestricted
+filter over the whole committed set, as before. 5 new tests in
+`tests/test_ba_client.py`.
+
+### Re-run result: honest, did not reach assess_fit
+
+Demo mode, real model, same single-message pattern as before: "Find
+Softwareentwickler jobs in München." Full trace:
+
+| # | `search_jobs` call | Result |
+|---|---|---|
+| 1 | `Softwareentwickler` / München, 25 km, 28 days | **total: 103** (exact replay) |
+| 2 | `Senior Softwareentwickler Python FastAPI` / München, 25 km, 28 days | narrowed from the recorded query - **total: 0** |
+| 3 | `Softwareentwickler Python Java Docker PostgreSQL CI/CD` / München, 25 km, **60 days** | wider publication age than the recorded query, so not "narrowing" - falls through to the full-set filter - **total: 0** |
+
+The agent narrowed **autonomously, without asking first** - exactly the
+new instruction - using the profile's seniority and several of its skills
+across two attempts, within the 3-calls-per-message limit. Only after
+both narrowed searches came back empty did it stop and ask the user,
+explicitly diagnosing *why*: "your stored profile is for Hamburg with a
+25 km radius... that limited useful refinements when you asked for
+München." It never called `get_job_details` or `assess_fit` - **the trace
+does not reach "details -> assess_fit"** for this specific query.
+
+This is a correct, honest outcome, not a bug: confirmed directly against
+`recorded_searches.json` - the München recorded search's own 25 reference
+numbers have **zero overlap** with the 40 detail-fetched listings in
+`listings.json` (the 40-detail budget in the original D-1 spike was spent
+on the other 4 searches, run before München in `spikes/ba_api_spike.py`'s
+list, before München's own results were ever reached). No keyword
+narrowing of *that specific recorded search* can honestly return anything
+but 0, because we have no real ad data for any of its original results.
+The mechanism (autonomous, profile-driven narrowing; honest, non-invented
+totals) works exactly as specified; this particular query is simply the
+wrong one to demo "narrow -> assess_fit" end-to-end with, because of a
+data-coverage gap from the original D-1 spike's fetch order. A different
+recorded query with the same issue is unlikely: "AI Engineer"/Hamburg
+(total 42, not >50 but close) has 24 of its results in `listings.json`,
+and the other 3 searches (Python/Hamburg, Java/Hamburg, ML/Berlin) have
+partial overlap too (see their `referenznummern` counts in
+`recorded_searches.json`) - München is the one search whose detail
+fetching happened to be fully crowded out.
+
+Full machine-readable trace: `eval/results/d10_addendum_verification.json`
+(CLAUDE.md: evaluation/spike results go to `eval/results/` or `spikes/` as
+JSON plus a short Markdown summary, never only to the terminal).
+
+**Decision:** both fixes confirmed as described - corrupted referenznummer
+recovery, and autonomous profile-driven narrowing with honest (possibly
+zero) totals when narrowing a recorded query. No further fixture change
+needed to "make München work"; if a guaranteed non-zero narrow-to-assess
+demo is wanted later, use "AI Engineer"/Hamburg or a fresh spike run that
+detail-fetches München's own results. - Ingo, 2026-11-06
