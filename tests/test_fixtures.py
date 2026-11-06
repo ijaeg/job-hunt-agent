@@ -1,11 +1,12 @@
 """Checks the cleaned fixture set for leftover personal data and demo content.
 
-Reads ``data/samples/fixtures/listings.json`` directly (plain JSON, not the
-``ba_client.FixtureSource`` interface) so this test has no dependency
-beyond the file itself. Committed together with the fixture set per
-decision D-8 (Option 1, 2026-11-06).
+Reads ``data/samples/fixtures/listings.json`` and ``recorded_searches.json``
+directly (plain JSON, not the ``ba_client.FixtureSource`` interface) so
+this test has no dependency beyond the files themselves. Committed
+together with the fixture set per decision D-8 (Option 1, 2026-11-06);
+``recorded_searches.json`` added under D-10 Option 4 (2026-11-06).
 
-Related: FR-19 AC4, FR-22 AC3, FR-23 AC4, D-3, D-8
+Related: FR-19 AC4, FR-22 AC3, FR-23 AC4, D-3, D-8, D-10
 """
 
 from __future__ import annotations
@@ -15,9 +16,9 @@ import re
 from pathlib import Path
 from typing import Any
 
-FIXTURES_PATH = (
-    Path(__file__).resolve().parents[1] / "data" / "samples" / "fixtures" / "listings.json"
-)
+FIXTURES_DIR = Path(__file__).resolve().parents[1] / "data" / "samples" / "fixtures"
+FIXTURES_PATH = FIXTURES_DIR / "listings.json"
+RECORDED_SEARCHES_PATH = FIXTURES_DIR / "recorded_searches.json"
 
 EMAIL_PATTERN = re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+")
 NAME_KEYWORD_PATTERN = re.compile(r"\b(frau|herrn?)\b", re.I)
@@ -26,6 +27,10 @@ PHONE_LIKE_PATTERN = re.compile(r"(?:\+49|0049)[\d\s/()\-]{5,}\d")
 
 def _listings() -> list[dict[str, Any]]:
     return json.loads(FIXTURES_PATH.read_text(encoding="utf-8"))
+
+
+def _recorded_searches() -> list[dict[str, Any]]:
+    return json.loads(RECORDED_SEARCHES_PATH.read_text(encoding="utf-8"))
 
 
 def test_fixture_set_is_not_empty() -> None:
@@ -99,3 +104,42 @@ def test_short_teaser_with_external_url_is_present() -> None:
 def test_temporary_agency_listing_is_present() -> None:
     """FR-06 AC1: at least one listing has ``is_temp_agency`` set to true."""
     assert any(listing.get("is_temp_agency") is True for listing in _listings())
+
+
+# ---------------------------------------------------------------------------
+# recorded_searches.json (D-10 Option 4) - query params/totals/refs only
+# ---------------------------------------------------------------------------
+
+
+def test_recorded_searches_file_is_not_empty() -> None:
+    assert len(_recorded_searches()) >= 1
+
+
+def test_recorded_searches_have_no_ad_text_or_pii() -> None:
+    """Only keywords/location/total/referenznummern - no free text to leak PII from."""
+    allowed_keys = {
+        "keywords",
+        "location",
+        "radius_km",
+        "published_within_days",
+        "total",
+        "referenznummern",
+    }
+    for record in _recorded_searches():
+        assert set(record.keys()) <= allowed_keys
+
+
+def test_recorded_searches_include_a_total_over_fifty() -> None:
+    """D-10: at least one recorded query can show the ">50, narrow" refinement direction."""
+    assert any(record["total"] > 50 for record in _recorded_searches())
+
+
+def test_softwareentwickler_muenchen_is_recorded_with_its_real_total() -> None:
+    """The specific query Ingo asked to demo (D-10 decision): total 103."""
+    matches = [
+        r
+        for r in _recorded_searches()
+        if r["keywords"] == "Softwareentwickler" and r["location"] == "München"
+    ]
+    assert len(matches) == 1
+    assert matches[0]["total"] == 103

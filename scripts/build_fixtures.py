@@ -5,9 +5,13 @@ and the matching ``spikes/fixtures/search/`` responses, keeps only the
 fields of :class:`JobSummary`/:class:`JobDetails`, cleans the free text with
 :func:`job_hunt_agent.pii.clean_ad_text`, and adds three crafted fictional
 listings for the demo scenarios (S5 prompt injection, a short teaser, a
-temporary-agency listing). Writes one combined JSON file,
-``data/samples/fixtures/listings.json``, read by ``ba_client.FixtureSource``
-(FR-19 AC1).
+temporary-agency listing). Writes the combined listing file,
+``data/samples/fixtures/listings.json``, and a second, much smaller file,
+``data/samples/fixtures/recorded_searches.json`` (query params + the real
+recorded total + reference numbers only, no ad text) that lets
+``ba_client.FixtureSource`` replay the 5 real D-1 search totals instead of
+being capped at this fixture set's own size for every query (D-10 Option 4).
+Both are read by ``ba_client.FixtureSource`` (FR-19 AC1).
 
 **Referenznummer bug (D-1 regression, see spikes/NOTES.md § D-4):** the D-1
 spike's own ad-hoc cleaning once matched a *reference number* with its
@@ -48,9 +52,50 @@ from job_hunt_agent.pii import clean_ad_text  # noqa: E402
 DETAILS_DIR = PROJECT_ROOT / "spikes" / "fixtures" / "details"
 SEARCH_DIR = PROJECT_ROOT / "spikes" / "fixtures" / "search"
 OUT_PATH = PROJECT_ROOT / "data" / "samples" / "fixtures" / "listings.json"
+RECORDED_SEARCHES_OUT_PATH = (
+    PROJECT_ROOT / "data" / "samples" / "fixtures" / "recorded_searches.json"
+)
 
 #: Ad texts under this length are flagged `low_evidence` (FR-04 AC5).
 LOW_EVIDENCE_THRESHOLD = 600
+
+#: The 5 fixed queries `spikes/ba_api_spike.py` (D-1) ran, in the same order,
+#: each paired with the fixture file its response was saved to. `umkreis`
+#: and the filename slug are exactly what the spike used; `veroeffentlichtseit`
+#: was 28 for every one of them (D-1 decision, D-10 Option 4).
+RECORDED_QUERIES: list[dict[str, Any]] = [
+    {
+        "keywords": "Python Entwickler",
+        "location": "Hamburg",
+        "radius_km": 25,
+        "file": "python-entwickler-hamburg.json",
+    },
+    {
+        "keywords": "AI Engineer",
+        "location": "Hamburg",
+        "radius_km": 50,
+        "file": "ai-engineer-hamburg.json",
+    },
+    {
+        "keywords": "Java Entwickler",
+        "location": "Hamburg",
+        "radius_km": 25,
+        "file": "java-entwickler-hamburg.json",
+    },
+    {
+        "keywords": "Machine Learning",
+        "location": "Berlin",
+        "radius_km": 25,
+        "file": "machine-learning-berlin.json",
+    },
+    {
+        "keywords": "Softwareentwickler",
+        "location": "München",
+        "radius_km": 25,
+        "file": "softwareentwickler-m-nchen.json",
+    },
+]
+RECORDED_PUBLISHED_WITHIN_DAYS = 28
 
 
 def slug(text: str) -> str:
@@ -190,6 +235,39 @@ def crafted_listings() -> list[dict[str, Any]]:
     ]
 
 
+def build_recorded_searches() -> list[dict[str, Any]]:
+    """Replays the 5 raw D-1 search responses as (query, total, refs) records.
+
+    No ad text and no listing fields beyond the reference number - just
+    what ``FixtureSource.search`` needs to report the *real* recorded
+    ``maxErgebnisse`` for an exact-matching query (D-10 Option 4), so demo
+    mode can show genuine ">50, narrow" refinement (confirmed for
+    "Softwareentwickler" / "München": 103 results) instead of being capped
+    at the committed fixture set's own size (43).
+
+    Related: FR-03 AC1, FR-03 AC3, D-1, D-10
+    """
+    records = []
+    for query in RECORDED_QUERIES:
+        body = json.loads((SEARCH_DIR / query["file"]).read_text(encoding="utf-8"))
+        refs = [
+            item["referenznummer"]
+            for item in body.get("ergebnisliste") or []
+            if isinstance(item, dict) and isinstance(item.get("referenznummer"), str)
+        ]
+        records.append(
+            {
+                "keywords": query["keywords"],
+                "location": query["location"],
+                "radius_km": query["radius_km"],
+                "published_within_days": RECORDED_PUBLISHED_WITHIN_DAYS,
+                "total": body.get("maxErgebnisse"),
+                "referenznummern": refs,
+            }
+        )
+    return records
+
+
 def main() -> int:
     distance_lookup = build_distance_lookup()
     listings = [
@@ -201,6 +279,12 @@ def main() -> int:
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUT_PATH.write_text(json.dumps(listings, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"Wrote {len(listings)} listings to {OUT_PATH}")
+
+    recorded_searches = build_recorded_searches()
+    RECORDED_SEARCHES_OUT_PATH.write_text(
+        json.dumps(recorded_searches, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+    print(f"Wrote {len(recorded_searches)} recorded searches to {RECORDED_SEARCHES_OUT_PATH}")
     return 0
 
 

@@ -501,3 +501,77 @@ def test_fixture_source_get_details_not_found_raises(fixture_path: Path) -> None
     source = FixtureSource(fixtures_path=fixture_path)
     with pytest.raises(BAJobNotFoundError):
         source.get_details("DOES-NOT-EXIST-S")
+
+
+# ---------------------------------------------------------------------------
+# FixtureSource: recorded-search replay (D-10 Option 4)
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+def fixture_path_with_recorded_searches(fixture_path: Path) -> Path:
+    """Same listings as ``fixture_path``, plus a sibling ``recorded_searches.json``."""
+    recorded = [
+        {
+            "keywords": "Softwareentwickler",
+            "location": "München",
+            "radius_km": 25,
+            "published_within_days": 28,
+            "total": 103,
+            "referenznummern": ["DEMO-0000000001-S", "SOME-OTHER-REF-NOT-IN-LISTINGS-S"],
+        }
+    ]
+    (fixture_path.parent / "recorded_searches.json").write_text(
+        json.dumps(recorded), encoding="utf-8"
+    )
+    return fixture_path
+
+
+def test_fixture_source_replays_the_recorded_total_for_an_exact_match(
+    fixture_path_with_recorded_searches: Path,
+) -> None:
+    """D-10 Option 4: an exact-matching query reports the real recorded total (103)."""
+    source = FixtureSource(fixtures_path=fixture_path_with_recorded_searches)
+    summaries, total, _ = source.search(
+        "Softwareentwickler", "München", radius_km=25, published_within_days=28
+    )
+    assert total == 103
+    # Only DEMO-0000000001-S is both recorded and present in the committed listings.
+    assert [s.referenznummer for s in summaries] == ["DEMO-0000000001-S"]
+
+
+def test_fixture_source_replay_still_respects_exclude_temp_agency(
+    fixture_path_with_recorded_searches: Path,
+) -> None:
+    """A recorded listing that is a temp-agency one is still filtered out by default."""
+    recorded_path = fixture_path_with_recorded_searches.parent / "recorded_searches.json"
+    recorded = json.loads(recorded_path.read_text(encoding="utf-8"))
+    recorded[0]["referenznummern"] = ["DEMO-0000000002-S"]  # the temp-agency listing
+    recorded_path.write_text(json.dumps(recorded), encoding="utf-8")
+
+    source = FixtureSource(fixtures_path=fixture_path_with_recorded_searches)
+    summaries, total, _ = source.search(
+        "Softwareentwickler", "München", radius_km=25, published_within_days=28
+    )
+    assert total == 103  # the recorded total is unaffected by the local filter
+    assert summaries == []  # but the one listing we have for it is excluded
+
+
+def test_fixture_source_non_matching_query_falls_back_to_filtering(
+    fixture_path_with_recorded_searches: Path,
+) -> None:
+    """A query that is not an exact recorded match uses the normal filter path."""
+    source = FixtureSource(fixtures_path=fixture_path_with_recorded_searches)
+    summaries, total, _ = source.search("Python", "Hamburg", exclude_temp_agency=False)
+    assert total == 1
+    assert summaries[0].referenznummer == "DEMO-0000000001-S"
+
+
+def test_fixture_source_without_recorded_searches_file_falls_back(fixture_path: Path) -> None:
+    """No sibling ``recorded_searches.json`` at all -> always the normal filter path."""
+    source = FixtureSource(fixtures_path=fixture_path)
+    summaries, total, _ = source.search(
+        "Softwareentwickler", "München", radius_km=25, published_within_days=28
+    )
+    assert total == 0
+    assert summaries == []
