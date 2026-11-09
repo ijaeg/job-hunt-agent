@@ -783,3 +783,80 @@ coverage; `uv run ruff check .` and `uv run ruff format --check .` clean;
 approval before any commit, push or PR. After that: the remaining Must
 items per spec §13 (tracker view, memory page, profile form, developer
 settings, FR-15 AC2's memory-loading gap, safety tests, evaluation).
+
+## 2026-11-09 — WP-06: tracker view (FR-11)
+
+**Done:**
+
+- Recorded D-13 (consistency of follow-up explanations, coach-prepared)
+  and spec v0.1.8 in the first commit, together with
+  `docs/prompts/WP-06-tracker-view.md`.
+- Shared UI module `ui_shared.py` (repo root, no change in behaviour):
+  `get_connection`, `USER_ID` and `load_or_seed_profile` moved out of
+  `app.py`, which now imports them. Both `app.py` and the new
+  `pages/1_Tracker.py` explicitly add the repo root to `sys.path` before
+  importing it - needed because Streamlit's own "add the entry script's
+  directory" trick keys off whichever script is actually executed
+  (confirmed by reading `streamlit/runtime/scriptrunner/script_runner.py`
+  and `local_script_runner.py`): the real app always runs that trick with
+  `app.py`'s directory, but a page tested directly via
+  `AppTest.from_file(...)` or a module loaded by raw `importlib` (as
+  `tests/test_app.py`'s `_load_app_module` does) gets no such help.
+- `storage.delete_tracker_entry(conn, user_id, referenznummer) -> bool`
+  (FR-11 AC2), inside a transaction; returns whether a row actually
+  existed.
+- Pure helpers `src/job_hunt_agent/tracker_view.py` (FR-11 AC1, no
+  Streamlit import, sibling to `ui_view.py` rather than added to it - a
+  different FR, kept separate): `is_overdue(follow_up_date, today)` and
+  `order_entries(entries, today)` (overdue first, then by `updated_at`,
+  newest first); `today` is always a parameter, never read from the
+  system clock inside the helper.
+- `pages/1_Tracker.py` (FR-11 AC1, AC2): one row per tracker entry -
+  title linked to the listing (reuses `ui_view.listing_url`, the same
+  BA Jobsuche URL the shortlist cards use), employer, a status
+  `st.selectbox` that saves immediately on change (via
+  `save_tracker_entry` with a fresh `updated_at`, `created_at`
+  untouched), the follow-up date highlighted in red with an "Overdue"
+  label when in the past, the note, and a Delete button that requires a
+  second click ("Yes, delete" / "Cancel") before anything is removed -
+  no browser dialogs, no approval (these are user actions, FR-11 AC2,
+  not agent ones). Empty state: a caption pointing back at the
+  shortlist. Every storage call on this page is wrapped so a failure
+  becomes `st.error`, never a stack trace (invariant 7).
+- No `list_tracker` tool, no memory page, no profile form - out of
+  scope per the prompt.
+
+**Tests (NFR-05):** `tests/test_storage.py` (+3:
+`test_delete_tracker_entry_removes_the_row`,
+`test_delete_tracker_entry_returns_false_when_missing`,
+`test_delete_tracker_entry_only_removes_the_given_user`),
+`tests/test_tracker_view.py` (new, 7 tests on `is_overdue`/
+`order_entries`), `tests/test_pages_tracker.py` (new, 6 `AppTest`
+scenarios on a temp DB seeded via a `db_path` fixture mirroring
+`test_app.py`'s: ordering + overdue marking, status change updates
+SQLite and keeps `created_at`, delete requires a second click, delete
+cancel keeps the row, empty state). `tests/test_app.py`'s 6 existing
+scenarios needed no change and stayed green through the move.
+
+**Checks:** `uv run pytest` 267/267 passed, no skipped, 98 % coverage
+(up from 252 passed before this package; `job_hunt_agent/storage.py`,
+`tracker_view.py` and `ui_view.py` now all at 100 %). `uv run ruff
+check .` and `uv run ruff format --check .` clean (two import-order
+fixes in `app.py`/`pages/1_Tracker.py` after the first pass). `uv run
+mypy src app.py pages ui_shared.py scripts` clean, 34 source files. No
+real-model run: this package changed no tool, prompt, middleware or the
+agent - the tracker page never calls the agent at all.
+- Manual smoke check performed here (no real browser tool connected in
+  this session, so this is a partial substitute, done in addition to
+  the `AppTest` suite, not instead of a real click-through): seeded a
+  temp SQLite file with one overdue entry, started `uv run streamlit
+  run app.py` against it, and confirmed both `/` and `/Tracker` return
+  HTTP 200 with no error in the server log; stopped the server
+  afterwards. Ingo's own manual check is still the "Done when" 4 steps
+  below.
+
+**Next:** show the commit proposal (prompt+D-13+spec; shared UI module
+move; storage delete+helpers+tests; tracker page+AppTest+session log)
+and wait for approval before any commit. After that: the remaining Must
+items per spec §13 (memory page, profile form, developer settings,
+FR-15 AC2's memory-loading gap, safety tests, evaluation).
