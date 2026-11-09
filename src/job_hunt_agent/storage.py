@@ -27,10 +27,12 @@ import json
 import sqlite3
 from functools import cache
 from pathlib import Path
+from typing import Any
 
 from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.store.sqlite import SqliteStore
 
+from job_hunt_agent import config
 from job_hunt_agent.models import Profile, TrackerEntry
 
 _CREATE_TABLES_SQL = """
@@ -81,8 +83,6 @@ def get_connection(db_path: str = "") -> sqlite3.Connection:
 
     Related: D-5, spec §8
     """
-    from job_hunt_agent import config
-
     path = db_path or config.DB_PATH
     Path(path).parent.mkdir(parents=True, exist_ok=True)
     # isolation_level=None (autocommit): SqliteStore.setup() issues a bare
@@ -103,11 +103,53 @@ def get_checkpointer(conn: sqlite3.Connection) -> SqliteSaver:
     return SqliteSaver(conn)
 
 
+@cache
 def get_store(conn: sqlite3.Connection) -> SqliteStore:
-    """Long-term memory store on the shared connection, namespaced per user (FR-15 AC1, D-6)."""
-    store = SqliteStore(conn)
+    """Long-term memory store, namespaced per user (FR-15 AC1, D-6, D-14).
+
+    On its *own* connection to the same file ``conn`` points at (found via
+    ``PRAGMA database_list``), not on ``conn`` itself. D-5's original "one
+    shared connection" left ``SqliteSaver`` (the checkpointer) and
+    ``SqliteStore`` wrapping their own bare ``BEGIN``/``COMMIT`` SQL around
+    the *same* connection object, each guarded only by its own internal
+    lock with no coordination between the two; once something called the
+    store from inside a running LangGraph step on every turn
+    (``LoadMemoryContextMiddleware``, FR-15 AC2), that raced against
+    ``ToolNode``'s own worker-thread tool execution often enough to raise
+    ``sqlite3.OperationalError: cannot commit - no transaction is active``
+    (D-14: 40/40 failures fixed by this change in a stress test that
+    reproduced it intermittently before). Still cached per the *original*
+    ``conn``'s identity, so repeated calls with the same shared connection
+    (e.g. ``build_agent`` rebuilt fresh on every Streamlit rerun) keep
+    returning the same store instance and run ``setup()`` only once.
+
+    Related: FR-15 AC1, D-5, D-6, D-14
+    """
+    path = conn.execute("PRAGMA database_list").fetchone()[2]
+    store_conn = sqlite3.connect(path, check_same_thread=False, isolation_level=None)
+    store = SqliteStore(store_conn)
     store.setup()
     return store
+
+
+def search_memories(store: Any, user_id: str) -> list[dict[str, Any]]:
+    """Searches the memory store for one user (FR-15 AC2, AC4).
+
+    Args:
+        store: Anything with a LangGraph store's ``.search()`` signature
+            (``runtime.store`` inside a tool or middleware, or
+            :func:`get_store`'s return value).
+        user_id: The memories' owner.
+
+    Returns:
+        Each stored item's ``value`` dict (``kind``, ``value``,
+        ``created_at``); malformed entries are skipped defensively, the
+        same as ``tools.assess._excluded_employers``.
+
+    Related: FR-15 AC2, FR-15 AC4, D-6
+    """
+    items = store.search(("memories", user_id), limit=config.MAX_MEMORIES_PER_USER)
+    return [item.value for item in items if isinstance(item.value, dict)]
 
 
 def save_profile(conn: sqlite3.Connection, user_id: str, profile: Profile) -> None:
@@ -272,6 +314,54 @@ def delete_tracker_entry(conn: sqlite3.Connection, user_id: str, referenznummer:
             (user_id, referenznummer),
         )
     return cursor.rowcount > 0
+
+
+def list_memories(conn: sqlite3.Connection, user_id: str) -> list[dict[str, Any]]:
+    """Reads all stored memory items for one user, most recently saved first (FR-15 AC3).
+
+    Wraps :class:`SqliteStore` (D-6) so ``pages/2_Memory.py`` never touches
+    the store API directly - the page sees a plain list of dicts, matching
+    how ``tools/memory.py`` itself stores an item (no Pydantic model; D-6
+    kept memories as bare dicts).
+
+    Args:
+        user_id: The memories' owner.
+
+    Returns:
+        One dict per item: ``key`` (for :func:`delete_memory`), ``kind``,
+        ``value`` and ``created_at`` (the store's own timestamp, a
+        ``datetime``).
+
+    Related: FR-15 AC3, D-6
+    """
+    store = get_store(conn)
+    items = store.search(("memories", user_id), limit=config.MAX_MEMORIES_PER_USER)
+    memories = [
+        {
+            "key": item.key,
+            "kind": item.value.get("kind", ""),
+            "value": item.value.get("value", ""),
+            "created_at": item.created_at,
+        }
+        for item in items
+        if isinstance(item.value, dict)
+    ]
+    memories.sort(key=lambda m: m["created_at"], reverse=True)
+    return memories
+
+
+def delete_memory(conn: sqlite3.Connection, user_id: str, key: str) -> None:
+    """Deletes one stored memory item (FR-15 AC3), a user action with no approval gate.
+
+    Args:
+        user_id: The memory's owner.
+        key: The item's store key (``list_memories``' ``key`` field, or
+            ``tools.memory.memory_key``).
+
+    Related: FR-15 AC3
+    """
+    store = get_store(conn)
+    store.delete(("memories", user_id), key)
 
 
 def _tracker_entry_from_row(row: tuple[object, ...]) -> TrackerEntry:

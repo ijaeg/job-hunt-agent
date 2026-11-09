@@ -133,3 +133,9 @@ MAX_LISTINGS_PER_ASSESS_FIT_CALL: int = 8
 #: Maximum concurrent structured-extraction calls within one ``assess_fit``
 #: call (FR-05 AC1).
 MAX_CONCURRENT_EXTRACTIONS: int = 4
+
+#: Maximum memory items read per user from the long-term store in one call
+#: (FR-15 AC2-AC4) - generous for this project's demo scale, so
+#: ``SqliteStore.search``'s own default limit of 10 never silently
+#: truncates the context message, the memory page or a hard exclusion.
+MAX_MEMORIES_PER_USER: int = 200
