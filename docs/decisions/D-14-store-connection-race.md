@@ -90,8 +90,4 @@ problem, keeps D-6's one-file property, and touches no call site outside
 - Re-ran the full stress test (40 iterations) after the fix and the full
   `uv run pytest` suite; both clean (see session log).
 
-**Decision:** _Pending - Ingo's answer goes here._ Implemented Option 2
-as the reasoned default per the project's established pattern (document
-alternatives with real numbers, flag as open rather than silently
-deciding) so WP-07 is not blocked on it; revert to Option 1 or 3 instead
-if Ingo prefers.
+**Decision:** Option 2 (2026-11-09, Ingo). The store gets its own connection to the same SQLite file; the checkpointer and the tracker/profile tables keep the shared connection. (Implemented in WP-07 before the decision was recorded; kept as implemented.)
