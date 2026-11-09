@@ -41,3 +41,13 @@ Before any commit:
 4. FR-08 AC2: in wp05_s1_s2.json the S2 answer says "your profile lists Python, FastAPI and PostgreSQL" and treats Java as a gap, but profile_alex.yaml contains Java, Docker and CI/CD. Check the stored FitAssessment of 10001-1003863378-S (did the rubric match Java?) and find why the explanation contradicts the profile. Report cause and a proposed fix; do not change the rubric.
 5. Ingo approves deleting the stale local data/*.sqlite files with the old FitAssessment shape. List them before deleting.
 Then run all checks and propose the commits.
+
+---
+
+## Addendum 2 (2026-11-09)
+
+Related: FR-08 AC2, FR-20 AC1
+
+1. Ingo approves the prompt fix proposed in spikes/NOTES.md "WP-05 Addendum 1 #4". Apply it to prompts/system.md, then re-run scripts/s1_s2_check.py on a fresh thread (real model) and confirm in eval/results/wp05_s1_s2.json that the S2 answer neither calls a matched skill a gap nor shortens the profile's skill list.
+2. FR-20 AC1: latency run 2 (latency-s1-wp05-2) shows 4 search_jobs calls, the limit is 3 per message. Check from that run's checkpoint whether the 4th call was refused by the tool (not_applicable_reason) and report the exact tool result. If it actually ran a search, stop and report - do not fix.
+Then run all checks and propose the commit(s).
