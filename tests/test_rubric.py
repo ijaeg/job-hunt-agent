@@ -273,8 +273,22 @@ def test_matches_and_gaps_list_required_skills() -> None:
     """Matched required skills go to ``matches``, missing ones to ``gaps``."""
     reqs = _requirements(skills=[_skill("Python"), _skill("Rust")])
     result = assess(_summary(), _details(), reqs, _profile())
-    assert any("Python" in m for m in result.matches)
-    assert any("Rust" in g for g in result.gaps)
+    assert any(m.name == "Python" for m in result.matches)
+    assert any(g.name == "Rust" for g in result.gaps)
+
+
+def test_matches_and_gaps_carry_bilingual_evidence() -> None:
+    """D-11: each match/gap keeps both the German quote and the English translation."""
+    skill = Requirement(
+        name="Python",
+        required=True,
+        evidence_de="Python-Kenntnisse",
+        evidence_en="Python knowledge",
+    )
+    reqs = _requirements(skills=[skill])
+    result = assess(_summary(), _details(), reqs, _profile())
+    assert result.matches[0].evidence_de == "Python-Kenntnisse"
+    assert result.matches[0].evidence_en == "Python knowledge"
 
 
 # ---------------------------------------------------------------------------
