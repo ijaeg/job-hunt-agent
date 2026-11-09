@@ -34,8 +34,11 @@ def _seed_two_memories(db_path: str) -> None:
     store.put(("memories", "alex"), "k2", {"kind": "preference", "value": "remote only"})
 
 
-def new_app() -> AppTest:
-    return AppTest.from_file(PAGE_PATH, default_timeout=30)
+def new_app(user_id: str | None = None) -> AppTest:
+    at = AppTest.from_file(PAGE_PATH, default_timeout=30)
+    if user_id:
+        at.query_params["user"] = user_id
+    return at
 
 
 # ---------------------------------------------------------------------------
@@ -102,3 +105,23 @@ def test_empty_state_renders_a_hint(db_path: str) -> None:
 
     assert not at.exception
     assert any("ask the agent" in str(c.value) for c in at.caption)
+
+
+# ---------------------------------------------------------------------------
+# Per-user isolation (D-16)
+# ---------------------------------------------------------------------------
+
+
+def test_each_user_sees_only_their_own_memories(db_path: str) -> None:
+    conn = storage.get_connection(db_path)
+    store = storage.get_store(conn)
+    store.put(("memories", "alex"), "k1", {"kind": "preference", "value": "alex's pref"})
+    store.put(("memories", "sam"), "k2", {"kind": "preference", "value": "sam's pref"})
+
+    at = new_app("sam")
+    at.run()
+
+    assert not at.exception
+    texts = [str(m.value) for m in at.markdown]
+    assert any("sam's pref" in t for t in texts)
+    assert not any("alex's pref" in t for t in texts)

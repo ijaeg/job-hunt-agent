@@ -86,8 +86,11 @@ def _seed_three_entries(db_path: str) -> None:
     )
 
 
-def new_app() -> AppTest:
-    return AppTest.from_file(PAGE_PATH, default_timeout=30)
+def new_app(user_id: str | None = None) -> AppTest:
+    at = AppTest.from_file(PAGE_PATH, default_timeout=30)
+    if user_id:
+        at.query_params["user"] = user_id
+    return at
 
 
 # ---------------------------------------------------------------------------
@@ -179,3 +182,25 @@ def test_empty_state_renders_a_hint(db_path: str) -> None:
 
     assert not at.exception
     assert any("save a listing from the shortlist" in str(c.value) for c in at.caption)
+
+
+# ---------------------------------------------------------------------------
+# Per-user isolation (D-16)
+# ---------------------------------------------------------------------------
+
+
+def test_each_user_sees_only_their_own_tracker_entries(db_path: str) -> None:
+    conn = storage.get_connection(db_path)
+    storage.save_tracker_entry(
+        conn, _entry(user_id="alex", referenznummer="A-1-S", title="Alex's listing")
+    )
+    storage.save_tracker_entry(
+        conn, _entry(user_id="sam", referenznummer="B-2-S", title="Sam's listing")
+    )
+
+    at = new_app("sam")
+    at.run()
+
+    assert not at.exception
+    titles = [str(m.value) for m in at.markdown if str(m.value).startswith("**[")]
+    assert titles == ["**[Sam's listing](https://www.arbeitsagentur.de/jobsuche/jobdetail/B-2-S)**"]

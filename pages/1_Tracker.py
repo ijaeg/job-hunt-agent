@@ -31,7 +31,7 @@ if str(_ROOT) not in sys.path:
 
 from job_hunt_agent import config, storage, tracker_view, ui_view  # noqa: E402
 from job_hunt_agent.models import TrackerEntry  # noqa: E402
-from ui_shared import USER_ID, get_connection  # noqa: E402
+from ui_shared import get_connection, render_user_sidebar  # noqa: E402
 
 st.set_page_config(page_title="Tracker - Job Hunt Agent", layout="wide")
 
@@ -104,8 +104,9 @@ def main() -> None:
     st.title("Tracker")
 
     conn = get_connection(os.getenv("DB_PATH", config.DB_PATH))
+    user_id = render_user_sidebar(conn)
     try:
-        entries = storage.list_tracker_entries(conn, USER_ID)
+        entries = storage.list_tracker_entries(conn, user_id)
     except Exception:  # noqa: BLE001 - invariant 7: never a stack trace in the UI
         st.error("Could not load the tracker. Please try again.")
         return
