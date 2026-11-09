@@ -1002,3 +1002,107 @@ wiring + regression test; D-14 + the store-connection fix + its tests;
 memory page + AppTest; real-model check + session log). D-14's Decision
 line needs Ingo's answer. After that: profile form, developer settings,
 safety tests, evaluation (§9) remain per spec §13.
+
+## 2026-11-09 — WP-08: profile form, thread list and user selection
+
+**Checked first (per the WP's "Check first"):** `SqliteSaver.delete_thread`
+exists in the installed `langgraph-checkpoint-sqlite` 3.1.3 and works on
+the shared `storage.get_connection` connection (verified directly: wrote
+a checkpoint, called `delete_thread`, no error, consistent with D-5/D-14's
+locking). Tracker, memories and the profile were already keyed by
+`user_id` everywhere in `storage.py`, `tools/tracker.py`, `tools/memory.py`
+and both context middlewares (they all read `state["user_id"]` or take a
+`user_id` argument already) - the fixed `ui_shared.USER_ID = "alex"` was
+the *only* place still assuming one user; no agent, tool or middleware
+change was needed.
+
+**Done (D-15, D-16, FR-13 AC2, FR-14, FR-01 AC4):**
+
+- `storage.py`: new `threads` table (`user_id`, `thread_id`, `title`,
+  `created_at`, `updated_at`); `touch_thread` (one upsert registers on the
+  first call and only moves `updated_at` on every later one - so the UI
+  layer can call it unconditionally on every turn), `list_threads`
+  (newest-updated first), `delete_thread_record`; `list_users` (every
+  user id with a stored profile, D-16).
+- `src/job_hunt_agent/user_view.py` (new, no Streamlit/LLM/network import,
+  CLAUDE.md architecture): `thread_title` (cuts to 60 chars, D-15),
+  `validate_user_name`/`slugify_user_id` (D-16's name rule and slug
+  derivation), `order_users` (alphabetical, case-insensitive).
+- `ui_shared.py`: replaced the fixed `USER_ID` with `DEFAULT_USER_ID =
+  "alex"` plus `get_selected_user_id`/`select_user`/`render_user_sidebar`
+  (D-16) and `load_profile_or_none` (only `DEFAULT_USER_ID` is still
+  auto-seeded with the demo profile; every other user without a profile
+  gets `None`, so `app.py` shows the hint instead of seeding anything,
+  WP-08 goal 2). The selected user is kept in `st.query_params` (checked
+  as asked: `st.session_state` does **not** survive a browser reload -
+  a fresh `AppTest`/session resets it - `st.query_params` does, the same
+  mechanism `app.py`'s own `thread_id` already used; both are shared
+  across a Streamlit multipage app's pages already).
+- `app.py`: sidebar now shows the user picker (existing users + "add new
+  user") before anything else; a user with no stored profile sees an
+  `st.info` hint plus `st.page_link` to the profile page instead of the
+  chat. New `render_thread_list` (sidebar: title, Resume/Current, Delete
+  with a second-click Yes/No confirm; deleting the open thread calls
+  `start_new_thread()`). Every user message now also calls
+  `storage.touch_thread(...)` before `run_turn` (goal 5); the agent
+  payload's `user_id` is the selected user, not the old constant.
+- `pages/1_Tracker.py`, `pages/2_Memory.py`: call `render_user_sidebar`
+  and use its returned `user_id` everywhere `USER_ID` was used before.
+- `pages/3_Profile.py` (new, FR-14): a form with every `Profile` field
+  (skills as comma-separated text; no min/max on the radius widget on
+  purpose, so an out-of-range value reaches `Profile`'s own `ge=5, le=200`
+  validation and this page's friendly `st.error`, not a silently clamped
+  widget); "Load demo profile" stores `data/samples/profile_alex.yaml`
+  for whichever user is selected; a caption notes the profile reaches the
+  rubric immediately but the model's own context message only on the
+  next *new* thread (`LoadProfileContextMiddleware` injects once per
+  thread, unchanged this package).
+- `models.py`: `ThreadRecord` (mirrors `TrackerEntry`'s pattern for the
+  new table).
+
+**A Streamlit pitfall found while building the sidebar picker:**
+`st.session_state[key]` cannot be written once a widget with that `key`
+has already been instantiated in the *same* run (`StreamlitWidget
+AlreadyInstantiatedError`) - caught by an `AppTest` run, not by eye.
+Programmatically moving the selectbox to a newly added user is deferred
+through a `_pending_user_select` session-state entry, applied at the very
+top of `render_user_sidebar` on the *next* run, before the selectbox is
+created.
+
+**A reading of the WP's wording, flagged rather than silently assumed:**
+"name ... stored as entered, user id derived as a lowercase slug" is
+implemented with no separate display-name storage - the slug *is* the
+selected/shown user id everywhere (sidebar, `threads`, `tracker`,
+`profiles`), matching "existing users = all user ids with a profile"
+literally. No new table was added for this; flag if a separate display
+name turns out to be wanted later.
+
+**Checks:** `uv run pytest` 322/322 passed (284 before this package + 38
+new: 9 storage tests, 14 `user_view` tests, 5 `pages/3_Profile.py`
+AppTest scenarios, 6 user-selection AppTest scenarios, 2 thread-list
+AppTest scenarios in `test_app.py`, 1 tracker-isolation and 1
+memory-isolation test), no skipped, 98% coverage, every touched module
+100%. `uv run ruff check .` clean. `uv run ruff format --check .` clean
+(after formatting the two files it flagged). `uv run mypy src app.py
+pages ui_shared.py` clean, 34 source files.
+
+**No real-model run this package** (per the WP: no change to tools,
+prompts, middleware or the agent - only `app.py`, `pages/`, `ui_shared.py`
+and the new, pure `user_view.py`/`storage.py` additions).
+
+**Manual browser check for Ingo (6 steps):** (1) in the sidebar, type a
+second user's name under "Add new user" and click "Add user" - confirm
+the main page now shows the no-profile hint; (2) follow the link to the
+Profile page, fill in and save a profile for that user; (3) go back to
+the main page, run a search; (4) switch back to "alex" in the sidebar -
+confirm alex's own threads show, not the new user's; (5) click "Resume"
+on an older alex thread and confirm its history loads; (6) delete a
+thread with the two-click confirm and confirm it disappears from the
+list.
+
+**Next:** show the commit proposal (prompt + D-15 + D-16; `threads` table
++ `list_users` + `user_view.py` + their tests; user selection in
+`ui_shared.py` + all pages; profile page + AppTest; thread list + AppTest
++ this session log entry) and wait for approval before any commit. After
+that: developer settings, safety tests, evaluation (§9) remain per spec
+§13.
