@@ -557,3 +557,190 @@ or PR. After that: WP-05 (D-11 Option 1 implementation) and the remaining
 Must items per spec §13 (tracker view, memory page, profile form,
 developer settings, FR-15 AC2's memory-loading gap, safety tests,
 evaluation).
+
+## WP-05: German evidence on the cards (D-11) and S1 latency measurement (D-12) - 2026-11-09
+
+Prompt: `docs/prompts/WP-05-evidence-and-latency.md`. Branch
+`feature/evidence-and-latency`.
+
+**Part A, D-11 Option 1 (decided 2026-11-09, Ingo):** `models.py` gets a new
+`MatchEvidence` model (`name`, `evidence_de`, `evidence_en`);
+`FitAssessment.matches`/`gaps` change from `list[str]` to
+`list[MatchEvidence]` (FR-05 AC4, spec §6.3). `rubric.assess()` builds them
+directly from `requirements.skills`, carrying both the German quote and the
+English translation instead of the old `"name — evidence_en"` string.
+`ui_view.CardData.matches`/`gaps` follow the same type; `app.py::render_card`
+now shows the German quote and the English translation for both (FR-07
+AC1); the `# TODO(D-11)` marker is gone.
+
+Consumers found and updated: `models.py`, `rubric.py`, `ui_view.py`,
+`app.py`, `tests/test_rubric.py`, `tests/test_ui_view.py`, `tests/
+test_app.py`. Not affected: `prompts/system.md` (refers to "the evidence
+quote" generically, no shape dependency), `prompts/extract_requirements.md`
+(extracts `Requirement.evidence_de`/`evidence_en`, which this change reads
+from unchanged), `state.py` (never held `matches`/`gaps` directly).
+`tests/test_tools_assess.py` needed no change (asserts only `len(...
+["assessed"])`, not match content).
+
+**Old checkpoints under `data/*.sqlite`:** confirmed by loading each with
+`agent.get_state()` and then `ui_view.build_cards()` + the new `app.py`
+rendering code - the LangGraph checkpointer deserializes old `FitAssessment`
+objects without validating field types (`matches` stays a bare
+`list[str]`), so `get_state()` itself doesn't raise, but `render_card`'s new
+`match.name`/`match.evidence_de` access then crashes with
+`AttributeError: 'str' object has no attribute 'name'` - a real stack trace
+in the UI (would violate invariant 7) for any old thread. Affected:
+`data/ui_smoke_wp04.sqlite`, `data/job_hunt_agent.sqlite`,
+`data/core_journey_run.sqlite` (all three gitignored, never committed, local
+dev data only). No migration code written, per the prompt's instruction;
+proposed to Ingo for deletion rather than decided unilaterally.
+
+**Spec §6.3 wording proposed for the coach to apply** (not edited in
+`PRODUCT_SPEC.md` directly, per CLAUDE.md):
+
+```text
+MatchEvidence
+├── name: str
+├── evidence_de: str                     (verbatim quote from the ad)
+└── evidence_en: str                     (English translation)
+
+FitAssessment
+├── referenznummer: str
+├── category: "strong" | "partial" | "poor" | "excluded"
+├── exclusion_reasons: list[str]
+├── matches: list[MatchEvidence]
+├── gaps: list[MatchEvidence]
+├── unknown: list[str]                   ("not mentioned in the ad")
+├── low_evidence: bool
+└── rubric: dict[str, str]               (per dimension: met / partly / not_met / unknown)
+```
+
+**Real-model check (Checks #2), S1 then S2:** `scripts/s1_s2_check.py`
+(new), demo mode, real model. Record: `eval/results/wp05_s1_s2.json`. S1
+("Find Softwareentwickler jobs in München.") produced 5 cards (1 partial, 4
+poor); S2 ("Why is #3 only partial?") was answered with **no new tool
+call** and cited the German evidence quotes for the skills and language
+gaps verbatim (FR-08 AC1, AC2) - confirms the structured evidence survives
+from `assess_fit` into a follow-up answer. (A first attempt on a fresh
+thread didn't search at all - the model treated the profile's `location:
+Hamburg` as a hard search boundary for a München query and asked which
+location to use instead; re-run on a new thread to get a completed S1 to
+test S2 against - the same behaviour recurs in Part B below, so it is
+reported there rather than treated as a one-off.)
+
+**Part B, D-12 Option 1 (decided 2026-11-09, Ingo):** `scripts/
+ui_smoke_wp04.py` gets a `--runs N` option (`run_s1_once`,
+`run_latency_measurement`, sharing `_build_context` with the existing
+single-run path - no duplicated logic) that runs S1 on N fresh threads and
+records elapsed seconds, deduplicated tool sequence, `assess_fit`
+extraction seconds, listings assessed, card count and token usage per run,
+plus median/mean/min/max. 5 runs, demo mode, real model, config unchanged:
+`eval/results/latency_s1_wp05.json`, written up in `spikes/NOTES.md` § "WP-05
+S1 latency measurement" and in `docs/decisions/D-12-latency.md` § "Results
+(WP-05)".
+
+**S1 latency result:**
+- All 5 runs: median **52.75 s**, mean 36.96 s, min 7.63 s, max **59.63
+  s** - inside the 60 s NFR-03 budget.
+- But only 3 of 5 ran the full pipeline to `assess_fit` (6 listings each);
+  the other 2 stopped after one `search_jobs` call (0 listings assessed,
+  7.6 s / 9.3 s) - the same location-mismatch clarification behaviour as
+  the S1/S2 check's discarded first attempt.
+- **3 completed runs only:** median 55.48 s, mean 55.95 s, min 52.75 s,
+  max 59.63 s - still inside budget, but only 0.37 s under the ceiling on
+  the worst run, and n=3 rather than the 5 planned.
+- Neither reading crosses D-12's "median or max above 60 s" trigger, so no
+  "Round 2 options" were added and nothing in `config.py`/`tools/
+  assess.py`/the prompts was tuned, per the prompt's instruction.
+  **Budget met: yes, on the numbers measured - flagged to Ingo given the
+  thin margin and the completion-rate confound above.**
+
+**Checks:** `uv run pytest` 252/252 passed, 98 % coverage (no skipped
+tests); `uv run ruff check .` and `uv run ruff format --check .` clean;
+`uv run mypy src app.py scripts` clean (31 source files). No
+fixture/evaluation-set changes this work package, so CLAUDE.md check #3
+(data integrity) does not apply.
+
+**Decision files, status:**
+
+- **D-11 (card evidence):** implemented this session per Ingo's
+  2026-11-09 Option 1 decision.
+- **D-12 (latency):** measured this session per Ingo's 2026-11-09 Option 1
+  decision; results appended to the file, no lever changed (trigger not
+  met).
+
+**Open for Ingo:**
+1. ~~Delete the stale local `data/*.sqlite` files~~ - done (Addendum 1 #5
+   below); corrected: only 2 of the 3 files first listed here still held
+   the old shape by the time of deletion (see Addendum 1 #5).
+2. Apply the proposed spec §6.3 wording above to `PRODUCT_SPEC.md`.
+3. ~~The S1 latency margin was thin (n=3, 0.37 s)~~ - superseded by the
+   Addendum 1 re-measurement below (n=5, 1.56 s margin).
+
+## WP-05 Addendum 1 (2026-11-09, after coach review)
+
+Related: FR-01 AC4, FR-03 AC3, FR-08 AC2, NFR-03, D-12. Addendum text
+appended to `docs/prompts/WP-05-evidence-and-latency.md`.
+
+**#1 - FR-01 AC4 location override:** added one bullet to
+`prompts/system.md`'s "Search and refinement" section - a location named
+in the request overrides the profile's stored location for this search;
+do not ask first. Real-model check: re-ran `scripts/s1_s2_check.py` on a
+fresh thread - the model now searches München directly (3 `search_jobs`
+calls, autonomous refinement, then 6 `get_job_details` + `assess_fit`),
+no clarifying question. Confirmed again at scale by Addendum 1 #3's
+5/5 completion rate below.
+
+**#2 - tool-sequence recording:** `scripts/ui_smoke_wp04.py`'s latency
+path previously collapsed the tool sequence to unique names, hiding
+repeat `search_jobs` calls. Replaced with `_tool_sequence_of` (full
+per-call sequence, deduplicated by `tool_call` id only); added
+`search_jobs_calls` and `reached_assess_fit` per run.
+
+**#3 - re-measured S1 latency (5 fresh-thread runs, post-fix):**
+`eval/results/latency_s1_wp05.json` replaced; `docs/decisions/
+D-12-latency.md` § "Results" and `spikes/NOTES.md` § "WP-05 Addendum 1:
+location-override fix and re-measured S1 latency" updated.
+
+- **Completion rate: 5/5 (100%).** No run stopped early this time.
+- **Refinement rate: 5/5 (100%).** Every run made >1 `search_jobs` call.
+- **Elapsed seconds: median 44.77 s, mean 47.16 s, min 36.19 s, max
+  58.44 s** - both median and max inside the 60 s NFR-03 budget, on a
+  clean 5/5-completion sample. **Budget met: yes.**
+
+**#4 - FR-08 AC2 investigation (S2 explanation contradicts the computed
+match):** the stored `FitAssessment` for `10001-1003863378-S` has Java
+correctly in `matches` (two Java-named requirements matched the profile's
+`Java` skill); the `skills` dimension's `not_met` verdict is a correct
+*aggregate* (2 of 10 extracted requirements matched, 20% < the 40%
+partial threshold, D-9), not a unanimous "nothing matched". The S2
+explanation nonetheless calls Java part of a "skills mismatch" and both
+times omits at least Java and `CI/CD` from its recollection of the
+profile's 6 skills, instead of quoting the profile-context message's
+`Skills:` line verbatim. **Rubric confirmed correct - not changed.**
+Full write-up and a proposed (not yet applied) `prompts/system.md`
+addition: `spikes/NOTES.md` § "WP-05 Addendum 1 #4". **Open for Ingo:**
+apply the proposed wording, or hold for separate review.
+
+**#5 - stale `data/*.sqlite` files, Ingo-approved deletion:** re-checked
+each file's actual `FitAssessment` shape before deleting (not from the
+earlier report, which was taken before this session's own smoke re-run
+had already overwritten `ui_smoke_wp04.sqlite` with the new shape).
+Confirmed old-shape (`matches` still a bare `list[str]`) in exactly two
+files - `data/job_hunt_agent.sqlite` and `data/core_journey_run.sqlite`
+- both deleted (plus their `-wal`/`-shm` siblings). `data/
+ui_smoke_wp04.sqlite`, `data/s1_s2_check.sqlite` and `data/
+latency_s1_wp05.sqlite` already held the new shape and were left alone.
+All were gitignored, never committed, local dev data only;
+`job_hunt_agent.sqlite` is also the Streamlit app's own default DB file
+(`config.DB_PATH`), so its profile/tracker tables reset too - expected,
+not flagged as a separate concern.
+
+**Checks (after Addendum 1):** `uv run pytest` 252/252 passed, 98 %
+coverage; `uv run ruff check .` and `uv run ruff format --check .` clean;
+`uv run mypy src app.py scripts` clean (31 source files).
+
+**Next:** show the commit proposal(s) for this work package and wait for
+approval before any commit, push or PR. After that: the remaining Must
+items per spec §13 (tracker view, memory page, profile form, developer
+settings, FR-15 AC2's memory-loading gap, safety tests, evaluation).

@@ -605,3 +605,165 @@ test_iter_new_tool_calls_dedups_the_same_call_echoed_by_later_middleware_steps`.
   FastAPI/PostgreSQL/Docker/CI-CD profile.
 
 Related: FR-07, FR-16 AC2, NFR-03, D-10, D-12, WP-04
+
+## WP-05 S1 latency measurement, 5 real-model runs (2026-11-09)
+
+D-12, Option 1: 5 runs of S1 ("Find Softwareentwickler jobs in München.",
+D-10's recorded München search), demo mode (`FixtureSource`), real model
+(`openai/gpt-5-mini`, reasoning effort `low`), fresh thread per run, config
+unchanged. Script: `scripts/ui_smoke_wp04.py --runs 5` (new option on the
+WP-04 smoke script, no duplicated logic). Full per-run record: `eval/
+results/latency_s1_wp05.json`.
+
+**Across all 5 runs:** elapsed seconds median **52.75 s**, mean 36.96 s,
+min 7.63 s, max **59.63 s** - both median and max inside the 60 s NFR-03
+budget.
+
+**Important caveat, not papered over:** only 3 of the 5 runs actually ran
+the full S1 pipeline to `assess_fit` (`search_jobs -> get_job_details ->
+assess_fit`, 6 listings assessed each time, 59.63 s / 55.48 s / 52.75 s).
+The other 2 (7.63 s and 9.33 s) stopped after one `search_jobs` call with
+0 listings assessed and 0 cards - the same model behaviour seen in the
+WP-05 S1/S2 real-model check (`eval/results/wp05_s1_s2.json`'s first,
+discarded attempt): with the demo query's location ("München") not
+matching the committed profile's `location: Hamburg`, the model
+sometimes asks for clarification instead of searching, rather than
+treating the user's literal request as the search target and letting the
+rubric's own radius/remote hard exclusion (§7) filter the result
+afterwards. This is a **search-time location handling** difference across
+runs, not a latency-tuning issue, and it halves the number of latency data
+points that actually measure the thing NFR-03 is about.
+
+**Numbers for the 3 completed runs only:** median 55.48 s, mean 55.95 s,
+min 52.75 s, max 59.63 s - still inside budget, but the maximum is 0.37 s
+under the 60 s ceiling, and n=3 is a thinner sample than the 5 planned.
+`assess_fit` extraction alone: 27.8 s / 24.9 s / 25.1 s for 6 listings each
+(4 concurrent extractions, `config.MAX_CONCURRENT_EXTRACTIONS`) - the
+dominant cost, consistent with D-4's per-extraction spike and D-12's risk
+R-4.
+
+**Reading against D-12's question:** on the numbers measured, the median
+and the maximum are both at or under the 60 s budget, so D-12's "append
+Round 2 options" trigger (median or max above 60 s) is not met and nothing
+in `config.py`/`tools/assess.py`/the prompts was tuned. Flagged to Ingo as
+a judgment call regardless: the margin on the 3 genuine completions (0.37 s
+under budget on the worst of 3) is thin enough, and the early-stop
+confound real enough, that a literal "budget met" reading deserves that
+context before being relied on.
+
+Related: FR-05 AC1, FR-16 AC2, NFR-03, R-4, D-4, D-10, D-12, WP-05
+
+## WP-05 Addendum 1: location-override fix and re-measured S1 latency (2026-11-09)
+
+**Cause of the 2/5 early stops above:** confirmed by two independent
+real-model runs (both this early-stop measurement and the WP-05 S1/S2
+check's first, discarded attempt) - the model sometimes treats the
+profile's stored `location: Hamburg` as a hard boundary for a "jobs in
+München" request and asks which location to use, instead of searching
+München directly. Spec FR-01 AC4 already allows this ("the request may
+override [the profile] for this search"), but `prompts/system.md` never
+said so explicitly - the model's own judgment filled the gap
+inconsistently (3 of 5 runs searched directly, 2 asked).
+
+**Fix:** one new bullet in `prompts/system.md`'s "Search and refinement"
+section: a location named in the request overrides the profile's stored
+location for this search; do not ask first (the profile's radius/remote
+rules still apply once results are assessed). No rubric or tool change.
+
+**Tool-sequence recording fix (Addendum 1 #2):** `scripts/ui_smoke_wp04.py`
+previously collapsed the recorded tool sequence to unique names, hiding
+how many `search_jobs` calls (refinement, FR-03 AC3) each run actually
+made. Now records the full per-call sequence, deduplicated by
+`tool_call` id only (`_tool_sequence_of`) - `search_jobs_calls` and
+`reached_assess_fit` are derived from it per run.
+
+**Re-measured, 5 fresh-thread runs, same config** (`eval/results/
+latency_s1_wp05.json`, replaces the first measurement above):
+
+| Run | Elapsed (s) | `search_jobs` calls | Reached `assess_fit` | Listings assessed |
+|---|---|---|---|---|
+| 0 | 36.19 | 2 | yes | 4 |
+| 1 | 58.44 | 2 | yes | 6 |
+| 2 | 53.51 | 4 | yes | 3 |
+| 3 | 42.87 | 2 | yes | 4 |
+| 4 | 44.77 | 2 | yes | 5 |
+
+- **Completion rate: 5/5 (100%).** The location-override fix eliminated
+  the early-stop behaviour entirely in this sample - every run reached
+  `assess_fit`.
+- **Refinement rate: 5/5 (100%).** Every run made more than one
+  `search_jobs` call (FR-03 AC1/AC3's narrowing-when->50-results behaviour
+  firing consistently); run 2 made 4 calls and still finished in 53.51 s.
+- **Elapsed seconds: median 44.77 s, mean 47.16 s, min 36.19 s, max
+  58.44 s** - all inside the 60 s NFR-03 budget, computed over a clean
+  5-run sample this time (no early-stop confound). Worst-case margin:
+  1.56 s under budget (run 1).
+- `assess_fit` extraction seconds per run: 13.1 / 26.9 / 11.2 / 15.9 /
+  22.8 s, scaling roughly with listings assessed (4/6/3/4/5) - consistent
+  with D-4's per-extraction cost and D-12's risk R-4.
+
+**Reading against D-12's question (updated):** median and maximum are
+both inside the 60 s budget on a complete 5/5 sample, so no "Round 2
+options" were added and nothing in `config.py`/`tools/assess.py`/the
+extraction prompt was tuned. **Budget met: yes**, with a cleaner
+measurement than the first attempt.
+
+Related: FR-01 AC4, FR-03 AC1, FR-03 AC3, FR-05 AC1, NFR-03, R-4, D-4,
+D-10, D-12, WP-05 Addendum 1
+
+## WP-05 Addendum 1 #4: S2 explanation contradicts the computed matches (investigation, no fix applied)
+
+**Symptom** (`eval/results/wp05_s1_s2.json`, both the original and the
+re-run after the location fix): the S2 answer for referenznummer
+`10001-1003863378-S` calls Java part of a "skills mismatch" and says
+"your profile lists Python, FastAPI and PostgreSQL" (first run) /
+"Python, FastAPI, PostgreSQL, Docker" (second run) - both times omitting
+at least Java and `CI/CD` from `profile_alex.yaml`'s actual 6 skills
+(Python, Java, FastAPI, PostgreSQL, Docker, CI/CD).
+
+**Checked the stored `FitAssessment` directly** (not from memory - read
+back from the `s1-s2-check.sqlite` checkpoint):
+
+```text
+rubric: {"skills": "not_met", ...}
+matches: [
+  "Pflege und Neuentwicklung von Desktop- und Serversoftware, vorrangig in Java" (-> Java),
+  "Beherrschung der Programmiersprache Java inkl. ..." (-> Java),
+]
+gaps: [8 other extracted requirements - Landesvermessung/geodata work, IT-security
+       hardening, "relationale Datenbanken inkl. SQL", interfaces/protocols,
+       the IT vocational-training credential, "Sehr gute Deutschkenntnisse"]
+```
+
+**Rubric is correct, not the cause:** `skill_matches_profile` did match
+both Java-named requirements against the profile's `Java` skill - they are
+in `matches`, not `gaps`. The `skills` dimension's `not_met` verdict is an
+aggregate: only 2 of 10 extracted requirements matched (20%, below the
+40% partial threshold, D-9) - `not_met` is correct for the *dimension*,
+but does not mean every individual requirement mismatched.
+
+**Cause:** the model conflates the aggregate dimension verdict with a
+per-requirement judgment when writing the free-text explanation (FR-08
+AC2) - it re-derives "mismatch" for Java from `skills: not_met` instead of
+reading the already-computed `matches` list, which says the opposite.
+Separately, when citing "your profile", it paraphrases a shortened recall
+of the 6-skill list from memory instead of quoting the `Skills:` line it
+was given verbatim in the one-off profile-context message
+(`middleware/profile_context.py`) - the full list is in its context both
+times, the omission is a generation-fidelity issue, not a missing-data
+one. Neither run invents a requirement not actually extracted (the letter
+of FR-08 AC2 is met), but both misattribute a match as a gap in prose,
+which is the same failure in spirit.
+
+**Proposed fix (prompt-only; rubric and tool contracts unchanged, per
+instruction) - not applied, for Ingo to approve:** add to
+`prompts/system.md`'s "Explaining the shortlist" section: *"The
+assessment's `matches` and `gaps` are already computed by code - treat
+them as authoritative. Never call a skill listed in `matches` a mismatch,
+even when the `skills` dimension's own verdict is `not_met` (a `not_met`
+dimension can still contain individual matches - it is a share, not a
+unanimous verdict). When citing the user's own skills, quote the
+`Skills:` line from the profile context message in full rather than
+recalling a shortened list."*
+
+Related: FR-05 AC3, FR-08 AC1, FR-08 AC2, D-9, WP-05 Addendum 1

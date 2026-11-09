@@ -1,8 +1,8 @@
 {
   "demo_query": "Find Softwareentwickler jobs in München.",
   "model": "openai/gpt-5-mini",
-  "elapsed_seconds": 65.75,
-  "within_nfr03_budget": false,
+  "elapsed_seconds": 51.35,
+  "within_nfr03_budget": true,
   "tool_sequence": [
     "search_jobs",
     "search_jobs",
@@ -18,11 +18,12 @@
     {
       "name": "search_jobs",
       "args": {
-        "keywords": "Softwareentwickler Python Java FastAPI PostgreSQL Docker CI/CD senior",
+        "keywords": "Softwareentwickler Python Java FastAPI PostgreSQL Docker CI/CD",
         "location": "München",
         "radius_km": 25,
         "published_within_days": 28,
-        "exclude_temp_agency": true
+        "exclude_temp_agency": true,
+        "page": 1
       }
     },
     {
@@ -30,9 +31,22 @@
       "args": {
         "keywords": "Softwareentwickler",
         "location": "München",
-        "radius_km": 50,
-        "published_within_days": 60,
-        "exclude_temp_agency": true
+        "radius_km": 25,
+        "published_within_days": 28,
+        "exclude_temp_agency": true,
+        "page": 1
+      }
+    },
+    {
+      "name": "get_job_details",
+      "args": {
+        "referenznummer": "12117-YF-48852-YF-S"
+      }
+    },
+    {
+      "name": "get_job_details",
+      "args": {
+        "referenznummer": "14225-d10be3b2dd249dcf-S"
       }
     },
     {
@@ -50,7 +64,7 @@
     {
       "name": "get_job_details",
       "args": {
-        "referenznummer": "12117-YF-48852-YF-S"
+        "referenznummer": "19121-44499216-1011-S"
       }
     },
     {
@@ -60,27 +74,15 @@
       }
     },
     {
-      "name": "get_job_details",
-      "args": {
-        "referenznummer": "14225-d10be3b2dd249dcf-S"
-      }
-    },
-    {
-      "name": "get_job_details",
-      "args": {
-        "referenznummer": "19121-44499216-1011-S"
-      }
-    },
-    {
       "name": "assess_fit",
       "args": {
         "referenznummern": [
+          "12117-YF-48852-YF-S",
+          "14225-d10be3b2dd249dcf-S",
           "10001-1003863378-S",
           "10001-1003935843-S",
-          "12117-YF-48852-YF-S",
-          "12336-a26f1128j0452080-S",
-          "14225-d10be3b2dd249dcf-S",
-          "19121-44499216-1011-S"
+          "19121-44499216-1011-S",
+          "12336-a26f1128j0452080-S"
         ]
       }
     }
