@@ -692,8 +692,16 @@ latency_s1_wp05.json`, replaces the first measurement above):
   the early-stop behaviour entirely in this sample - every run reached
   `assess_fit`.
 - **Refinement rate: 5/5 (100%).** Every run made more than one
-  `search_jobs` call (FR-03 AC1/AC3's narrowing-when->50-results behaviour
-  firing consistently); run 2 made 4 calls and still finished in 53.51 s.
+  `search_jobs` *call* (FR-03 AC1/AC3's narrowing-when->50-results
+  behaviour firing consistently). Run 2's 4th call was checked against
+  the checkpoint (`data/latency_s1_wp05.sqlite`, thread
+  `latency-s1-wp05-2`) and confirmed refused by the tool itself, not run:
+  `not_applicable_reason: "Maximum of 3 search_jobs calls per message
+  already reached. Work with the existing results and tell the user."`,
+  `result: null` - FR-20 AC1's 3-calls-per-message limit held exactly as
+  specified (Addendum 2 #2). "4 calls" above counts attempted tool calls,
+  not executed searches; the run still finished in 53.51 s on 3 real
+  searches.
 - **Elapsed seconds: median 44.77 s, mean 47.16 s, min 36.19 s, max
   58.44 s** - all inside the 60 s NFR-03 budget, computed over a clean
   5-run sample this time (no early-stop confound). Worst-case margin:
@@ -767,3 +775,62 @@ unanimous verdict). When citing the user's own skills, quote the
 recalling a shortened list."*
 
 Related: FR-05 AC3, FR-08 AC1, FR-08 AC2, D-9, WP-05 Addendum 1
+
+## WP-05 Addendum 2: prompt fix applied and re-checked; FR-20 AC1 limit confirmed held (2026-11-09)
+
+**#1 - the Addendum 1 #4 prompt fix, applied and re-verified:** the exact
+proposed wording was added to `prompts/system.md`'s "Explaining the
+shortlist" section. Re-ran `scripts/s1_s2_check.py` on a fresh thread
+(real model); new record in `eval/results/wp05_s1_s2.json`.
+
+**Improved, confirmed by reading the stored `FitAssessment` back
+directly, not by trusting the prose:**
+- The S2 answer now quotes the profile's `Skills:` line in full ("Python,
+  Java, FastAPI, PostgreSQL, Docker, CI/CD") instead of a shortened
+  recollection.
+- It correctly lists the Java requirement under "What matched", matching
+  `assessments["10001-1003863378-S"].matches` (two Java-named
+  requirements) - the originally reported contradiction (Java called a
+  mismatch) did not recur.
+- It explicitly separates the aggregate `skills: not_met` rubric verdict
+  from the fact that individual skills still matched ("overall skills:
+  not_met in the automated rubric but the presence of key matches
+  produced a partial practical fit") - exactly the distinction the fix
+  asked for.
+
+**Not fully fixed - a new instance of the same class of error, in the
+mirror direction:** the same answer's "What matched" section also claims
+"Relational DB / SQL work: 'Entwicklung und Verwendung von relationalen
+Datenbanken inkl. SQL' - matches your PostgreSQL/DB experience." Checked
+against the stored assessment: this is **not a match**. The actual
+`gaps` list has two separate entries - "Entwicklung und Verwendung von
+relationalen Datenbanken **mit Geodaten**" and "Kenntnisse im Bereich
+Einsatz von relationalen Datenbanken inkl. **SQL**" - and the quoted
+sentence is neither verbatim (it merges words from both into a sentence
+that matches neither `evidence_de` exactly) nor a match. The applied fix
+only said "never call a skill listed in `matches` a mismatch" - one
+direction; it does not say "never call a skill listed in `gaps` a match"
+or "never merge two evidence quotes into one," so this mirror-image
+error and the fabricated-quote issue are not covered by the wording
+actually applied. **Reported as found, not re-fixed** - a further prompt
+change was not in this addendum's scope; flagged for Ingo to decide
+whether to extend the instruction symmetrically.
+
+**#2 - FR-20 AC1, latency run 2's 4th `search_jobs` call:** checked
+directly against `data/latency_s1_wp05.sqlite`, thread
+`latency-s1-wp05-2`. The 4th call's `ToolMessage` content is:
+
+```json
+{"tool": "search_jobs", "result": null, "notes": [],
+ "not_applicable_reason": "Maximum of 3 search_jobs calls per message already reached. Work with the existing results and tell the user."}
+```
+
+The tool refused the call outright (`result: null`, no BA API request
+made) - `search_calls_this_turn` was already at 3 from the prior 3 calls
+(which returned `total=0`, `total=103`/7 listings, `total=0`
+respectively). FR-20 AC1's 3-calls-per-message limit held exactly as
+specified; nothing to fix. The "4 calls" figure in the table above counts
+attempted tool calls (including this refused one), not executed
+searches - corrected in place above.
+
+Related: FR-08 AC2, FR-20 AC1, D-9, WP-05 Addendum 2

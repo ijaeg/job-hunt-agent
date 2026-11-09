@@ -740,7 +740,46 @@ not flagged as a separate concern.
 coverage; `uv run ruff check .` and `uv run ruff format --check .` clean;
 `uv run mypy src app.py scripts` clean (31 source files).
 
-**Next:** show the commit proposal(s) for this work package and wait for
+**Addendum 1 commits:** 5 commits made on `feature/evidence-and-latency`
+after Ingo's "go ahead" (prompt+D-12; MatchEvidence+rubric+tests;
+cards+UI tests; location-override fix; S1/S2 check+latency+NOTES+log).
+Item 4's prompt fix left unapplied per the report, pending Ingo's call.
+
+## WP-05 Addendum 2 (2026-11-09)
+
+Related: FR-08 AC2, FR-20 AC1, D-9.
+
+**#1 - Addendum 1 #4's proposed fix applied and re-checked, partial
+success:** added the proposed wording to `prompts/system.md`'s
+"Explaining the shortlist" section; re-ran `scripts/s1_s2_check.py` on a
+fresh thread (`eval/results/wp05_s1_s2.json` replaced). Verified against
+the stored `FitAssessment`, not the prose: the originally reported Java
+contradiction is gone (Java now correctly listed under "What matched",
+matching the stored `matches`; profile skills quoted in full this time).
+**But a mirror-image instance of the same error class appeared in the
+same answer:** a gap item (a merged, non-verbatim quote of two separate
+`gaps` entries about relational databases/SQL) was presented as a match.
+The applied wording only guards one direction ("never call a skill
+listed in `matches` a mismatch"); it does not cover "never call a `gaps`
+skill a match" or quote-fabrication. Full before/after detail:
+`spikes/NOTES.md` § "WP-05 Addendum 2". **Not re-fixed this round** -
+reported as found; open for Ingo to decide whether to extend the
+instruction symmetrically in a future work package.
+
+**#2 - FR-20 AC1 check, no bug found:** latency run 2's 4th recorded
+`search_jobs` tool call (`data/latency_s1_wp05.sqlite`, thread
+`latency-s1-wp05-2`) was checked directly against its `ToolMessage`:
+`result: null`, `not_applicable_reason: "Maximum of 3 search_jobs calls
+per message already reached..."` - the tool refused it, no 4th BA API
+call was made. The limit holds exactly as specified; the "4 calls" count
+in `spikes/NOTES.md`'s table was attempted calls, not executed searches
+- wording corrected in place, no code change.
+
+**Checks (after Addendum 2):** `uv run pytest` 252/252 passed, 98 %
+coverage; `uv run ruff check .` and `uv run ruff format --check .` clean;
+`uv run mypy src app.py scripts` clean.
+
+**Next:** show the commit proposal for this addendum and wait for
 approval before any commit, push or PR. After that: the remaining Must
 items per spec §13 (tracker view, memory page, profile form, developer
 settings, FR-15 AC2's memory-loading gap, safety tests, evaluation).

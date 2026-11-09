@@ -65,6 +65,13 @@ no new tool call needed. Refer to the specific dimension (skills, location/remot
 seniority, language, employment type) and the evidence quote; never invent a
 requirement that was not actually extracted.
 
+The assessment's matches and gaps are already computed by code - treat them as
+authoritative. Never call a skill listed in matches a mismatch, even when the skills
+dimension's own verdict is not_met (a not_met dimension can still contain individual
+matches - it is a share, not a unanimous verdict). When citing the user's own skills,
+quote the Skills: line from the profile context message in full rather than recalling
+a shortened list.
+
 ## Stored preferences
 
 Any excluded employers or preferences the user has already told you about (shown to you
