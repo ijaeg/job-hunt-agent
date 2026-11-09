@@ -1,0 +1,41 @@
+{
+  "excluded_employer": "bayoonet AG",
+  "excluded_referenznummer": "12117-YF-48852-YF-S",
+  "thread_1_message": "Never show me jobs from bayoonet AG again.",
+  "thread_1_tool_calls": [
+    {
+      "name": "remember",
+      "args": {
+        "kind": "excluded_employer",
+        "value": "bayoonet AG"
+      }
+    }
+  ],
+  "thread_1_interrupted_for_approval": true,
+  "thread_1_final_answer": "Done — I’ve added bayoonet AG to your excluded employers list and will filter their listings from future searches. \n\nWould you like me to run a job search now (using your profile: Hamburg, 25 km, hybrid, senior, Python/Java/FastAPI)? Or add any other companies or preferences to exclude?",
+  "stored_memories_after_thread_1": [
+    {
+      "key": "42ee82f03e3e732e",
+      "kind": "excluded_employer",
+      "value": "bayoonet AG",
+      "created_at": "2026-11-09T17:59:32"
+    }
+  ],
+  "thread_2_message": "Find Softwareentwickler jobs in München.",
+  "thread_2_tool_sequence": [
+    "search_jobs",
+    "search_jobs",
+    "get_job_details",
+    "get_job_details",
+    "get_job_details",
+    "get_job_details",
+    "get_job_details",
+    "assess_fit"
+  ],
+  "thread_2_memory_context_message_injected": true,
+  "excluded_listing_was_assessed": false,
+  "excluded_listing_exclusion_reasons": null,
+  "excluded_listing_marked_excluded_by_you": false,
+  "thread_2_final_answer": "I found 5 Softwareentwickler listings in/near München and assessed their fit to your stored profile (Skills: Python, Java, FastAPI, PostgreSQL, Docker, CI/CD; Seniority: senior; Location: Hamburg; Preferred radius: 25 km; Remote preference: hybrid; full-time, permanent; excludes temp agency; German: basic; English: native). Note: the employer bayoonet AG was excluded from the shortlist (you previously excluded them).\n\nShortlist (referenznummer — title — employer — location — fit)\n1) 14225-d10be3b2dd249dcf-S — Softwareentwickler - IT — PartSpace GmbH — München — Fit: poor\n   - Key matches: Azure DevOps / CI/CD / automated tests (ad: \"Du bewegst dich sicher in Azure DevOps, CI/CD, automatisierten Tests...\")\n   - Main gaps (ad evidence): heavy .NET / C# backend work, import-pipeline / CAD/industrial-data domain knowledge, clustering, calc-algorithms, CAD/PLM familiarity.\n   - Remote: \"nach Vereinbarung\"\n   - Employment: full-time (permanent not explicitly stated)\n   - Why poor: tech stack and domain expectations do not align with your Skills line (Skills: Python, Java, FastAPI, PostgreSQL, Docker, CI/CD).\n\n2) 10001-1003863378-S — Softwareentwickler (Landesvermessung) — Landesamt für Digitalisierung, Breitband und Vermessung — München — Fit: partial\n   - Key matches: Java (ad: \"Pflege und Neuentwicklung ... vorrangig in Java\")\n   - Gaps: geodata DB/SQL, SOAP/REST/JSON/XML interfaces, IT-security/hardening, desktop/server apps and domain-specific surveying knowledge; ad requests very good German (\"Sehr gute Deutschkenntnisse in Wort und Schrift\") though remote/homeoffice up to 80% is offered.\n   - Remote: up to 80% homeoffice\n   - Employment: unbefristet (permanent), public pay grade\n   - Why partial: matches Java but lacks direct evidence for your Python/FastAPI/Postgres stack and German requirement may be an issue (your German: basic).\n\n3) 10001-1003935843-S — Softwareentwickler C#/.NET — Baader Bank AG — Unterschleißheim (≈15 km) — Fit: poor\n   - Key matches: CI/CD, Git, Azure knowledge mentioned as beneficial\n   - Gaps: explicit C#/.NET, ASP.NET Core, MS SQL / Entity Framework / DB techs and banking domain tasks (ad centers on .NET stack).\n   - Remote: \"nach Vereinbarung\"\n   - Employment: full-time (permanent not explicitly stated)\n   - Why poor: ad expects C#/.NET-focused experience rather than your Python/FastAPI/Postgres profile; also prefers very good German.\n\n4) 19121-44499216-1011-S — Systemnaher Softwareentwickler — genua GmbH — Kirchheim bei München (~14 km) — Fit: poor\n   - Matches: none to your declared Skills line.\n   - Gaps: ad requires system-/kernel-level C and shell experience, OpenBSD, TCP/IP, and very good German (B2+).\n   - Remote: not specified (some mobile work mentioned)\n   - Employment: full-time\n   - Why poor: very different low-level stack and German requirement.\n\n5) 12336-a26f1128j0452080-S — Senior Softwareentwickler - .NET MAUI, Blazor & Cloud — TÜV SÜD AG — München — Fit: partial (low evidence)\n   - Matches/gaps: ad lists C#/.NET, .NET MAUI, Blazor, REST APIs, CI/CD in Azure DevOps — not your primary stack. Seniority: ad expects senior (matches your Senior).\n   - Remote: not explicit\n   - Employment: full-time\n   - Why partial: senior role (good), but tech stack is .NET-centric; CI/CD match is relevant, but main languages differ from your Skills line.\n\nNotes and important points\n- I used München as requested (your stored location Hamburg was overridden only for this search). Your stored radius (25 km) was applied when assessing distances.\n- Excluded employer bayoonet AG was filtered out of the assessed shortlist.\n- Language mismatch: several ads request very good German; your stored German level is basic — this reduces fit for those roles.\n- Most ads expect C#/.NET or domain-specific knowledge; only the Landesvermessung role directly uses Java (partial match). CI/CD and DevOps tooling are recurring matches.\n\nSuggested next steps\n- If you want, I can save any of these listings to your application tracker (status: saved / applied / rejected) — tell me which referenznummer(s) and the desired status (I can also add a follow-up date or note).\n- I can run a broader or different search (e.g., expand radius, include more Python-specific keywords like \"Python FastAPI\", or increase published_within_days). I may run up to 3 search refinements; tell me which dimension to relax if you want broader results.\n- If you prefer, I can prioritize only roles that explicitly mention Python, FastAPI, or PostgreSQL and re-run the search in München.\n\nWhich action do you want now? (Save any listing, re-search with different filters, or narrow to Python/FastAPI-only roles.)",
+  "thread_2_answer_mentions_exclusion": true
+}

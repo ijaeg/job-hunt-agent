@@ -4,7 +4,7 @@
 |---|---|
 | **Project** | Turing College – AI Engineering, Sprint 3 project ("Building with AI Agents") |
 | **Author** | Ingo Jäger |
-| **Status** | v0.1.8 – first draft, 2026-11-09 (changes: see §15) |
+| **Status** | v0.1.9 – first draft, 2026-11-09 (changes: see §15) |
 | **Audience** | Developer (implementation guide) and Turing College tutor (review guide) |
 | **Stack** | Python 3.13 (uv), Streamlit, LangChain `create_agent` (LangGraph runtime) against the OpenRouter API (OpenAI-compatible), SQLite (`SqliteSaver` checkpointer, `SqliteStore` for long-term memory, own tables for tracker and profile), `httpx`, Pydantic, LangSmith |
 | **Time budget** | ≈ 50 hours over two weeks (Mon 2026-11-09 to Fri 2026-11-20), including tests, documentation and review preparation; submission by Mon 2026-11-23 |
@@ -577,6 +577,7 @@ Nothing is cut in advance: if time runs short, items further down this order mov
 | D-11 | Evidence on the shortlist cards | **Decided (2026-11-09):** `FitAssessment.matches` and `gaps` become structured `MatchEvidence` (name, German quote, English translation), built by the rubric (§6.3). Details: `docs/decisions/D-11-card-evidence.md` |
 | D-12 | S1 latency (NFR-03) | **Decided (2026-11-09):** measure before changing any lever. Result after the FR-01 AC4 location fix: 5 of 5 demo runs complete with refinement, median 44.8 s, maximum 58.4 s – within budget, no lever changed. Details: `docs/decisions/D-12-latency.md` |
 | D-13 | Consistency of follow-up explanations | **Decided (2026-11-09):** follow-up answers (FR-08) can restate evidence wrongly (a gap presented as a match, merged quotes). Fixed by a code check in the evaluation work package that compares each answer with the stored `FitAssessment`, reported as a metric (§9); no further prompt change until then. Details: `docs/decisions/D-13-explanation-consistency.md` |
+| D-14 | Store connection | **Decided (2026-11-09):** the memory store (`SqliteStore`) gets its own connection to the same SQLite file; the checkpointer and the tracker/profile tables keep the shared connection of D-5. Sharing one connection between store and checkpointer caused intermittent transaction errors when both ran in different threads; 40 of 40 stress-test runs passed after the change. Details: `docs/decisions/D-14-store-connection-race.md` |
 | R-1 | API changes or becomes unavailable | Demo mode (FR-19), fixture-based evaluation |
 | R-2 | Agent loop not visible enough in the review | Demo script with refinement (S1), agent steps panel, LangSmith traces |
 | R-3 | Extraction errors lead to wrong categories | Evidence check (FR-05 AC2), "unknown" instead of guessing, fit evaluation with error analysis |
@@ -600,3 +601,4 @@ Nothing is cut in advance: if time runs short, items further down this order mov
 | v0.1.6 | 2026-11-06 | Decisions D-8 and D-9 recorded (§14); §7 Skills counts all extracted skills with whole-word matching; FR-19 AC5 (fixtures committed, source attribution); §9.1 and §11 updated to the built fixture set; README sections list adds data source |
 | v0.1.7 | 2026-11-09 | §6.3 `MatchEvidence` for `matches` and `gaps` (D-11); decisions D-10, D-11 and D-12 recorded (§14) |
 | v0.1.8 | 2026-11-09 | Decision D-13 recorded (§14) |
+| v0.1.9 | 2026-11-09 | Decision D-14 recorded (§14) |

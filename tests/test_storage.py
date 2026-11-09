@@ -285,3 +285,77 @@ def test_store_and_checkpointer_share_one_connection_without_conflict(tmp_path: 
     assert checkpointer is not None
     assert store.get(("memories", "alex"), "pref1") is not None
     assert storage.load_profile(conn, "alex") is not None
+
+
+def test_list_memories_returns_kind_value_and_created_at(tmp_path: Path) -> None:
+    """FR-15 AC3: each item carries its key, kind, value and created date."""
+    conn = storage.get_connection(_db_path(tmp_path))
+    store = storage.get_store(conn)
+    store.put(("memories", "alex"), "k1", {"kind": "preference", "value": "remote only"})
+    memories = storage.list_memories(conn, "alex")
+    assert len(memories) == 1
+    assert memories[0]["key"] == "k1"
+    assert memories[0]["kind"] == "preference"
+    assert memories[0]["value"] == "remote only"
+    assert memories[0]["created_at"] is not None
+
+
+def test_list_memories_orders_most_recently_saved_first(tmp_path: Path) -> None:
+    """Newest item first, mirroring list_tracker_entries' ordering."""
+    conn = storage.get_connection(_db_path(tmp_path))
+    store = storage.get_store(conn)
+    store.put(("memories", "alex"), "k1", {"kind": "preference", "value": "first"})
+    store.put(("memories", "alex"), "k2", {"kind": "preference", "value": "second"})
+    # SqliteStore's own created_at column has one-second resolution, so two
+    # puts in the same test can land in the same second; set them apart
+    # explicitly so the ordering assertion is deterministic, not timing-dependent.
+    conn.execute(
+        "UPDATE store SET created_at = ? WHERE prefix = 'memories.alex' AND key = 'k1'",
+        ("2026-11-01 00:00:00",),
+    )
+    conn.execute(
+        "UPDATE store SET created_at = ? WHERE prefix = 'memories.alex' AND key = 'k2'",
+        ("2026-11-02 00:00:00",),
+    )
+    memories = storage.list_memories(conn, "alex")
+    assert [m["value"] for m in memories] == ["second", "first"]
+
+
+def test_list_memories_returns_empty_list_when_none_stored(tmp_path: Path) -> None:
+    conn = storage.get_connection(_db_path(tmp_path))
+    assert storage.list_memories(conn, "alex") == []
+
+
+def test_list_memories_isolates_per_user(tmp_path: Path) -> None:
+    """Two users' memories do not leak into each other's list (D-6 namespacing)."""
+    conn = storage.get_connection(_db_path(tmp_path))
+    store = storage.get_store(conn)
+    store.put(("memories", "alex"), "k1", {"kind": "preference", "value": "alex's pref"})
+    store.put(("memories", "sam"), "k2", {"kind": "preference", "value": "sam's pref"})
+    assert [m["value"] for m in storage.list_memories(conn, "alex")] == ["alex's pref"]
+    assert [m["value"] for m in storage.list_memories(conn, "sam")] == ["sam's pref"]
+
+
+def test_delete_memory_removes_the_item(tmp_path: Path) -> None:
+    """FR-15 AC3: a deleted memory is gone from the store."""
+    conn = storage.get_connection(_db_path(tmp_path))
+    store = storage.get_store(conn)
+    store.put(("memories", "alex"), "k1", {"kind": "preference", "value": "remote only"})
+    storage.delete_memory(conn, "alex", "k1")
+    assert storage.list_memories(conn, "alex") == []
+
+
+def test_delete_memory_only_removes_the_given_user(tmp_path: Path) -> None:
+    """Deleting alex's item never touches sam's item under the same key."""
+    conn = storage.get_connection(_db_path(tmp_path))
+    store = storage.get_store(conn)
+    store.put(("memories", "alex"), "k1", {"kind": "preference", "value": "alex's pref"})
+    store.put(("memories", "sam"), "k1", {"kind": "preference", "value": "sam's pref"})
+    storage.delete_memory(conn, "alex", "k1")
+    assert storage.list_memories(conn, "alex") == []
+    assert len(storage.list_memories(conn, "sam")) == 1
+
+
+def test_delete_memory_on_a_missing_key_does_not_raise(tmp_path: Path) -> None:
+    conn = storage.get_connection(_db_path(tmp_path))
+    storage.delete_memory(conn, "alex", "does-not-exist")

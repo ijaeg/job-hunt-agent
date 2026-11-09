@@ -15,7 +15,7 @@ from langchain_core.messages import HumanMessage
 from langchain_core.tools import tool
 from langgraph.types import Command
 
-from job_hunt_agent import config
+from job_hunt_agent import config, storage
 from job_hunt_agent.ba_client import BAClientError
 from job_hunt_agent.context import AgentContext
 from job_hunt_agent.models import JobDetails, JobRequirements, JobSummary, ToolResult
@@ -64,12 +64,8 @@ def _excluded_employers(runtime: ToolRuntime[AgentContext, JobHuntState]) -> lis
     if runtime.store is None:
         return []
     user_id = runtime.state.get("user_id", "")
-    items = runtime.store.search(("memories", user_id))
-    return [
-        item.value["value"]
-        for item in items
-        if isinstance(item.value, dict) and item.value.get("kind") == "excluded_employer"
-    ]
+    memories = storage.search_memories(runtime.store, user_id)
+    return [m["value"] for m in memories if m.get("kind") == "excluded_employer"]
 
 
 def _fallback_summary(referenznummer: str, details: JobDetails) -> JobSummary:

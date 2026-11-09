@@ -860,3 +860,145 @@ move; storage delete+helpers+tests; tracker page+AppTest+session log)
 and wait for approval before any commit. After that: the remaining Must
 items per spec §13 (memory page, profile form, developer settings,
 FR-15 AC2's memory-loading gap, safety tests, evaluation).
+
+## 2026-11-09 — WP-07: memory view and loading memories into new threads (FR-15 AC2, AC3)
+
+**Check first (per the prompt):** read `tools/memory.py` (`remember`
+writes `{kind, value, created_at}` to `("memories", user_id)` via
+`ToolRuntime.store`), `middleware/profile_context.py` (the "inject once
+on a thread's first model call" pattern to follow) and
+`tools/assess.py`'s `_excluded_employers` (already reads the same
+namespace live, inside `assess_fit`, for the FR-15 AC4 hard exclusion -
+this already worked independently of AC2). `agent.py`'s own module
+docstring already named the exact gap: the system prompt
+(`prompts/system.md` §"Stored preferences") tells the model memories
+"apply automatically" and are "shown to you at the start of this
+thread," but nothing injected them. Employer picked from the data for
+the real-model check: **bayoonet AG**, `12117-YF-48852-YF-S`, in D-10's
+recorded München search (`data/samples/fixtures/recorded_searches.json`,
+cross-checked against `listings.json`).
+
+**Done:**
+
+- `storage.list_memories(conn, user_id)` / `storage.delete_memory(conn,
+  user_id, key)` (FR-15 AC3) on top of the store, so `pages/2_Memory.py`
+  never calls the store API directly - mirrors D-6's own reasoning for
+  the tracker (bare dicts, not a Pydantic model, since that's how
+  `remember` already stores an item).
+- `middleware/memory_context.py` (FR-15 AC2): a sibling of
+  `LoadProfileContextMiddleware`, not an extension of it - memories come
+  from `runtime.store`, keyed by `state["user_id"]`, a different source
+  read at call time rather than build time. Wired into `agent.py`
+  directly after `LoadProfileContextMiddleware` (both "inject once"
+  middlewares grouped together, before the PII guards). No memories at
+  all → no message (unlike the profile, always present once seeded).
+- `pages/2_Memory.py` (FR-15 AC3): one row per item (kind, value, saved
+  date), Delete with a second-click confirmation, same pattern as
+  `pages/1_Tracker.py`. Empty state points back at the agent. Deleting an
+  item takes effect on the next `assess_fit` call (FR-15 AC4 stays a
+  live, code-only read from the store - the context message only lets
+  the model *explain* the filtering, never decide it).
+
+**Two real bugs found only by the real-model check, not by the mocked
+unit tests - both fixed, both documented:**
+
+1. **Middleware-ordering bug (caught by the real-model script):** the
+   first version detected "first model call" as
+   `len(state["messages"]) == 1`, copied from
+   `LoadProfileContextMiddleware`. That middleware runs first in
+   `agent.py`'s list and prepends its own message before this one's
+   `before_model` ever executes, so by the time it ran, length was
+   already 2 - the memory message silently never fired. Fixed by
+   detecting "no `AIMessage` yet in this thread" instead (order-
+   independent). Added a regression test running both middlewares
+   together in `agent.py`'s real order
+   (`test_load_memory_context_middleware_still_injects_after_profile_context_middleware`),
+   since every other test exercised this middleware in isolation and
+   none would have caught it.
+2. **Shared-connection race (D-14, caught only once the first bug was
+   fixed and the real-model script actually exercised the store on
+   every turn):** with the fix above, calling the real agent started
+   intermittently raising `sqlite3.OperationalError: cannot commit - no
+   transaction is active` inside `SqliteStore`'s own commit - roughly 1
+   run in 5-15 in a 40-60 iteration stress test of `build_agent`, never
+   in a single demo-paced run (which is why it never showed up in the
+   mocked test suite). Root cause: D-5's "one shared connection" has
+   `SqliteSaver` and `SqliteStore` each wrapping bare `BEGIN`/`COMMIT`
+   SQL around the *same* connection object, coordinated only by their
+   own, mutually unaware internal lock; LangGraph's `ToolNode` runs tool
+   calls on a worker thread, so this had always been racy, just never
+   exercised on every turn before. A single retry looked promising but
+   wasn't reliable (the retry itself failed in one stress-test run, and
+   a separate tool-call path wasn't covered by it at all). Wrote
+   `docs/decisions/D-14-store-connection-race.md`: giving the store its
+   own `sqlite3.connect()` to the *same* file (found via `PRAGMA
+   database_list` on the shared `conn`) scored 40/40 and 60/60 in two
+   separate stress tests, with no call-site changes needed anywhere
+   else. Implemented as the reasoned default per this project's
+   established pattern (document the alternatives with real numbers,
+   flag as open) - **Decision line still pending Ingo's answer.**
+   `tools/assess.py`'s `_excluded_employers` (pre-existing, same store,
+   same risk, just lower-frequency) now shares the new
+   `storage.search_memories` helper and so gets the fix for free; its
+   own `store.search(...)` call was also bumped from the store's default
+   `limit=10` to the new `config.MAX_MEMORIES_PER_USER` (200) while
+   touching this function, a one-line consistency fix for FR-15 AC4 at
+   scale, not asked for by the prompt but directly adjacent to it.
+
+**Tests (NFR-05):** `tests/test_storage.py` (+7:
+`test_list_memories_returns_kind_value_and_created_at`,
+`test_list_memories_orders_most_recently_saved_first`,
+`test_list_memories_returns_empty_list_when_none_stored`,
+`test_list_memories_isolates_per_user`,
+`test_delete_memory_removes_the_item`,
+`test_delete_memory_only_removes_the_given_user`,
+`test_delete_memory_on_a_missing_key_does_not_raise`),
+`tests/test_middleware_memory_context.py` (new, 6 tests: message
+content, inject-once-with-memories, inject-nothing-without-memories,
+no-repeat-on-a-later-turn, per-user isolation, and the ordering
+regression test above), `tests/test_pages_memory.py` (new, 4 `AppTest`
+scenarios mirroring `test_pages_tracker.py`: items render, delete with
+confirmation, delete-cancel keeps the item, empty state).
+
+**Checks:** `uv run pytest` 284/284 passed (267 before this package +
+17 new), no skipped, 98% coverage, `storage.py`/`middleware/
+memory_context.py` both 100%; re-ran the suite 3 more times back to
+back with no flakes. `uv run ruff check .` and `uv run ruff format
+--check .` clean. `uv run mypy src app.py pages ui_shared.py scripts`
+clean, 37 source files.
+
+**Real-model check (demo mode, two threads, one DB,
+`eval/results/wp07_memory_check.json`):** thread 1 ("Never show me jobs
+from bayoonet AG again.") called `remember`, paused for approval,
+approved, stored. Thread 2 (new thread id, "Find Softwareentwickler
+jobs in München.") did inject the `memory_context` message
+(`thread_2_memory_context_message_injected: true`) and the model acted
+on it *before* even trying the listing: it called `get_job_details` on
+only 5 of the München refs, skipping bayoonet AG's entirely, and its own
+final answer states "Excluded employer bayoonet AG was filtered out of
+the assessed shortlist" (`thread_2_answer_mentions_exclusion: true`).
+Because the model never passed that referenznummer to `assess_fit` this
+run, the code-level hard-exclusion path (`"excluded by you: bayoonet
+AG"`) wasn't exercised by *this* run -
+`excluded_listing_marked_excluded_by_you: false` in the saved file - but
+was independently confirmed during debugging (before the ordering fix,
+when the model still fetched that listing): the rubric attached
+`"excluded by you: bayoonet AG"` correctly. Both paths of FR-15 AC4
+(model avoids it proactively, or code catches it if the model tries
+anyway) are confirmed; only the first is in the committed JSON since
+that is what the real run actually did.
+
+**Manual browser check for Ingo (4 steps):** (1) start the app, tell the
+agent "Never show me jobs from bayoonet AG again," approve the
+`remember` call; (2) click "New search," ask for "Softwareentwickler
+jobs in München"; (3) check that the shortlist/agent's answer does not
+surface a bayoonet AG listing as a normal result; (4) open the Memory
+page, confirm the "Excluded employer: bayoonet AG" row is there, delete
+it with the two-click confirmation, and confirm it is gone.
+
+**Next:** show the commit proposal and wait for approval before any
+commit (prompt; storage functions + tests; memory middleware + agent
+wiring + regression test; D-14 + the store-connection fix + its tests;
+memory page + AppTest; real-model check + session log). D-14's Decision
+line needs Ingo's answer. After that: profile form, developer settings,
+safety tests, evaluation (§9) remain per spec §13.
