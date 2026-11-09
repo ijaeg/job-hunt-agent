@@ -17,15 +17,14 @@ Usage (needs OPENROUTER_API_KEY):
 Writes:
     eval/results/core_journey_wp03.json   full per-scenario record
     spikes/NOTES.md                       appends a "WP-03 core journey" summary
-    docs/decisions/D-11-latency.md         only if S1 exceeds 60 s (NFR-03, R-4)
+    docs/decisions/D-12-latency.md         only if S1 exceeds 60 s (NFR-03, R-4)
 
-Related: FR-01-FR-10, FR-13, FR-20-FR-23, spec §3.2, §9.2, §9.5, NFR-03, D-10, D-11
+Related: FR-01-FR-10, FR-13, FR-20-FR-23, spec §3.2, §9.2, §9.5, NFR-03, D-10, D-12
 """
 
 from __future__ import annotations
 
 import json
-import os
 import sys
 import time
 from pathlib import Path
@@ -34,7 +33,6 @@ from typing import Any
 import yaml
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langgraph.types import Command
-from pydantic import SecretStr
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
@@ -43,32 +41,14 @@ from job_hunt_agent import config, storage  # noqa: E402
 from job_hunt_agent.agent import build_agent  # noqa: E402
 from job_hunt_agent.ba_client import BAClient  # noqa: E402
 from job_hunt_agent.context import AgentContext  # noqa: E402
+from job_hunt_agent.llm import build_real_model  # noqa: E402
 from job_hunt_agent.models import Profile  # noqa: E402
 
 DB_PATH = PROJECT_ROOT / "data" / "core_journey_run.sqlite"
 RESULTS_PATH = PROJECT_ROOT / "eval" / "results" / "core_journey_wp03.json"
 NOTES_PATH = PROJECT_ROOT / "spikes" / "NOTES.md"
-D11_PATH = PROJECT_ROOT / "docs" / "decisions" / "D-11-latency.md"
+D12_PATH = PROJECT_ROOT / "docs" / "decisions" / "D-12-latency.md"
 S1_LATENCY_BUDGET_SECONDS = 60.0
-
-
-def build_real_model() -> Any:
-    from langchain_openai import ChatOpenAI
-
-    api_key = os.getenv(config.OPENROUTER_API_KEY_ENV, "").strip()
-    if not api_key:
-        raise RuntimeError(f"{config.OPENROUTER_API_KEY_ENV} is not set.")
-    return ChatOpenAI(
-        model=config.CHAT_MODEL,
-        base_url=config.OPENROUTER_BASE_URL,
-        api_key=SecretStr(api_key),
-        timeout=config.OPENROUTER_TIMEOUT_SECONDS,
-        max_retries=0,
-        extra_body={
-            "reasoning": {"effort": config.REASONING_EFFORT},
-            "provider": config.PROVIDER_PREFERENCES,
-        },
-    )
 
 
 def _tool_calls_of(messages: list[Any]) -> list[dict[str, Any]]:
@@ -181,10 +161,10 @@ def main() -> int:
     records.append(s1_record)
 
     if s1_record["elapsed_seconds"] > S1_LATENCY_BUDGET_SECONDS:
-        write_d11_latency_decision(s1_record)
+        write_d12_latency_decision(s1_record)
         print(
             f"S1 took {s1_record['elapsed_seconds']}s > {S1_LATENCY_BUDGET_SECONDS}s budget; "
-            f"wrote {D11_PATH}. Continuing with the remaining scenarios anyway."
+            f"wrote {D12_PATH}. Continuing with the remaining scenarios anyway."
         )
 
     # S2: follow-up question, answered from state, no new tool call expected.
@@ -259,9 +239,9 @@ def _pick_an_employer(s1_result: dict[str, Any]) -> str | None:
     return None
 
 
-def write_d11_latency_decision(s1_record: dict[str, Any]) -> None:
-    D11_PATH.write_text(
-        f"""# D-11: S1 latency over the NFR-03 60 s budget
+def write_d12_latency_decision(s1_record: dict[str, Any]) -> None:
+    D12_PATH.write_text(
+        f"""# D-12: S1 latency over the NFR-03 60 s budget
 
 ## Question
 
