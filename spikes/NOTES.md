@@ -558,3 +558,50 @@ silently dropped (or not) changed what the model could see, but not
 whether this match is fundamentally a Python-profile-vs-.NET/C#/Unix-ad
 mismatch. Full machine-readable trace, no ad text beyond the model's own
 evidence-quoting final message: `eval/results/d10_followup3_verification.json`.
+
+## WP-04 UI smoke run: real-model headless AppTest-equivalent (2026-11-09)
+
+Script: `scripts/ui_smoke_wp04.py` (not a pytest test - reuses `app.py`'s own
+status-label logic, `app.iter_new_tool_calls`, against the real model and
+`FixtureSource`, demo mode). Demo query: **"Find Softwareentwickler jobs in
+München."** (matches the D-10/D-1 recorded München search exactly: keywords
+"Softwareentwickler", radius 25 km, published within 28 days, real recorded
+total 103). Full machine-readable record (no ad text):
+`eval/results/ui_smoke_wp04.json`.
+
+**First run had a counting bug, found in coach review, fixed before this
+number:** `stream_mode="updates"` re-emits the same `AIMessage` (same tool
+call id) from later middleware steps that return the whole `messages` list,
+not just what is new (e.g. the built-in `PIIMiddleware`'s `before_model`).
+The first run's raw loop counted every occurrence, making every tool call
+and status label look doubled (`search_jobs, search_jobs, assess_fit`
+*twice*, identical args both times) - the checkpointer's actual message
+history had only 3 unique tool calls, each with its own id. Fixed by
+`app.iter_new_tool_calls` (dedup by `tool_call["id"]`, mutating a
+`seen_tool_call_ids` set across steps), used by both `app.py::run_turn` and
+this script; unit-tested in `tests/test_app.py::
+test_iter_new_tool_calls_dedups_the_same_call_echoed_by_later_middleware_steps`.
+
+**Corrected numbers (re-run after the fix):**
+
+- Elapsed: **65.8 s - exceeds the 60 s NFR-03 budget** (first run, before
+  the fix, was 56.4 s with a different tool sequence; run-to-run model
+  variance, not something this fix caused). Reported as instructed, nothing
+  tuned to bring it under budget; `run_core_journey.py`'s own D-12-latency
+  mechanism is scoped to its own S1 scenario, not this script, so no
+  decision file was auto-written here - flagged to Ingo instead.
+- Tool sequence (each call now genuinely once): `search_jobs, search_jobs,
+  get_job_details` x6, `assess_fit`. The model narrowed itself
+  ("Softwareentwickler Python Java FastAPI PostgreSQL Docker CI/CD senior"
+  -> a wider age/radius retry) per FR-03 AC1, then read 6 listings' details
+  before assessing them - the fuller, more expected tool chain than the
+  first (buggy-count) run showed.
+- Status labels shown (`app.py::_status_label`): `Searching the job
+  board…` (x2), `Reading 1..6 listing(s)…` (incrementing correctly), 
+  `Assessing fit…` (x1) - 9 labels for 9 real tool calls, 1:1.
+- Card count: **6 visible (2 partial, 4 poor), 0 excluded, 6 total.**
+  Consistent with D-10 follow-up findings: München's real market for a
+  plain "Softwareentwickler" search is mostly not a match for the Python/
+  FastAPI/PostgreSQL/Docker/CI-CD profile.
+
+Related: FR-07, FR-16 AC2, NFR-03, D-10, D-12, WP-04

@@ -407,3 +407,153 @@ or PR. After that, the remaining Must items per spec §13 (tracker view,
 demo mode wiring into `app.py`, developer settings, FR-15 AC2's
 memory-loading gap, safety tests, evaluation) and then the Streamlit UI
 itself.
+
+## 2026-11-09 — WP-04: Streamlit UI for the core journey
+
+**Done** (branch `feature/streamlit-core-ui`, nothing committed yet - see
+"Status" below):
+
+- **Data checks first (CLAUDE.md "Checks before hand-over" #4):**
+  1. Confirmed FR-07 AC1's gap by reading `tools/assess.py`/`rubric.py`/
+     `state.py`: `FitAssessment.matches`/`gaps` hold only
+     `"name — evidence_en"` strings (`rubric.py:327-336`); the German
+     `evidence_de` quote is built and consumed entirely inside
+     `assess_fit`'s local scope and never reaches `JobHuntState`.
+     **`docs/decisions/D-11-card-evidence.md` written** (3 options) and
+     that part stopped per the work package's own instruction - cards
+     built with English evidence only, German quote marked
+     `# TODO(D-11)` in `ui_view.py`. **Decided by Ingo on 2026-11-09:
+     Option 1** (structured `matches`/`gaps` on `FitAssessment`, built by
+     `rubric.assess()`), to be implemented in WP-05 - not started here.
+  2. Checked every `state["shortlist"]` ref has a cached summary: true
+     for every real run inspected (the model only ever calls `assess_fit`
+     on refs it got from its own `search_jobs` calls), but nothing in the
+     code *enforces* this - `ui_view.build_card` falls back to the
+     referenznummer as the title and leaves employer/location/etc. `None`
+     if a summary is ever missing (FR-06 AC3 "missing value never
+     excludes" spirit), covered by
+     `test_build_card_falls_back_gracefully_without_a_summary`.
+  3. No existing BA listing URL builder - `tools/tracker.py` explicitly
+     left `url=None` ("the public BA jobsuche web URL scheme is
+     unverified... a later UI work package's concern"). Built
+     `ui_view.listing_url` (`https://www.arbeitsagentur.de/jobsuche/
+     jobdetail/{referenznummer}`), documented as unverified against a
+     real response (D-1 only exercised the JSON API).
+  4. Demo-run query confirmed: **"Softwareentwickler" / München, radius
+     25 km, published within 28 days** (`data/samples/fixtures/
+     recorded_searches.json`, real recorded total 103) - triggers
+     autonomous narrowing (>50) end-to-end, already proven in WP-03's
+     D-10 follow-ups and re-confirmed by this work package's own
+     real-model smoke run.
+- **`src/job_hunt_agent/llm.py`:** `build_real_model()` moved out of
+  `scripts/run_core_journey.py` (no duplicate); the script now imports it.
+  Renumbered that script's dormant latency-decision placeholder from
+  `D-11-latency.md` to `D-12-latency.md` (D-11 is now card-evidence) -
+  never triggered so far (S1 stayed under the NFR-03 budget in every
+  WP-03 run), but would have collided with D-11 if it ever fired.
+- **`src/job_hunt_agent/ui_view.py`:** pure card-building helpers (no
+  Streamlit, no LLM/network call, mirrors `rubric.py`/`pii.py`):
+  `listing_url`, `low_evidence_note` (FR-07 AC4), `build_card`/
+  `build_cards` (FR-07 AC1), `order_cards` (strong -> partial -> poor,
+  excluded separate, FR-07 AC2). 8 unit tests, 100 % coverage.
+- **`app.py`** (repo root, `uv run streamlit run app.py`): layout and
+  wiring only (NFR-04) - one shared SQLite connection via
+  `st.cache_resource` keyed by db path (D-5, FR-10 AC5); profile seeded
+  from `data/samples/profile_alex.yaml` on first use (FR-14 AC1); thread
+  id kept in `st.query_params`, "New search" button starts a new one
+  (FR-16 AC3); demo-mode toggle (default on) switches `FixtureSource` vs.
+  `BAClient` with a "Demo data – not live listings" banner (FR-19 AC1,
+  AC2); chat (left) + shortlist cards (right), history read from
+  `agent.get_state(cfg).values["messages"]`, never session state (FR-01
+  AC1) - the `profile_context`-named message `LoadProfileContextMiddleware`
+  injects is filtered out of the chat view (it is context for the model,
+  not something the user said); progress labels via
+  `agent.stream(..., stream_mode="updates")` in `st.status` (FR-16 AC2);
+  "Save to tracker" button per card sends a chat message naming the
+  listing (FR-07 AC3); approval read from `agent.get_state(cfg).interrupts`
+  with Approve/Edit/Reject buttons per pending action, Edit revealing a
+  form (`save_to_tracker`: status/follow_up_date/note;
+  `remember`: kind/value) with its own "Save edited action" button,
+  resuming with `Command(resume={"decisions": [...]})` (FR-10 AC2, AC5);
+  every `agent.stream`/`agent.invoke` call wrapped so a failure becomes a
+  friendly `st.error`, never a stack trace (invariant 7). A small
+  `_ScriptedModel` (gated by `JOB_HUNT_FAKE_MODEL=1`, never active
+  otherwise) mirrors `spikes/hitl_app.py`'s pattern for tests, referenced
+  rather than imported per the work package's instruction.
+- **`scripts/ui_smoke_wp04.py`:** headless real-model smoke script (not a
+  pytest test), reusing `app.py`'s own `iter_new_tool_calls`/
+  `_status_label` so the recorded behaviour matches what the UI actually
+  shows.
+- **Tests:** `tests/test_ui_view.py` (8), `tests/test_llm.py` (2),
+  `tests/test_app.py` (7, `streamlit.testing.v1.AppTest` +
+  `JOB_HUNT_FAKE_MODEL=1` + `FixtureSource`, no network/API key) - cards
+  render strong/partial/poor/excluded-separate; a save request raises the
+  approval with exact arguments; approve writes the tracker row (checked
+  directly against SQLite); reject writes nothing; an edit decision's
+  edited arguments reach the tracker row; a brand-new `AppTest` on the
+  same DB file/thread id (`storage.get_connection.cache_clear()` +
+  `app.get_connection.clear()`, mirroring `spikes/test_hitl_app.py`)
+  still shows the pending interrupt and the history after a simulated
+  restart; a focused unit test reproducing the `stream_mode="updates"`
+  duplicate-echo bug below.
+- **Bug found in coach review, fixed before any commit:** the first
+  real-model smoke run's tool-call/status-label counting was wrong -
+  several middleware `before_model` hooks (the built-in `PIIMiddleware`
+  in particular) return an update carrying the *whole* `messages` list,
+  not just what changed, so the same `AIMessage`/tool-call `id` is
+  re-emitted across several `stream_mode="updates"` steps. The first run's
+  naive loop counted every occurrence, making the real 3-call sequence
+  (`search_jobs, search_jobs, assess_fit`) look like 6 - checked against
+  the checkpointer's actual message history, which had only 3 unique tool
+  call ids. Fixed with a shared `app.iter_new_tool_calls` helper (dedup by
+  `tool_call["id"]`) used by both `app.py::run_turn` and
+  `scripts/ui_smoke_wp04.py`; unit-tested directly.
+- **Approval UI redesigned in coach review:** FR-10 AC2 asks for three
+  buttons (Approve/Edit/Reject), not a selectbox + a separate "Submit"
+  button. `render_approval` now renders those three buttons per pending
+  action request; Edit reveals the argument form with its own "Save
+  edited action" button. Supports a batch of more than one pending
+  action request (tracked in `st.session_state["_pending_decisions"]`,
+  cleared the moment every request in the current interrupt has a
+  decision and the resume is sent) even though the core journey only
+  ever proposes one write tool per turn in practice.
+
+**Real-model smoke run** (Checks #2, `scripts/ui_smoke_wp04.py`, demo
+query "Find Softwareentwickler jobs in München.", full record
+`eval/results/ui_smoke_wp04.json`, write-up `spikes/NOTES.md` § "WP-04 UI
+smoke run"): **65.8 s - exceeds the 60 s NFR-03 budget.** Tool sequence
+`search_jobs, search_jobs, get_job_details` x6, `assess_fit` (each call
+counted once, after the dedup fix); 9 status labels for 9 real tool
+calls. Card count: 6 visible (2 partial, 4 poor), 0 excluded. Reported as
+instructed, nothing tuned to bring it under budget -
+`run_core_journey.py`'s own `D-12-latency.md` auto-write is scoped to its
+own S1 scenario, not this script, so no decision file was written here;
+flagged to Ingo for a call on whether a decision is warranted (a first,
+buggy-count run of the same query had measured 56.4 s with a different
+tool sequence - run-to-run model variance, not something the counting fix
+caused).
+
+**Checks:** `uv run pytest` 250/250 passed, 98 % coverage (no skipped
+tests); `uv run ruff check .` and `uv run ruff format --check .` clean;
+`uv run mypy src app.py scripts` clean (`pages/` still doesn't exist - a
+later work package). No fixture/evaluation-set changes this work package,
+so CLAUDE.md check #3 (data integrity) does not apply.
+
+**Decision files, status:**
+
+- **D-11 (card evidence): decided by Ingo on 2026-11-09, Option 1**
+  (structured `matches`/`gaps` on `FitAssessment`, built by
+  `rubric.assess()` directly from `requirements.skills`) - to be
+  implemented in **WP-05**, not this one; `ui_view.py` still carries the
+  `# TODO(D-11)` marker on the English-only `matches` field.
+- **D-12 (latency):** reserved (renumbered from the former dormant
+  `run_core_journey.py` placeholder), not written as a decision file this
+  session - the 65.8 s NFR-03 overage above is reported, not decided on,
+  pending Ingo's call.
+
+**Next:** show the commit proposal(s) for this work package (one concern
+per commit, per CLAUDE.md) and wait for approval before any commit, push
+or PR. After that: WP-05 (D-11 Option 1 implementation) and the remaining
+Must items per spec §13 (tracker view, memory page, profile form,
+developer settings, FR-15 AC2's memory-loading gap, safety tests,
+evaluation).
