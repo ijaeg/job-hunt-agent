@@ -1,0 +1,112 @@
+{
+  "demo_query": "Find Softwareentwickler jobs in München.",
+  "model": "openai/gpt-5-mini",
+  "elapsed_seconds": 65.75,
+  "within_nfr03_budget": false,
+  "tool_sequence": [
+    "search_jobs",
+    "search_jobs",
+    "get_job_details",
+    "get_job_details",
+    "get_job_details",
+    "get_job_details",
+    "get_job_details",
+    "get_job_details",
+    "assess_fit"
+  ],
+  "tool_calls": [
+    {
+      "name": "search_jobs",
+      "args": {
+        "keywords": "Softwareentwickler Python Java FastAPI PostgreSQL Docker CI/CD senior",
+        "location": "München",
+        "radius_km": 25,
+        "published_within_days": 28,
+        "exclude_temp_agency": true
+      }
+    },
+    {
+      "name": "search_jobs",
+      "args": {
+        "keywords": "Softwareentwickler",
+        "location": "München",
+        "radius_km": 50,
+        "published_within_days": 60,
+        "exclude_temp_agency": true
+      }
+    },
+    {
+      "name": "get_job_details",
+      "args": {
+        "referenznummer": "10001-1003863378-S"
+      }
+    },
+    {
+      "name": "get_job_details",
+      "args": {
+        "referenznummer": "10001-1003935843-S"
+      }
+    },
+    {
+      "name": "get_job_details",
+      "args": {
+        "referenznummer": "12117-YF-48852-YF-S"
+      }
+    },
+    {
+      "name": "get_job_details",
+      "args": {
+        "referenznummer": "12336-a26f1128j0452080-S"
+      }
+    },
+    {
+      "name": "get_job_details",
+      "args": {
+        "referenznummer": "14225-d10be3b2dd249dcf-S"
+      }
+    },
+    {
+      "name": "get_job_details",
+      "args": {
+        "referenznummer": "19121-44499216-1011-S"
+      }
+    },
+    {
+      "name": "assess_fit",
+      "args": {
+        "referenznummern": [
+          "10001-1003863378-S",
+          "10001-1003935843-S",
+          "12117-YF-48852-YF-S",
+          "12336-a26f1128j0452080-S",
+          "14225-d10be3b2dd249dcf-S",
+          "19121-44499216-1011-S"
+        ]
+      }
+    }
+  ],
+  "status_labels_shown": [
+    "Searching the job board…",
+    "Searching the job board…",
+    "Reading 1 listing(s)…",
+    "Reading 2 listing(s)…",
+    "Reading 3 listing(s)…",
+    "Reading 4 listing(s)…",
+    "Reading 5 listing(s)…",
+    "Reading 6 listing(s)…",
+    "Assessing fit…"
+  ],
+  "card_count": {
+    "visible": 6,
+    "excluded": 0,
+    "total": 6
+  },
+  "card_categories": [
+    "partial",
+    "partial",
+    "poor",
+    "poor",
+    "poor",
+    "poor"
+  ]
+}
