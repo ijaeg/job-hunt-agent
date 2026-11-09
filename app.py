@@ -17,25 +17,31 @@ NFR-01, NFR-03, NFR-04, D-5, D-10, D-11
 from __future__ import annotations
 
 import os
+import sys
 import uuid
+from pathlib import Path
 from typing import Any
 
 import streamlit as st
-import yaml
 from langchain_core.messages import AIMessage, HumanMessage
 from langgraph.types import Command
 
-from job_hunt_agent import config, storage, ui_view
-from job_hunt_agent.agent import build_agent
-from job_hunt_agent.ba_client import BAClient, FixtureSource, JobSource
-from job_hunt_agent.context import AgentContext
-from job_hunt_agent.llm import build_real_model
-from job_hunt_agent.models import Profile
+# Streamlit inserts the *entry* script's own directory into sys.path while
+# it runs (so `streamlit run app.py` lets both this file and pages/*.py
+# import sibling root modules), but a page tested directly via
+# ``AppTest.from_file`` or a module loaded by raw ``importlib`` (as
+# tests/test_app.py's ``_load_app_module`` does) gets no such help - so this
+# file adds its own directory explicitly before importing ``ui_shared``.
+_ROOT = Path(__file__).resolve().parent
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
 
-#: No authentication yet (spec §2.2); every run is this one demo user.
-USER_ID = "alex"
-
-_PROFILE_SEED_PATH = config.PROJECT_ROOT / "data" / "samples" / "profile_alex.yaml"
+from job_hunt_agent import config, ui_view  # noqa: E402
+from job_hunt_agent.agent import build_agent  # noqa: E402
+from job_hunt_agent.ba_client import BAClient, FixtureSource, JobSource  # noqa: E402
+from job_hunt_agent.context import AgentContext  # noqa: E402
+from job_hunt_agent.llm import build_real_model  # noqa: E402
+from ui_shared import USER_ID, get_connection, load_or_seed_profile  # noqa: E402
 
 _STATUS_LABELS: dict[str, str] = {
     "search_jobs": "Searching the job board…",
@@ -81,12 +87,6 @@ class _ScriptedModel:
 
 
 @st.cache_resource
-def get_connection(db_path: str) -> Any:
-    """One shared SQLite connection for the checkpointer, store, tracker and profile (D-5)."""
-    return storage.get_connection(db_path)
-
-
-@st.cache_resource
 def get_model() -> Any:
     if os.getenv("JOB_HUNT_FAKE_MODEL") == "1":
         return _ScriptedModel()
@@ -101,17 +101,6 @@ def get_fixture_source() -> FixtureSource:
 @st.cache_resource
 def get_live_source() -> BAClient:
     return BAClient()
-
-
-def load_or_seed_profile(conn: Any, user_id: str) -> Profile:
-    """Loads the stored profile, or seeds it from the demo profile once (FR-14 AC1)."""
-    profile = storage.load_profile(conn, user_id)
-    if profile is not None:
-        return profile
-    data = yaml.safe_load(_PROFILE_SEED_PATH.read_text(encoding="utf-8"))
-    profile = Profile.model_validate(data)
-    storage.save_profile(conn, user_id, profile)
-    return profile
 
 
 # ---------------------------------------------------------------------------
