@@ -254,6 +254,26 @@ def list_tracker_entries(conn: sqlite3.Connection, user_id: str) -> list[Tracker
     return [_tracker_entry_from_row(row) for row in rows]
 
 
+def delete_tracker_entry(conn: sqlite3.Connection, user_id: str, referenznummer: str) -> bool:
+    """Deletes one tracker entry (FR-11 AC2), a user action and not gated by approval.
+
+    Args:
+        user_id: The entry's owner.
+        referenznummer: The listing to remove.
+
+    Returns:
+        ``True`` if a row was actually deleted, ``False`` if no such entry existed.
+
+    Related: FR-11 AC2, spec §8
+    """
+    with conn:
+        cursor = conn.execute(
+            "DELETE FROM tracker WHERE user_id = ? AND referenznummer = ?",
+            (user_id, referenznummer),
+        )
+    return cursor.rowcount > 0
+
+
 def _tracker_entry_from_row(row: tuple[object, ...]) -> TrackerEntry:
     return TrackerEntry(
         user_id=row[0],  # type: ignore[arg-type]

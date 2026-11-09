@@ -208,6 +208,30 @@ def test_get_tracker_entry_returns_none_when_missing(tmp_path: Path) -> None:
     assert storage.get_tracker_entry(conn, "alex", "does-not-exist-S") is None
 
 
+def test_delete_tracker_entry_removes_the_row(tmp_path: Path) -> None:
+    """FR-11 AC2: a deleted entry is gone from the tracker."""
+    conn = storage.get_connection(_db_path(tmp_path))
+    storage.save_tracker_entry(conn, _entry())
+    deleted = storage.delete_tracker_entry(conn, "alex", "19522-0068291613-S")
+    assert deleted is True
+    assert storage.get_tracker_entry(conn, "alex", "19522-0068291613-S") is None
+
+
+def test_delete_tracker_entry_returns_false_when_missing(tmp_path: Path) -> None:
+    conn = storage.get_connection(_db_path(tmp_path))
+    assert storage.delete_tracker_entry(conn, "alex", "does-not-exist-S") is False
+
+
+def test_delete_tracker_entry_only_removes_the_given_user(tmp_path: Path) -> None:
+    """Deleting alex's entry never touches sam's row for the same referenznummer."""
+    conn = storage.get_connection(_db_path(tmp_path))
+    storage.save_tracker_entry(conn, _entry(user_id="alex"))
+    storage.save_tracker_entry(conn, _entry(user_id="sam"))
+    storage.delete_tracker_entry(conn, "alex", "19522-0068291613-S")
+    assert storage.get_tracker_entry(conn, "alex", "19522-0068291613-S") is None
+    assert storage.get_tracker_entry(conn, "sam", "19522-0068291613-S") is not None
+
+
 def test_checkpointer_persists_a_thread_across_get_connection_calls(tmp_path: Path) -> None:
     """The checkpointer on the shared connection actually saves a checkpoint (FR-13 AC1)."""
     path = _db_path(tmp_path)
