@@ -32,11 +32,15 @@ def _summary(**overrides: object) -> JobSummary:
     return JobSummary.model_validate(defaults)
 
 
+def _match(name: str = "Python") -> dict[str, str]:
+    return {"name": name, "evidence_de": f"{name}-Kenntnisse", "evidence_en": f"{name} knowledge"}
+
+
 def _assessment(**overrides: object) -> FitAssessment:
     defaults: dict[str, object] = {
         "referenznummer": "19522-0068291613-S",
         "category": "strong",
-        "matches": ["Python — writes production Python"],
+        "matches": [_match("Python")],
         "gaps": [],
         "unknown": [],
         "low_evidence": False,
@@ -96,9 +100,17 @@ def test_build_card_falls_back_gracefully_without_a_summary() -> None:
 
 
 def test_build_card_caps_matches_at_three() -> None:
-    assessment = _assessment(matches=[f"Skill {i} — evidence {i}" for i in range(5)])
+    assessment = _assessment(matches=[_match(f"Skill{i}") for i in range(5)])
     card = build_card("19522-0068291613-S", _summary(), assessment)
     assert len(card.matches) == 3
+
+
+def test_build_card_shows_german_quote_and_english_translation() -> None:
+    """FR-07 AC1: a match carries both the German quote and the English translation."""
+    assessment = _assessment(matches=[_match("Python")])
+    card = build_card("19522-0068291613-S", _summary(), assessment)
+    assert card.matches[0].evidence_de == "Python-Kenntnisse"
+    assert card.matches[0].evidence_en == "Python knowledge"
 
 
 # ---------------------------------------------------------------------------
