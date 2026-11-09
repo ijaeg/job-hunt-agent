@@ -198,6 +198,24 @@ class Memory(BaseModel):
     created_at: datetime
 
 
+class ThreadRecord(BaseModel):
+    """One row of the ``threads`` table (spec FR-13 AC2, D-15).
+
+    Registered by the UI layer, not the agent (D-15's recommendation): a
+    thread exists here once its first user message has been sent;
+    ``title`` never changes after that, ``updated_at`` moves on every
+    later turn.
+
+    Related: FR-13 AC2, D-15
+    """
+
+    user_id: str
+    thread_id: str
+    title: str
+    created_at: datetime
+    updated_at: datetime
+
+
 class Profile(BaseModel):
     """User profile edited in the settings form (spec FR-14).
 
