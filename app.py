@@ -19,6 +19,7 @@ from __future__ import annotations
 import os
 import sys
 import uuid
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -36,12 +37,12 @@ _ROOT = Path(__file__).resolve().parent
 if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
-from job_hunt_agent import config, ui_view  # noqa: E402
+from job_hunt_agent import config, storage, ui_view, user_view  # noqa: E402
 from job_hunt_agent.agent import build_agent  # noqa: E402
 from job_hunt_agent.ba_client import BAClient, FixtureSource, JobSource  # noqa: E402
 from job_hunt_agent.context import AgentContext  # noqa: E402
 from job_hunt_agent.llm import build_real_model  # noqa: E402
-from ui_shared import USER_ID, get_connection, load_or_seed_profile  # noqa: E402
+from ui_shared import get_connection, load_profile_or_none, render_user_sidebar  # noqa: E402
 
 _STATUS_LABELS: dict[str, str] = {
     "search_jobs": "Searching the job board…",
@@ -358,6 +359,58 @@ def render_shortlist(
 
 
 # ---------------------------------------------------------------------------
+# Thread list (FR-13 AC2): resume or delete one of the selected user's threads.
+# ---------------------------------------------------------------------------
+
+
+def render_thread_list(conn: Any, user_id: str, checkpointer: Any, current_thread_id: str) -> None:
+    """Sidebar list of ``user_id``'s threads, newest first; resume or delete each one.
+
+    Deleting a thread removes it from both the checkpointer
+    (``SqliteSaver.delete_thread``) and the ``threads`` registry
+    (``storage.delete_thread_record``); deleting the currently open thread
+    opens a new empty one instead of leaving the page pointed at a thread
+    id that no longer exists.
+
+    Related: FR-13 AC2, D-15
+    """
+    threads = storage.list_threads(conn, user_id)
+    if not threads:
+        return
+    st.caption("Threads")
+    for thread in threads:
+        is_current = thread.thread_id == current_thread_id
+        with st.container(border=True):
+            st.caption(thread.title or "(untitled)")
+            resume_col, delete_col = st.columns(2)
+            with resume_col:
+                if st.button(
+                    "Current" if is_current else "Resume",
+                    key=f"resume_thread_{thread.thread_id}",
+                    disabled=is_current,
+                ):
+                    st.query_params["thread_id"] = thread.thread_id
+                    st.rerun()
+            with delete_col:
+                confirm_key = f"confirm_delete_thread_{thread.thread_id}"
+                if st.session_state.get(confirm_key):
+                    yes_col, no_col = st.columns(2)
+                    if yes_col.button("Yes", key=f"delete_thread_yes_{thread.thread_id}"):
+                        checkpointer.delete_thread(thread.thread_id)
+                        storage.delete_thread_record(conn, user_id, thread.thread_id)
+                        st.session_state.pop(confirm_key, None)
+                        if is_current:
+                            start_new_thread()
+                        st.rerun()
+                    if no_col.button("No", key=f"delete_thread_cancel_{thread.thread_id}"):
+                        st.session_state.pop(confirm_key, None)
+                        st.rerun()
+                elif st.button("Delete", key=f"delete_thread_{thread.thread_id}"):
+                    st.session_state[confirm_key] = True
+                    st.rerun()
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -374,13 +427,21 @@ def main() -> None:
         return
 
     conn = get_connection(os.getenv("DB_PATH", config.DB_PATH))
-    profile = load_or_seed_profile(conn, USER_ID)
+    user_id = render_user_sidebar(conn)
+    profile = load_profile_or_none(conn, user_id)
 
     with st.sidebar:
         demo_mode = st.toggle("Demo mode", value=True)
         if st.button("New search"):
             start_new_thread()
             st.rerun()
+
+    if profile is None:
+        # Goal 2 (WP-08): a user without a profile sees a hint, not the chat -
+        # nothing is seeded silently for anyone but ui_shared.DEFAULT_USER_ID.
+        st.info("This user has no profile yet.")
+        st.page_link("pages/3_Profile.py", label="Go to the Profile page to create one")
+        return
 
     job_source: JobSource
     if demo_mode:
@@ -390,6 +451,10 @@ def main() -> None:
         job_source = get_live_source()
 
     thread_id = get_or_create_thread_id()
+
+    with st.sidebar:
+        render_thread_list(conn, user_id, storage.get_checkpointer(conn), thread_id)
+
     cfg = {"configurable": {"thread_id": thread_id}}
     ctx = AgentContext(job_source=job_source, profile=profile, extraction_model=model, conn=conn)
     agent = build_agent(model, conn)
@@ -417,11 +482,14 @@ def main() -> None:
         user_input = pending_message or st.chat_input("Describe the job you're looking for...")
         if user_input:
             st.chat_message("user").write(user_input)
+            storage.touch_thread(
+                conn, user_id, thread_id, user_view.thread_title(user_input), datetime.now(UTC)
+            )
             run_turn(
                 agent,
                 cfg,
                 ctx,
-                {"messages": [HumanMessage(user_input)], "user_id": USER_ID},
+                {"messages": [HumanMessage(user_input)], "user_id": user_id},
             )
             st.rerun()
 

@@ -97,11 +97,15 @@ def db_path(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> str:
     return path
 
 
-def new_app(scripted_turns: list[Any], thread_id: str | None = None) -> AppTest:
+def new_app(
+    scripted_turns: list[Any], thread_id: str | None = None, user_id: str | None = None
+) -> AppTest:
     at = AppTest.from_file(APP_PATH, default_timeout=30)
     at.session_state["_scripted_turns"] = scripted_turns
     if thread_id:
         at.query_params["thread_id"] = thread_id
+    if user_id:
+        at.query_params["user"] = user_id
     return at
 
 
@@ -300,6 +304,63 @@ def test_edit_decision_writes_the_edited_arguments(db_path: str) -> None:
 # (e) a new AppTest on the same DB file/thread (simulated restart) still
 #     shows the pending interrupt and the history (FR-13 AC3)
 # ---------------------------------------------------------------------------
+
+
+def test_thread_list_registers_resumes_and_deletes_threads(db_path: str) -> None:
+    """FR-13 AC2: first message registers a thread; newest first; resume and delete."""
+    at1 = new_app(["Hello, thread one reply."], thread_id="thread-one")
+    at1.run()
+    at1.chat_input[0].set_value("search for python jobs").run()
+    assert not at1.exception
+
+    at2 = new_app(["Hello, thread two reply."], thread_id="thread-two")
+    at2.run()
+    at2.chat_input[0].set_value("search for java jobs").run()
+    assert not at2.exception
+
+    conn = storage.get_connection(db_path)
+    threads = storage.list_threads(conn, "alex")
+    assert [t.thread_id for t in threads] == ["thread-two", "thread-one"]
+    assert threads[0].title == "search for java jobs"
+    assert threads[1].title == "search for python jobs"
+
+    at3 = new_app([])
+    at3.run()
+    assert not at3.exception
+    captions = [str(c.value) for c in at3.caption]
+    assert "search for python jobs" in captions
+    assert "search for java jobs" in captions
+
+    at3.button(key="resume_thread_thread-one").click().run()
+    assert not at3.exception
+    assert at3.query_params["thread_id"] == "thread-one"
+
+    at3.button(key="delete_thread_thread-two").click().run()
+    assert not at3.exception
+    assert storage.list_threads(conn, "alex")  # not deleted yet, only confirming
+
+    at3.button(key="delete_thread_yes_thread-two").click().run()
+    assert not at3.exception
+    remaining = storage.list_threads(conn, "alex")
+    assert [t.thread_id for t in remaining] == ["thread-one"]
+    checkpointer = storage.get_checkpointer(conn)
+    assert checkpointer.get({"configurable": {"thread_id": "thread-two"}}) is None
+
+
+def test_deleting_the_currently_open_thread_opens_a_new_one(db_path: str) -> None:
+    """FR-13 AC2: deleting the open thread never leaves the page on a dead thread id."""
+    at1 = new_app(["ok"], thread_id="thread-x")
+    at1.run()
+    at1.chat_input[0].set_value("hello").run()
+    assert not at1.exception
+
+    at2 = new_app([], thread_id="thread-x")
+    at2.run()
+    at2.button(key="delete_thread_thread-x").click().run()
+    at2.button(key="delete_thread_yes_thread-x").click().run()
+
+    assert not at2.exception
+    assert at2.query_params["thread_id"] != "thread-x"
 
 
 def test_restart_resumes_the_same_thread_and_keeps_history(db_path: str) -> None:

@@ -30,7 +30,7 @@ if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
 from job_hunt_agent import config, storage  # noqa: E402
-from ui_shared import USER_ID, get_connection  # noqa: E402
+from ui_shared import get_connection, render_user_sidebar  # noqa: E402
 
 st.set_page_config(page_title="Memory - Job Hunt Agent", layout="wide")
 
@@ -40,7 +40,7 @@ _KIND_LABELS: dict[str, str] = {
 }
 
 
-def render_memory(conn: Any, memory: dict[str, Any]) -> None:
+def render_memory(conn: Any, user_id: str, memory: dict[str, Any]) -> None:
     """Renders one memory row: kind, value, created date, delete with confirmation."""
     with st.container(border=True):
         label_col, delete_col = st.columns([4, 1])
@@ -57,7 +57,7 @@ def render_memory(conn: Any, memory: dict[str, Any]) -> None:
                 yes_col, no_col = st.columns(2)
                 if yes_col.button("Yes, delete", key=f"delete_yes_{memory['key']}"):
                     try:
-                        storage.delete_memory(conn, USER_ID, memory["key"])
+                        storage.delete_memory(conn, user_id, memory["key"])
                     except Exception:  # noqa: BLE001 - invariant 7: never a stack trace in the UI
                         st.error("Could not delete that memory. Please try again.")
                     st.session_state.pop(confirm_key, None)
@@ -74,8 +74,9 @@ def main() -> None:
     st.title("Memory")
 
     conn = get_connection(os.getenv("DB_PATH", config.DB_PATH))
+    user_id = render_user_sidebar(conn)
     try:
-        memories = storage.list_memories(conn, USER_ID)
+        memories = storage.list_memories(conn, user_id)
     except Exception:  # noqa: BLE001 - invariant 7: never a stack trace in the UI
         st.error("Could not load your memories. Please try again.")
         return
@@ -88,7 +89,7 @@ def main() -> None:
         return
 
     for memory in memories:
-        render_memory(conn, memory)
+        render_memory(conn, user_id, memory)
 
 
 if __name__ == "__main__":

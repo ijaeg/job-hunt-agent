@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+from datetime import datetime
 from functools import cache
 from pathlib import Path
 from typing import Any
@@ -33,7 +34,7 @@ from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.store.sqlite import SqliteStore
 
 from job_hunt_agent import config
-from job_hunt_agent.models import Profile, TrackerEntry
+from job_hunt_agent.models import Profile, ThreadRecord, TrackerEntry
 
 _CREATE_TABLES_SQL = """
 CREATE TABLE IF NOT EXISTS profiles (
@@ -62,6 +63,15 @@ CREATE TABLE IF NOT EXISTS tracker (
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
     PRIMARY KEY (user_id, referenznummer)
+);
+
+CREATE TABLE IF NOT EXISTS threads (
+    user_id TEXT NOT NULL,
+    thread_id TEXT NOT NULL,
+    title TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    PRIMARY KEY (user_id, thread_id)
 );
 """
 
@@ -217,6 +227,19 @@ def load_profile(conn: sqlite3.Connection, user_id: str) -> Profile | None:
     )
 
 
+def list_users(conn: sqlite3.Connection) -> list[str]:
+    """Lists every user id that has a stored profile (D-16).
+
+    A newly added user (D-16's "add new user" in the sidebar) only
+    appears here once they have saved a profile - picking a name alone
+    does not seed anything (FR-14).
+
+    Related: D-16, FR-14
+    """
+    rows = conn.execute("SELECT user_id FROM profiles ORDER BY user_id").fetchall()
+    return [row[0] for row in rows]
+
+
 def save_tracker_entry(conn: sqlite3.Connection, entry: TrackerEntry) -> TrackerEntry:
     """Upserts one tracker entry by ``(user_id, referenznummer)`` (FR-09 AC1).
 
@@ -312,6 +335,72 @@ def delete_tracker_entry(conn: sqlite3.Connection, user_id: str, referenznummer:
         cursor = conn.execute(
             "DELETE FROM tracker WHERE user_id = ? AND referenznummer = ?",
             (user_id, referenznummer),
+        )
+    return cursor.rowcount > 0
+
+
+def touch_thread(
+    conn: sqlite3.Connection, user_id: str, thread_id: str, title: str, now: datetime
+) -> None:
+    """Registers a thread on its first call, refreshes ``updated_at`` on every later one (D-15).
+
+    One upsert handles both cases from the UI layer's single call site
+    (``app.py`` calls this on every user message, FR-13 AC2): the
+    ``ON CONFLICT`` clause only ever touches ``updated_at``, so a later
+    call's ``title`` argument is ignored and the thread's title stays the
+    first user message, as D-15 specifies.
+
+    Args:
+        thread_id: The checkpointer's thread id.
+        title: The thread's title if this is the first call for it;
+            ignored on every later call for the same ``(user_id,
+            thread_id)``.
+        now: The caller's notion of "now" (kept out of this function so it
+            stays deterministic and testable, like ``save_tracker_entry``).
+
+    Related: FR-13 AC2, D-15
+    """
+    with conn:
+        conn.execute(
+            """
+            INSERT INTO threads (user_id, thread_id, title, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT(user_id, thread_id) DO UPDATE SET updated_at = excluded.updated_at
+            """,
+            (user_id, thread_id, title, now.isoformat(), now.isoformat()),
+        )
+
+
+def list_threads(conn: sqlite3.Connection, user_id: str) -> list[ThreadRecord]:
+    """Lists one user's threads, most recently updated first (FR-13 AC2)."""
+    rows = conn.execute(
+        """
+        SELECT user_id, thread_id, title, created_at, updated_at
+        FROM threads WHERE user_id = ? ORDER BY updated_at DESC
+        """,
+        (user_id,),
+    ).fetchall()
+    return [
+        ThreadRecord(
+            user_id=row[0], thread_id=row[1], title=row[2], created_at=row[3], updated_at=row[4]
+        )
+        for row in rows
+    ]
+
+
+def delete_thread_record(conn: sqlite3.Connection, user_id: str, thread_id: str) -> bool:
+    """Deletes one thread's registry row (FR-13 AC2); the caller also deletes it from the
+    checkpointer (``SqliteSaver.delete_thread``) - this function only ever touches ``threads``.
+
+    Returns:
+        ``True`` if a row was actually deleted, ``False`` if no such thread existed.
+
+    Related: FR-13 AC2, D-15
+    """
+    with conn:
+        cursor = conn.execute(
+            "DELETE FROM threads WHERE user_id = ? AND thread_id = ?",
+            (user_id, thread_id),
         )
     return cursor.rowcount > 0
 

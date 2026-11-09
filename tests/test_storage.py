@@ -359,3 +359,113 @@ def test_delete_memory_only_removes_the_given_user(tmp_path: Path) -> None:
 def test_delete_memory_on_a_missing_key_does_not_raise(tmp_path: Path) -> None:
     conn = storage.get_connection(_db_path(tmp_path))
     storage.delete_memory(conn, "alex", "does-not-exist")
+
+
+# ---------------------------------------------------------------------------
+# list_users (D-16): every user id with a stored profile
+# ---------------------------------------------------------------------------
+
+
+def test_list_users_returns_every_user_with_a_profile(tmp_path: Path) -> None:
+    conn = storage.get_connection(_db_path(tmp_path))
+    storage.save_profile(
+        conn,
+        "sam",
+        Profile(
+            skills=["Java"],
+            seniority="mid",
+            location="Berlin",
+            radius_km=15,
+            remote_preference="onsite",
+            german_level="fluent",
+            english_level="fluent",
+        ),
+    )
+    storage.save_profile(
+        conn,
+        "alex",
+        Profile(
+            skills=["Python"],
+            seniority="senior",
+            location="Hamburg",
+            radius_km=25,
+            remote_preference="hybrid",
+            german_level="basic",
+            english_level="native",
+        ),
+    )
+    assert storage.list_users(conn) == ["alex", "sam"]
+
+
+def test_list_users_is_empty_when_no_profile_is_stored(tmp_path: Path) -> None:
+    conn = storage.get_connection(_db_path(tmp_path))
+    assert storage.list_users(conn) == []
+
+
+# ---------------------------------------------------------------------------
+# threads (FR-13 AC2, D-15): register, touch, list, isolate, delete
+# ---------------------------------------------------------------------------
+
+
+def test_touch_thread_registers_a_new_thread_with_its_title(tmp_path: Path) -> None:
+    conn = storage.get_connection(_db_path(tmp_path))
+    now = datetime(2026, 11, 9, 9, 0, 0)
+    storage.touch_thread(conn, "alex", "t1", "Python jobs in Hamburg", now)
+    threads = storage.list_threads(conn, "alex")
+    assert len(threads) == 1
+    assert threads[0].thread_id == "t1"
+    assert threads[0].title == "Python jobs in Hamburg"
+    assert threads[0].created_at == now
+    assert threads[0].updated_at == now
+
+
+def test_touch_thread_on_an_existing_thread_only_moves_updated_at(tmp_path: Path) -> None:
+    """A later turn's title argument is ignored - D-15's "title = first user message"."""
+    conn = storage.get_connection(_db_path(tmp_path))
+    first = datetime(2026, 11, 9, 9, 0, 0)
+    second = datetime(2026, 11, 9, 9, 30, 0)
+    storage.touch_thread(conn, "alex", "t1", "Python jobs in Hamburg", first)
+    storage.touch_thread(conn, "alex", "t1", "a later, different message", second)
+    threads = storage.list_threads(conn, "alex")
+    assert len(threads) == 1
+    assert threads[0].title == "Python jobs in Hamburg"
+    assert threads[0].created_at == first
+    assert threads[0].updated_at == second
+
+
+def test_list_threads_orders_most_recently_updated_first(tmp_path: Path) -> None:
+    conn = storage.get_connection(_db_path(tmp_path))
+    storage.touch_thread(conn, "alex", "t1", "first thread", datetime(2026, 11, 1))
+    storage.touch_thread(conn, "alex", "t2", "second thread", datetime(2026, 11, 5))
+    threads = storage.list_threads(conn, "alex")
+    assert [t.thread_id for t in threads] == ["t2", "t1"]
+
+
+def test_threads_are_independent_per_user(tmp_path: Path) -> None:
+    conn = storage.get_connection(_db_path(tmp_path))
+    storage.touch_thread(conn, "alex", "t1", "alex's thread", datetime(2026, 11, 1))
+    storage.touch_thread(conn, "sam", "t1", "sam's thread", datetime(2026, 11, 1))
+    assert [t.title for t in storage.list_threads(conn, "alex")] == ["alex's thread"]
+    assert [t.title for t in storage.list_threads(conn, "sam")] == ["sam's thread"]
+
+
+def test_delete_thread_record_removes_the_row(tmp_path: Path) -> None:
+    conn = storage.get_connection(_db_path(tmp_path))
+    storage.touch_thread(conn, "alex", "t1", "a thread", datetime(2026, 11, 1))
+    deleted = storage.delete_thread_record(conn, "alex", "t1")
+    assert deleted is True
+    assert storage.list_threads(conn, "alex") == []
+
+
+def test_delete_thread_record_returns_false_when_missing(tmp_path: Path) -> None:
+    conn = storage.get_connection(_db_path(tmp_path))
+    assert storage.delete_thread_record(conn, "alex", "does-not-exist") is False
+
+
+def test_delete_thread_record_only_removes_the_given_user(tmp_path: Path) -> None:
+    conn = storage.get_connection(_db_path(tmp_path))
+    storage.touch_thread(conn, "alex", "t1", "alex's thread", datetime(2026, 11, 1))
+    storage.touch_thread(conn, "sam", "t1", "sam's thread", datetime(2026, 11, 1))
+    storage.delete_thread_record(conn, "alex", "t1")
+    assert storage.list_threads(conn, "alex") == []
+    assert len(storage.list_threads(conn, "sam")) == 1
