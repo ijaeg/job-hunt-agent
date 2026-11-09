@@ -25,6 +25,7 @@ from job_hunt_agent.models import (
     JobDetails,
     JobRequirements,
     JobSummary,
+    MatchEvidence,
     Profile,
     RubricVerdict,
     SeniorityLevel,
@@ -325,12 +326,12 @@ def assess(
         category = "excluded"
 
     matches = [
-        f"{r.name} — {r.evidence_en}"
+        MatchEvidence(name=r.name, evidence_de=r.evidence_de, evidence_en=r.evidence_en)
         for r in requirements.skills
         if skill_matches_profile(r.name, profile.skills)
     ]
     gaps = [
-        f"{r.name} — {r.evidence_en}"
+        MatchEvidence(name=r.name, evidence_de=r.evidence_de, evidence_en=r.evidence_en)
         for r in requirements.skills
         if not skill_matches_profile(r.name, profile.skills)
     ]

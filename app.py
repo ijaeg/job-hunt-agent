@@ -335,11 +335,11 @@ def render_card(card: ui_view.CardData) -> None:
         if card.matches:
             st.markdown("Top matches:")
             for match in card.matches:
-                st.caption(f"✓ {match}")
+                st.caption(f'✓ {match.name} — "{match.evidence_de}" ({match.evidence_en})')
         if card.gaps:
             with st.expander("Gaps"):
                 for gap in card.gaps:
-                    st.caption(gap)
+                    st.caption(f'{gap.name} — "{gap.evidence_de}" ({gap.evidence_en})')
         if card.unknown:
             with st.expander("Not mentioned"):
                 for item in card.unknown:

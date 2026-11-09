@@ -128,6 +128,22 @@ class JobRequirements(BaseModel):
     summary_en: str
 
 
+class MatchEvidence(BaseModel):
+    """One matched or missing skill, with its bilingual evidence (spec §6.3).
+
+    ``evidence_de``/``evidence_en`` are carried over verbatim from the
+    :class:`Requirement` ``rubric.assess`` matched or failed to match against
+    the profile; the UI shows both (FR-07 AC1), and a follow-up answer
+    (FR-08 AC2) can cite them without a new tool call.
+
+    Related: FR-05 AC4, FR-07 AC1, FR-08 AC2, spec §6.3, D-11
+    """
+
+    name: str
+    evidence_de: str
+    evidence_en: str
+
+
 class FitAssessment(BaseModel):
     """Fit result computed by code from :class:`JobRequirements` (spec §6.3).
 
@@ -136,14 +152,14 @@ class FitAssessment(BaseModel):
     :func:`job_hunt_agent.rubric.assess` and
     :func:`job_hunt_agent.rubric.hard_exclusions`.
 
-    Related: FR-05 AC3, FR-05 AC5, FR-06 AC4, spec §6.3, §7
+    Related: FR-05 AC3, FR-05 AC5, FR-06 AC4, spec §6.3, §7, D-11
     """
 
     referenznummer: str
     category: FitCategory
     exclusion_reasons: list[str] = Field(default_factory=list)
-    matches: list[str] = Field(default_factory=list)
-    gaps: list[str] = Field(default_factory=list)
+    matches: list[MatchEvidence] = Field(default_factory=list)
+    gaps: list[MatchEvidence] = Field(default_factory=list)
     unknown: list[str] = Field(default_factory=list)
     low_evidence: bool = False
     rubric: dict[str, RubricVerdict] = Field(default_factory=dict)

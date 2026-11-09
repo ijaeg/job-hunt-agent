@@ -131,7 +131,13 @@ def _seed_shortlist(db_path: str, thread_id: str) -> None:
                 "B-2-S": FitAssessment(
                     referenznummer="B-2-S",
                     category="strong",
-                    matches=["Python — writes production Python"],
+                    matches=[
+                        {
+                            "name": "Python",
+                            "evidence_de": "Python-Kenntnisse",
+                            "evidence_en": "Python knowledge",
+                        }
+                    ],
                 ),
                 "C-3-S": FitAssessment(referenznummer="C-3-S", category="partial"),
                 "D-4-S": FitAssessment(
@@ -168,6 +174,10 @@ def test_cards_render_strong_partial_poor_excluded_separate(db_path: str) -> Non
         "**[Excluded Match](https://www.arbeitsagentur.de/jobsuche/jobdetail/D-4-S)**",
     ]
     assert any("Excluded Match" in str(m.value) for e in at.expander for m in e.markdown)
+
+    # FR-07 AC1: a top match shows both the German quote and the English translation.
+    caption_text = [str(c.value) for c in at.caption]
+    assert any("Python-Kenntnisse" in text and "Python knowledge" in text for text in caption_text)
 
 
 # ---------------------------------------------------------------------------

@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from job_hunt_agent.models import FitAssessment, JobSummary
+from job_hunt_agent.models import FitAssessment, JobSummary, MatchEvidence
 
 #: Order the cards group into (FR-07 AC2); "excluded" is rendered separately,
 #: not in this list.
@@ -66,8 +66,8 @@ class CardData:
     url: str
     category: str
     exclusion_reasons: list[str] = field(default_factory=list)
-    matches: list[str] = field(default_factory=list)
-    gaps: list[str] = field(default_factory=list)
+    matches: list[MatchEvidence] = field(default_factory=list)
+    gaps: list[MatchEvidence] = field(default_factory=list)
     unknown: list[str] = field(default_factory=list)
     low_evidence: bool = False
     missing_summary: bool = False
@@ -106,8 +106,6 @@ def build_card(
         url=listing_url(referenznummer),
         category=assessment.category,
         exclusion_reasons=assessment.exclusion_reasons,
-        # TODO(D-11): matches are English-evidence-only ("name — evidence_en") until
-        # Ingo decides where the German quote FR-07 AC1 also asks for should live.
         matches=assessment.matches[:MAX_MATCHES_SHOWN],
         gaps=assessment.gaps,
         unknown=assessment.unknown,
