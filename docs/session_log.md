@@ -1106,3 +1106,168 @@ list.
 + this session log entry) and wait for approval before any commit. After
 that: developer settings, safety tests, evaluation (§9) remain per spec
 §13.
+
+## 2026-11-10 — WP-09: developer settings and automatic demo mode
+
+**Check first, reported before building (per the WP):**
+1. Token usage for the extraction calls inside `assess_fit` cannot be
+   captured via an ambient callback (e.g. `get_usage_metadata_callback()`):
+   confirmed with a direct test that Python's `ThreadPoolExecutor` does not
+   copy the caller's `contextvars` into worker threads, so a contextvar-based
+   callback registered around `assess_fit`'s call never reaches the
+   extraction calls running inside it. The fix that needed no tool-contract
+   change: a custom `usage.UsageCallbackHandler`, passed *explicitly* as
+   `config={"callbacks": [...]}` to every model call - the main loop's
+   `agent.stream(...)` and each extraction's own `.invoke(...)` inside
+   `tools/assess.py`. Confirmed directly against a real `ThreadPoolExecutor`
+   that an explicit `config` (not ambient context) reaches every worker.
+2. OpenRouter already reports the cost of a call in
+   `response.response_metadata["token_usage"]["cost"]`, for both the main
+   loop and the `include_raw`/plain structured-output extraction call, for
+   both `openai/gpt-5-mini` and `anthropic/claude-haiku-4.5` - with or
+   without an explicit `extra_body["usage"]["include"]`. This differs from
+   D-17's Sprint 2 context note ("missing for structured-output calls") -
+   worth flagging as a possible OpenRouter/API-version change since D-17 was
+   written, not a contradiction to resolve now (D-17's estimate fallback
+   still matters whenever the endpoint or a specific model's cost is
+   missing).
+3. `anthropic/claude-haiku-4.5` works with the existing ZDR provider
+   preferences and the reasoning parameter: a real call to both models with
+   `extra_body={"reasoning": {"effort": ...}, "provider": {"data_collection":
+   "deny", "zdr": true}}` succeeded for both, confirming D-4 again under the
+   real developer-settings code path (`llm.build_real_model(model,
+   reasoning_effort)`). `claude-haiku-4.5` reports non-trivial
+   `reasoning_tokens` inside `output_tokens` (e.g. 31-174 tokens per call in
+   the "Check first" probes); `gpt-5-mini` at `reasoning_effort="low"`
+   reported 0 in these probes.
+
+No item needed a new decision file - all three had a working answer inside
+D-17/D-4's existing scope.
+
+**Built (FR-18 AC1, FR-18 AC2, FR-19 AC3):**
+- `config.py`: `OPENROUTER_MODELS_URL`, `OPENROUTER_PRICES_TIMEOUT_SECONDS`,
+  `BA_REACHABILITY_TIMEOUT_SECONDS`.
+- `pricing.py` (new, D-17): fetches the OpenRouter model price list via
+  `httpx` (not `urllib`, project convention), same pattern as
+  `ba_client.BAClient` - pass a pre-built `httpx.Client` for tests.
+  `fetch_model_prices`/`get_prices`/`get_price`/`estimate_cost_usd`; a
+  failed fetch is never cached.
+- `usage.py` (new, FR-18 AC2): `LlmUsage` (token counts + reported cost),
+  `UsageCallbackHandler` (thread-safe, collects one `LlmUsage` per call it
+  observes via `on_llm_end`), `TurnUsageTracker` (pairs an `agent_loop` and
+  an `extraction` handler for one turn), `aggregate`/`cost_label`/
+  `usage_caption` (pure functions: reported cost preferred, `pricing`
+  estimate otherwise, "cost unavailable" when neither is known).
+- `context.py`: `AgentContext.usage_tracker: Any = None` (same "typed `Any`,
+  defaulted to `None`" reasoning as `extraction_model` - importing
+  `usage.TurnUsageTracker` here would pull in `langchain_core.callbacks`
+  before it is guaranteed loaded; `None` keeps every existing
+  `AgentContext(...)` construction in the test suite working unchanged).
+- `tools/assess.py`: `_extract_one`/`run_extraction` pass
+  `runtime.context.usage_tracker.extraction` as `config={"callbacks": [...]}`
+  to each structured-extraction call, when a tracker is present - no change
+  to `ToolResult`/`JobRequirements` (spec §6 untouched).
+- `llm.build_real_model(model=None, reasoning_effort=None)`: both now
+  overridable, defaulting to `config.py` as before - every existing call site
+  (`app.py`, four `scripts/*.py`) keeps working unchanged.
+- `agent.build_agent(model, conn, tools=None)`: `tools` now overridable,
+  defaulting to `AGENT_TOOLS` - developer settings' `get_job_details` toggle
+  passes a filtered list.
+- `ba_client.check_reachable(client=None)` (FR-19 AC3): one request, a short
+  fixed timeout, no retry loop (deliberately not `BAClient.search`, whose
+  §8 retry budget would delay every app start); 403/429/5xx/timeout all
+  count as unreachable.
+- `ui_shared.py`: session-state keys and defaults for developer settings
+  (`ensure_developer_settings_initialized`, called at the top of every page
+  like `render_user_sidebar`); `record_turn_usage`/`session_usage_records`/
+  `last_turn_usage_records` (kept split into agent-loop/extraction lists
+  throughout, per FR-18 AC2's "split into agent loop and extraction");
+  `render_usage_summary` (shared by the main page's sidebar/per-turn caption
+  and the settings page).
+- `pages/4_Developer_settings.py` (new, FR-18 AC1): chat model, reasoning
+  effort, `get_job_details` toggle, demo mode (moved from the main
+  sidebar), and this session's token usage/cost.
+- `app.py`: reads the four settings from session state instead of
+  hard-coded defaults; `get_model(model, reasoning_effort)` is now
+  `@st.cache_resource`-keyed per combination, so switching either in
+  developer settings builds (and then reuses) a distinct client; filters
+  `AGENT_TOOLS` when `get_job_details` is disabled; a fresh
+  `usage.TurnUsageTracker` per page run, its `agent_loop` handler attached
+  to both `agent.stream(...)` (new turns) and the approval-resume
+  `agent.invoke(...)`; per-turn usage in a collapsed expander under the
+  chat, per-session usage in the sidebar. The test-only `_ScriptedModel`
+  (`JOB_HUNT_FAKE_MODEL=1`) now subclasses `BaseChatModel` properly instead
+  of being a bare duck-typed object - found while writing the AppTest
+  coverage below: `create_agent`'s model node only threads `config` (and
+  its `callbacks`) into a model's own call through the full
+  `Runnable`/`BaseChatModel` protocol, confirmed by instrumenting a bare
+  object's `.invoke()` and observing it receive `config=None` even though
+  `agent.stream(..., config={"callbacks": [...]})` was given one explicitly.
+  Every scripted turn now also reports a fixed, non-zero `usage_metadata`/
+  `response_metadata`, so FR-18 AC2's usage display is exercisable in
+  AppTest without a real OpenRouter call.
+
+**Tests (NFR-05):** `tests/test_pricing.py` (new, 9 tests, `httpx.MockTransport`:
+ok, malformed entry, timeout, HTTP error, failure-not-cached, success-cached,
+unknown model), `tests/test_usage.py` (new, 15 tests: callback handler,
+tracker, `aggregate`/`cost_label`/`usage_caption` covering
+reported/estimated/unpriced), `tests/test_pages_developer_settings.py` (new,
+8 tests: defaults, each setting change persists in session state, the
+automatic demo-mode message, cost-unavailable-with-no-calls, session totals
+render). Extended: `tests/test_ba_client.py` (45 tests total, incl.
+`check_reachable` ok/timeout/5xx/403/no-retry), `tests/test_llm.py` (3 total,
+incl. model/effort overrides), `tests/test_build_agent.py` (3 total, incl. a
+custom `tools` list actually used), `tests/test_tools_assess.py` (9 total,
+incl. extraction usage landing in `usage_tracker.extraction` through the
+real `ThreadPoolExecutor` path), `tests/test_app.py` (13 total, incl.
+per-turn/per-session usage rendering with the scripted model's fixed usage,
+and disabling `get_job_details` making LangGraph's own `ToolNode` return its
+"not a valid tool" `ToolMessage` instead of the tool running). A new global
+`conftest.py` autouse fixture stubs `ba_client.check_reachable` to `True` for
+every test (found while writing the settings-page tests:
+`ensure_developer_settings_initialized()`'s once-per-session check would
+otherwise have made *every* existing `AppTest` run of `app.py` reach the real
+BA API the first time `demo_mode` was read from session state - invariant 5;
+`test_ba_client.py`'s own `check_reachable` tests import the function by
+name, so this stub does not affect them).
+
+`uv run pytest`: **366 passed**, no skipped, **98% coverage** overall;
+`pricing.py` and `usage.py` both 100%, every other touched module 96-100%
+(full per-file numbers in the coverage table the test run prints).
+`uv run ruff check .` clean. `uv run ruff format --check .` clean (114
+files). `uv run mypy src app.py pages ui_shared.py` clean, 37 source files.
+
+**Real-model check** (`scripts/wp09_settings_check.py`, demo query "Find
+Softwareentwickler jobs in München.", D-10's recorded search):
+
+| Scenario | Model | Elapsed | Tools | Agent-loop tokens (in/out) | Agent-loop cost | Extraction tokens (in/out) | Extraction cost |
+|---|---|---|---|---|---|---|---|
+| default | `gpt-5-mini` | 47.8s | search x3, details x5, assess_fit | 29,655 / 2,079 | $0.0076 (reported) | 7,036 / 7,143 | $0.0160 (reported) |
+| secondary | `claude-haiku-4.5` | 62.5s | search x3, details x5, assess_fit | 41,501 / 1,801 | $0.0505 (reported) | 12,258 / 21,531 | $0.1199 (reported) |
+| `get_job_details` disabled | `gpt-5-mini` | 47.5s | search x2, assess_fit (**no** details calls) | 14,470 / 2,188 | $0.0067 (reported) | 8,613 / 10,229 | $0.0223 (reported) |
+
+Every one of the 32 calls across all three runs (11 + 11 + 10, agent loop
+and extraction combined) had its cost reported by OpenRouter directly (0
+estimated, 0 unpriced) - consistent with "Check
+first" item 2 above. Goal 4 (agent behaviour without `get_job_details`):
+the agent skipped straight to `search_jobs` then `assess_fit` - never
+attempted `get_job_details` and never produced a tool error - confirming
+`assess_fit`'s own detail-loading (spec §6.1) is enough for the core
+journey. `claude-haiku-4.5`'s combined cost ($0.1704) was ~7.2x `gpt-5-mini`'s
+($0.0237) on this single run (consistent with D-4's token-count numbers),
+reinforcing D-4's recommendation that it stay the secondary, not the default. Full raw
+per-call data: `eval/results/wp09_settings_check.json`.
+
+**Manual browser check for Ingo (5 steps):** (1) open "Developer settings"
+from the sidebar page list; (2) switch the chat model to
+`anthropic/claude-haiku-4.5` and the reasoning effort to `high`; (3) go back
+to the main page and run the demo query "Find Softwareentwickler jobs in
+München."; (4) read the per-turn usage under the newest answer and the
+per-session usage in the sidebar (both split into agent loop/extraction,
+with cost); (5) return to Developer settings, switch the model back to
+`openai/gpt-5-mini` and confirm the session usage total is unchanged (it
+accumulates, it does not reset on a setting change).
+
+**Next:** show the commit proposal and wait for approval before any commit.
+After that: the LangSmith toggle (WP-10), the `list_tracker` toggle
+(WP-11), safety tests, and evaluation (§9) remain per spec §13.

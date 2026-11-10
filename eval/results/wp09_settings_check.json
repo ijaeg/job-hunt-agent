@@ -1,0 +1,304 @@
+[
+  {
+    "label": "default_model",
+    "model": "openai/gpt-5-mini",
+    "reasoning_effort": "low",
+    "get_job_details_enabled": true,
+    "elapsed_seconds": 47.77,
+    "tool_sequence": [
+      "search_jobs",
+      "search_jobs",
+      "search_jobs",
+      "get_job_details",
+      "get_job_details",
+      "get_job_details",
+      "get_job_details",
+      "get_job_details",
+      "assess_fit"
+    ],
+    "tool_calls": [
+      {
+        "name": "search_jobs",
+        "args": {
+          "keywords": "Softwareentwickler",
+          "location": "München",
+          "radius_km": 25,
+          "published_within_days": 28,
+          "exclude_temp_agency": true,
+          "page": 1
+        }
+      },
+      {
+        "name": "search_jobs",
+        "args": {
+          "keywords": "Softwareentwickler Python Senior",
+          "location": "München",
+          "radius_km": 25,
+          "published_within_days": 28,
+          "exclude_temp_agency": true,
+          "page": 1
+        }
+      },
+      {
+        "name": "search_jobs",
+        "args": {
+          "keywords": "Python Entwickler",
+          "location": "München",
+          "radius_km": 25,
+          "published_within_days": 60,
+          "exclude_temp_agency": true,
+          "page": 1
+        }
+      },
+      {
+        "name": "get_job_details",
+        "args": {
+          "referenznummer": "12117-YF-48852-YF-S"
+        }
+      },
+      {
+        "name": "get_job_details",
+        "args": {
+          "referenznummer": "10001-1003863378-S"
+        }
+      },
+      {
+        "name": "get_job_details",
+        "args": {
+          "referenznummer": "10001-1003935843-S"
+        }
+      },
+      {
+        "name": "get_job_details",
+        "args": {
+          "referenznummer": "19121-44499216-1011-S"
+        }
+      },
+      {
+        "name": "get_job_details",
+        "args": {
+          "referenznummer": "12336-a26f1128j0452080-S"
+        }
+      },
+      {
+        "name": "assess_fit",
+        "args": {
+          "referenznummern": [
+            "12117-YF-48852-YF-S",
+            "10001-1003863378-S",
+            "10001-1003935843-S",
+            "19121-44499216-1011-S",
+            "12336-a26f1128j0452080-S"
+          ]
+        }
+      }
+    ],
+    "shortlist_size": 5,
+    "agent_loop_usage": {
+      "calls": 6,
+      "prompt_tokens": 29655,
+      "completion_tokens": 2079,
+      "cost_usd": 0.007629,
+      "reported_calls": 6,
+      "estimated_calls": 0,
+      "unpriced_calls": 0,
+      "cost_label": "$0.0076 cost"
+    },
+    "extraction_usage": {
+      "calls": 5,
+      "prompt_tokens": 7036,
+      "completion_tokens": 7143,
+      "cost_usd": 0.016045,
+      "reported_calls": 5,
+      "estimated_calls": 0,
+      "unpriced_calls": 0,
+      "cost_label": "$0.0160 cost"
+    },
+    "final_answer": "I searched for Softwareentwickler‑Jobs in München and assessed a shortlist of 5 listings that match your profile context. Below are concise summaries, the automated fit category, and the key matches and gaps the assessor extracted.\n\nYour profile skills (quoted): Skills: Python, Java, FastAPI, PostgreSQL, Docker, CI/CD\n\nShortlist (5 listings)\n\n1) bayoonet AG — Softwareentwickler (München) — category: poor\n- Key matches: Cloud & backend technologies (explicitly lists Docker, Kubernetes, Terraform, Azure DevOps Pipelines).\n- Main gaps: role expects very good German and English; lists many areas (frontend, mobile, embedded, event streaming) where your specific skills (Python, FastAPI, PostgreSQL) were not cited by the ad. Seniority not stated.\n- Remote / on-site: hybrid (3 days on-site, 2 remote) — partly matches your hybrid preference.\n- Employment: Full-time, permanent (festanstellung).\n- Notes: Good if you want cloud/backend work with containers/CI; requires strong German (\"Sehr gute Deutsch- und Englischkenntnisse\").\n\n2) Landesamt für Digitalisierung, Breitband und Vermessung — Softwareentwickler Landesvermessung (München) — category: partial\n- Key matches: Strong Java focus — ad explicitly requires Java and relational DB/SQL work.\n- Main gaps: Domain is geodata/land surveying; expects very good German; vocational training experience often preferred (Fachinformatiker). Your Python/FastAPI/Postgres strengths are not referenced in the ad.\n- Remote / on-site: up to 80% homeoffice — matches remote preference.\n- Employment: Full-time, unbefristet (permanent).\n- Notes: Good stability and public-sector benefits but requires very good German and Java/desktop & server Java experience.\n\n3) Baader Bank AG — Softwareentwickler C#/.NET (Unterschleißheim) — category: poor\n- Key matches: CI/CD, Git/GitLab mentioned; REST APIs and microservices appear in the ad.\n- Main gaps: Strong C#/.NET, ASP.NET Core, MS SQL / SQL Server, and .NET-specific experience required — your profile lists Python/Java stack instead. Location ~15 km from München center (Unterschleißheim).\n- Remote / on-site: Remote by arrangement (NACH_VEREINBARUNG) — may be partly flexible.\n- Employment: Full-time, unbefristet.\n- Notes: Good if you want to pivot to .NET; otherwise large skills mismatch.\n\n4) genua GmbH — Systemnaher Softwareentwickler (Kirchheim bei München) — category: poor\n- Key matches: System‑level, Unix, C and shell tooling; security-focused engineering.\n- Main gaps: Role expects C, shell, low-level/kernel knowledge, OpenBSD expertise, and very good German (B2+) — not aligned with your Python/Java/FastAPI stack.\n- Remote / on-site: partly (mentions mobile working/flexible) — location ~14 km.\n- Employment: Full-time.\n- Notes: Highly specialized systems/security role; not a good match unless you have/seek system‑level/C expertise and stronger German.\n\n5) TÜV SÜD AG — Senior Softwareentwickler (.NET MAUI, Blazor & Cloud) (München) — category: partial (low evidence)\n- Key matches: CI/CD pipelines (Azure DevOps) listed and CI/CD is in your Skills; senior level is explicitly requested.\n- Main gaps: Focus on C#/.NET MAUI, Blazor, REST APIs and MS SQL — not Python/FastAPI/Postgres. Evidence in ad is partial/low (extracted text summary flagged low evidence).\n- Remote / on-site: partly (hybrid not explicitly detailed) — senior role.\n- Employment: Full-time; seniority requested matches your \"senior\" profile.\n- Notes: Relevant for someone senior with CI/CD experience who is open to C#/.NET work.\n\nSummary observations\n- Matches: Several Munich roles offer hybrid/permanent full-time work and list CI/CD, Docker and cloud tooling (which overlap with your Skills: Python, Java, FastAPI, PostgreSQL, Docker, CI/CD).\n- Gaps: Many Munich listings are C#/.NET or system-level (C) heavy, or explicitly require strong German (B2+ / \"Sehr gute Deutschkenntnisse\"). Only the Landesamt and bayoonet list Java or cloud/backend work; genua and Baader are focused on other stacks.\n- Language: Several ads ask for very good German — your profile lists German level: basic, English: native. That reduces fit for public-sector and security-focused roles that require strong German.\n\nNext steps — tell me which you want to do (I can do these for any listed referenznummer):\n- Save a listing to your tracker (I will call the tracker and mark it \"saved\").\n- Mark a listing as \"apply\" (I will save status \"applied\" in the tracker).\n- Reject a listing (I will save status \"rejected\").\n- Show the full ad text / contact details for any listing (I can open details again).\n- Broaden or narrow the search (e.g., include \"Python\" keywords, expand radius, or relax publication age). Note: I already ran a couple extra queries; if you want a larger set I can run up to 2 more searches.\n\nWhich action do you want for these (please refer to ads by their employer name and title, e.g. \"bayoonet — Softwareentwickler\") or tell me how to refine the search?"
+  },
+  {
+    "label": "secondary_model",
+    "model": "anthropic/claude-haiku-4.5",
+    "reasoning_effort": "low",
+    "get_job_details_enabled": true,
+    "elapsed_seconds": 62.54,
+    "tool_sequence": [
+      "search_jobs",
+      "search_jobs",
+      "search_jobs",
+      "get_job_details",
+      "get_job_details",
+      "get_job_details",
+      "get_job_details",
+      "get_job_details",
+      "assess_fit"
+    ],
+    "tool_calls": [
+      {
+        "name": "search_jobs",
+        "args": {
+          "keywords": "Softwareentwickler",
+          "location": "München",
+          "radius_km": 25,
+          "published_within_days": 28,
+          "exclude_temp_agency": true
+        }
+      },
+      {
+        "name": "search_jobs",
+        "args": {
+          "keywords": "Senior Softwareentwickler Python Java",
+          "location": "München",
+          "radius_km": 25,
+          "published_within_days": 28,
+          "exclude_temp_agency": true
+        }
+      },
+      {
+        "name": "search_jobs",
+        "args": {
+          "keywords": "Softwareentwickler Python",
+          "location": "München",
+          "radius_km": 25,
+          "published_within_days": 28,
+          "exclude_temp_agency": true
+        }
+      },
+      {
+        "name": "get_job_details",
+        "args": {
+          "referenznummer": "12117-YF-48852-YF-S"
+        }
+      },
+      {
+        "name": "get_job_details",
+        "args": {
+          "referenznummer": "14225-d10be3b2dd249dcf-S"
+        }
+      },
+      {
+        "name": "get_job_details",
+        "args": {
+          "referenznummer": "10001-1003863378-S"
+        }
+      },
+      {
+        "name": "get_job_details",
+        "args": {
+          "referenznummer": "12336-a26f1128j0452080-S"
+        }
+      },
+      {
+        "name": "get_job_details",
+        "args": {
+          "referenznummer": "19121-44499216-1011-S"
+        }
+      },
+      {
+        "name": "assess_fit",
+        "args": {
+          "referenznummern": [
+            "12117-YF-48852-YF-S",
+            "14225-d10be3b2dd249dcf-S",
+            "10001-1003863378-S",
+            "12336-a26f1128j0452080-S",
+            "19121-44499216-1011-S"
+          ]
+        }
+      }
+    ],
+    "shortlist_size": 5,
+    "agent_loop_usage": {
+      "calls": 6,
+      "prompt_tokens": 41501,
+      "completion_tokens": 1801,
+      "cost_usd": 0.050506,
+      "reported_calls": 6,
+      "estimated_calls": 0,
+      "unpriced_calls": 0,
+      "cost_label": "$0.0505 cost"
+    },
+    "extraction_usage": {
+      "calls": 5,
+      "prompt_tokens": 12258,
+      "completion_tokens": 21531,
+      "cost_usd": 0.119913,
+      "reported_calls": 5,
+      "estimated_calls": 0,
+      "unpriced_calls": 0,
+      "cost_label": "$0.1199 cost"
+    },
+    "final_answer": "## Summary: Softwareentwickler jobs in München\n\nI found **5 assessed listings**. The München market doesn't have many Python-focused roles—most lean towards .NET/C#. Here's the shortlist:\n\n### **🟢 Best match: #3 – Landesamt für Digitalisierung (LDBV)**\n- **Fit: Partial**\n- **Role:** Softwareentwickler (w/m/d) Landesvermessung\n- **Location:** München (in-person at office, 80% remote available)\n- **Skills match:** Java ✓ (your core skill), PostgreSQL ✓, CI/CD-adjacent (though not explicitly named)\n- **Gaps:** No Python; needs formal apprenticeship as Fachinformatiker; requires German B2+\n- **Contract:** ✓ Unbefristet (permanent), full-time\n- **Key note:** Public sector role with excellent work-life balance (30 days vacation, pension, job security). Seniority level not specified but likely mid-level entry based on apprenticeship requirement.\n\n### **🟡 Partial matches:**\n**#1 – TÜV SÜD AG** (Partial)\n- Senior-level .NET/MAUI role with CI/CD ✓\n- **Gaps:** Requires C#/.NET, not Python/Java\n- **Remote:** Not specified\n- Low evidence in ad text\n\n**#2 – bayoonet AG** (Poor)\n- General backend/cloud developer role\n- **Matches:** Docker ✓, CI/CD ✓\n- **Gaps:** No specific Python; very good German required (yours is basic)\n- **Remote:** Hybrid (3 days on-site)\n- Generalist profile, not senior-focused\n\n### 🔴 **Not recommended:**\n**#4 – PartSpace GmbH** (Poor) – requires .NET/C# backend experience\n**#5 – genua GmbH** (Poor) – specialized in C/OpenBSD/Unix, far from your Python/Java/FastAPI stack\n\n---\n\n**Bottom line:** The only job with meaningful alignment to your Java + cloud/Docker skills is **#3 (LDBV)**, though it's a public-sector permanent role that may require relocating from Hamburg to München and lacks Python. The market here is heavily .NET-dominated. Would you like me to search with different keywords (e.g., backend, cloud architect, DevOps) or check another location?"
+  },
+  {
+    "label": "get_job_details_disabled",
+    "model": "openai/gpt-5-mini",
+    "reasoning_effort": "low",
+    "get_job_details_enabled": false,
+    "elapsed_seconds": 47.48,
+    "tool_sequence": [
+      "search_jobs",
+      "search_jobs",
+      "assess_fit"
+    ],
+    "tool_calls": [
+      {
+        "name": "search_jobs",
+        "args": {
+          "keywords": "Softwareentwickler Python FastAPI Java PostgreSQL Docker CI/CD",
+          "location": "München",
+          "radius_km": 25,
+          "published_within_days": 28,
+          "exclude_temp_agency": true,
+          "page": 1
+        }
+      },
+      {
+        "name": "search_jobs",
+        "args": {
+          "keywords": "Softwareentwickler",
+          "location": "München",
+          "radius_km": 25,
+          "published_within_days": 60,
+          "exclude_temp_agency": true,
+          "page": 1
+        }
+      },
+      {
+        "name": "assess_fit",
+        "args": {
+          "referenznummern": [
+            "10001-1003863378-S",
+            "10001-1003935843-S",
+            "12117-YF-48852-YF-S",
+            "12336-a26f1128j0452080-S",
+            "14225-d10be3b2dd249dcf-S",
+            "19121-44499216-1011-S"
+          ]
+        }
+      }
+    ],
+    "shortlist_size": 6,
+    "agent_loop_usage": {
+      "calls": 4,
+      "prompt_tokens": 14470,
+      "completion_tokens": 2188,
+      "cost_usd": 0.00667,
+      "reported_calls": 4,
+      "estimated_calls": 0,
+      "unpriced_calls": 0,
+      "cost_label": "$0.0067 cost"
+    },
+    "extraction_usage": {
+      "calls": 6,
+      "prompt_tokens": 8613,
+      "completion_tokens": 10229,
+      "cost_usd": 0.022273,
+      "reported_calls": 6,
+      "estimated_calls": 0,
+      "unpriced_calls": 0,
+      "cost_label": "$0.0223 cost"
+    },
+    "final_answer": "I searched the BA job board for Softwareentwickler roles in München (radius 25 km, excluded temp-agency). I assessed six listings that looked relevant. Below is a concise shortlist with the computed fit category, key matches and gaps (quotes come from the ad text), plus location/remote and contract info.\n\nYour profile (for reference): Skills: Python, Java, FastAPI, PostgreSQL, Docker, CI/CD; Seniority: senior; Location: Hamburg; Preferred radius: 25 km; Remote preference: hybrid; Full-time: True; Permanent: True; Excludes temp agency: True; German: basic; English: native.\n\nShortlist (6 listings)\n\n1) Softwareentwickler (w/m/d) Landesvermessung — Landesamt für Digitalisierung, Breitband und Vermessung\n- Ref.: 10001-1003863378-S\n- Fit category: partial\n- Location / remote: München, remote up to 80% (remote percent: 80%)\n- Contract / FT: unbefristet, full-time\n- Top match (quoted): \"Beherrschung der Programmiersprache Java inkl. zugehöriger Standardbibliotheken und Frameworks\"\n- Main gaps (quoted): \"Pflege und Neuentwicklung von Desktop- und Serversoftware, vorrangig in Java\"; \"Kenntnisse im Bereich Einsatz von relationalen Datenbanken inkl. SQL\"; \"Kenntnisse im Bereich Schnittstellen und Protokolle (SOAP, Restful, JSON, XML, etc.)\"; \"Härtung bestehender Software in Bezug auf IT-Sicherheit\"\n- Rubric summary: skills not_met; location_remote met; seniority partly; language partly; employment_type met\n- Notes: strong Java emphasis and geospatial/relational DB mentions; hybrid/remote friendly (80%).\n\n2) Softwareentwickler C#/.NET (m/w/d) — Baader Bank AG (Unterschleißheim)\n- Ref.: 10001-1003935843-S\n- Fit category: poor\n- Location / remote: Unterschleißheim (~15 km), remote: nach Vereinbarung\n- Contract / FT: unbefristet, full-time\n- Top match (quoted): \"Kenntnisse ... Git, GitLab, CI/CD-Pipelines\"\n- Main gaps (quoted): \"Konzeption, Entwicklung und Weiterentwicklung ... mit C# und .NET\"; \".NET / .NET Core / .NET 8\"; \"ASP.NET Core\"; \"SQL Server / Microsoft SQL ... Postgress, Entity Framework\" (many .NET-specific requirements)\n- Rubric summary: skills not_met; location_remote not_met; seniority unknown; language partly; employment_type met\n- Notes: strong .NET/C# focus — big mismatch with your Python/FastAPI/Java skillset.\n\n3) Softwareentwickler (m/w/d) — bayoonet AG\n- Ref.: 12117-YF-48852-YF-S\n- Fit category: poor\n- Location / remote: München, distance ~1 km; remote info not specified\n- Contract / FT: contract duration not specified, full-time\n- Matches: none extracted\n- Main gaps (quoted): \"Abgeschlossenes Studium ... (Wirtschafts-) Informatik ...\"; \"Frontend (VueJS / Angular / React / TypeScript)\"; \"Sehr gute Deutsch- und Englischkenntnisse in Wort und Schrift\"\n- Rubric summary: skills not_met; location_remote partly; seniority unknown; language partly; employment_type met\n- Notes: appears to expect frontend/mobile/embedded or regulated-medical domain skills; also requests very good German.\n\n4) Senior Softwareentwickler - .NET MAUI, Blazor & Cloud (m/w/d) — TÜV SÜD AG\n- Ref.: 12336-a26f1128j0452080-S\n- Fit category: partial\n- Location / remote: München; remote info not specified\n- Contract / FT: full-time; seniority marked met\n- Matches: none explicitly matched to your stack\n- Main gaps (quoted): \".NET MAUI\", \"Blazor\", \"C# / .NET\", \"REST-APIs\", \"MS SQL\", \"3rd-Level-Support\", \"KI-Integration\"\n- Rubric summary: skills not_met; location_remote partly; seniority met; language unknown; employment_type met\n- Notes: senior role but .NET ecosystem focus; could fit if you have .NET experience (not in profile).\n\n5) Softwareentwickler - IT (m/w/d) — PartSpace GmbH\n- Ref.: 14225-d10be3b2dd249dcf-S\n- Fit category: poor\n- Location / remote: München, remote: nach Vereinbarung\n- Contract / FT: full-time; contract duration not specified\n- Top match (quoted): \"Du bewegst dich sicher in Azure DevOps, CI/CD, automatisierten Tests und agilen Entwicklungsprozessen\"\n- Main gaps (quoted): \".NET/C# Backend-Entwicklung\"; \"Erfahrung mit CAD-, PLM-, PDM- oder ERP-nahen Datenstrukturen\"; \"Abgeschlossenes Studium oder vergleichbare technische Ausbildung\"\n- Rubric summary: skills not_met; location_remote not_met; seniority partly; language unknown; employment_type met\n- Notes: CI/CD match is good (your profile includes CI/CD), but core stack is .NET/C# and domain-specific data structures.\n\n6) Systemnaher Softwareentwickler (d/m/w) — genua GmbH (Kirchheim bei München)\n- Ref.: 19121-44499216-1011-S\n- Fit category: poor\n- Location / remote: Kirchheim bei München (~14 km); remote info not specified\n- Contract / FT: full-time; contract duration not specified\n- Matches: none extracted\n- Main gaps (quoted): \"Du entwickelst systemnahe Anwendungen für unsere OpenBSD-basierten Produkte\"; \"Sehr gute Kenntnisse in C und Shell\"; \"Sehr gute Deutschkenntnisse (mind. B2)\"\n- Rubric summary: skills not_met; location_remote partly; seniority unknown; language partly; employment_type met\n- Notes: low-level/OS and C focus; requires good German (B2).\n\nNext steps I can do for any listing you pick:\n- Save it to your application tracker (status \"saved\")\n- Mark it as applied or rejected (and optionally set a follow-up date or note)\n- Open a listing's full text (provide more details) or prepare an application checklist (matching skills to the ad, suggested resume points, suggested German/English phrases)\n- Filter/search again with different keywords (e.g., restrict to Python, FastAPI, PostgreSQL) or expand radius/publication age\n\nSuggested prioritized actions\n- If you want hybrid/remote Python/FastAPI roles, I recommend re-running a search with keywords like \"Python FastAPI\" or \"Backend Python\" in München and widening published_within_days (if needed). The current shortlist contains several .NET/C/C++ and embedded roles that don't match your main stack—only the Landesvermessung role (1) shows a meaningful Java match and high remote share.\n\nWhich of these would you like to:\n- Save to tracker (which ref(s))?\n- Get the full job text for any listing?\n- Re-search filtered for Python / FastAPI / PostgreSQL (I can run up to 3 searches)?"
+  }
+]
