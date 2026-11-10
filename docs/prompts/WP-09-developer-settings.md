@@ -38,3 +38,13 @@ Demo query "Find Softwareentwickler jobs in München." once with each model (def
 
 ## Commits
 Propose small commits and wait for Ingo's approval each time. Suggested split: prompt + D-17; price fetch + cost and usage functions + tests; usage capture incl. extraction; settings page + wiring + AppTest; reachability check + automatic demo mode + tests; real-model check + session log.
+
+## Addendum 1 (2026-11-10, found in Ingo's browser check)
+
+Settings on pages/4_Developer_settings.py do not survive a page switch: after choosing anthropic/claude-haiku-4.5 and going to the main page and back, the selectbox shows openai/gpt-5-mini again. Likely cause: the values live under the widget keys, and Streamlit deletes a widget's session-state entry when a page without that widget runs; ensure_developer_settings_initialized() then resets the default.
+1. Confirm the cause (and whether the main page then actually uses the default model), report it.
+2. Keep each setting (chat model, reasoning effort, get_job_details toggle, demo mode) under its own session-state key that no widget owns; the widgets take their initial value from it and write changes back (e.g. on_change). The main page reads only these keys.
+3. Show the active model and reasoning effort in the per-turn usage caption, so the browser check can see which model ran.
+4. Add a test that covers a page switch (AppTest.switch_page if the installed Streamlit has it; otherwise test the key handling in ui_shared.py directly) - the existing tests missed this because they run each page in isolation.
+5. Real-model check: set claude-haiku-4.5, switch to the main page, run the demo query, confirm from the response metadata that haiku ran. Append the result to eval/results/wp09_settings_check.json.
+Then run all checks and propose the commit(s).

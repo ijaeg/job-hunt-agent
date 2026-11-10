@@ -1271,3 +1271,85 @@ accumulates, it does not reset on a setting change).
 **Next:** show the commit proposal and wait for approval before any commit.
 After that: the LangSmith toggle (WP-10), the `list_tracker` toggle
 (WP-11), safety tests, and evaluation (§9) remain per spec §13.
+
+## WP-09 Addendum 1 (2026-11-10, found in Ingo's browser check)
+
+Ingo's manual browser check (step 5 above) found the bug: after switching
+the chat model to `anthropic/claude-haiku-4.5` on the Developer settings
+page, going to the main page and back showed `openai/gpt-5-mini` again -
+the selection did not survive the round trip. The addendum's suspected
+cause was confirmed empirically with `streamlit.testing.v1.AppTest`
+(`AppTest.switch_page`, present in the installed Streamlit 1.66.1): each
+widget on `pages/4_Developer_settings.py` was created with `key=` set to the
+*setting* key itself (`ui_shared.CHAT_MODEL_KEY` etc.). Streamlit drops a
+widget's session-state entry on any script run that does not render that
+widget - true of every other page in this multipage app - so one visit to
+`app.py` deleted `dev_chat_model` from session state; the next page's
+`ensure_developer_settings_initialized()` then saw the key missing and
+`setdefault`-ed it back to `config.CHAT_MODEL`. Confirmed harder than "the
+selectbox shows the wrong value": `app.py` actually read the reset key at
+`st.session_state[CHAT_MODEL_KEY]` and built `get_model()` with
+`openai/gpt-5-mini`, i.e. the main page silently ran the wrong model, not
+just displayed the wrong label.
+
+**Fix (FR-18 AC1, D-17):** `ui_shared.py` now keeps the setting keys
+(`CHAT_MODEL_KEY`, `REASONING_EFFORT_KEY`, `GET_JOB_DETAILS_ENABLED_KEY`,
+`DEMO_MODE_KEY`) and a separate, throwaway `*_WIDGET_KEY` per widget
+(`CHAT_MODEL_WIDGET_KEY` etc.) that no other code reads. Each widget on the
+settings page takes its initial value from the setting key (`index=`/
+`value=`) and is bound to its own widget key; a new
+`ui_shared.sync_setting_from_widget(setting_key, widget_key)` passed as
+`on_change=...,args=(...)` copies the widget's new value back into the
+setting key. The setting key is therefore never a widget's own `key=` and
+Streamlit never deletes it on a page switch. `app.py` and
+`ensure_developer_settings_initialized()` needed no change - they already
+read/seed only the setting keys.
+
+**Visibility (addendum item 3):** the "Last turn's token usage and cost"
+expander on the main page now opens with a caption, e.g. `Model:
+anthropic/claude-haiku-4.5 · reasoning effort: low` - the model name(s) come
+from the usage records themselves (`response_metadata["model_name"]` via
+`usage.UsageCallbackHandler`, i.e. what the response actually reported),
+not from the developer-settings value, so the caption reflects what
+actually ran even if the setting changed meanwhile.
+
+**Tests (addendum item 4):** `tests/test_pages_developer_settings.py` gained
+`test_chat_model_survives_switching_to_the_main_page_and_back`, driving the
+real `app.py` + `pages/4_Developer_settings.py` through
+`AppTest.switch_page` (select haiku on the settings page, switch to
+`app.py` and back, assert the session-state key and the rendered selectbox
+value are still `anthropic/claude-haiku-4.5`) - this reproduces the bug
+without the fix and passes with it; every existing test in the file still
+runs each page in isolation and stayed green.
+
+`uv run pytest`: **367 passed** (1 new), no skipped, 98% coverage overall
+(unchanged - the new test exercises `app.py` and `pages/4_Developer_settings.py`
+paths already covered). `uv run ruff check .` clean. `uv run ruff format --check .` clean (115
+files, incl. the new script). `uv run mypy src app.py pages` clean, 36
+source files.
+
+**Real-model check** (`scripts/wp09_addendum1_page_switch_check.py`, new):
+drives the actual UI end to end - select `anthropic/claude-haiku-4.5` and
+turn on demo mode on the settings page, switch to `app.py`, submit the demo
+query "Find Softwareentwickler jobs in München." - then reads the model
+name OpenRouter's response reported, not the configured setting:
+
+```json
+{
+  "chat_model_key_after_switch": "anthropic/claude-haiku-4.5",
+  "models_in_response_metadata": ["anthropic/claude-haiku-4.5"],
+  "per_turn_usage_caption": "Model: anthropic/claude-haiku-4.5 · reasoning effort: low",
+  "confirmed_haiku_ran": true
+}
+```
+
+`anthropic/claude-haiku-4.5` is both the session-state value read right
+after the page switch and the only model name present in the real
+response's usage metadata, i.e. it is confirmed that the model that
+answered is the one selected before the switch, not `config.CHAT_MODEL`'s
+default. Appended as `"label": "page_switch_check"` to the existing
+`eval/results/wp09_settings_check.json` (full record there).
+
+**Next:** show the commit proposal and wait for approval before any commit.
+Unchanged otherwise: LangSmith toggle (WP-10), `list_tracker` toggle
+(WP-11), safety tests, and evaluation (§9) remain per spec §13.
