@@ -31,3 +31,23 @@ def test_build_real_model_wires_openrouter_with_zdr_routing(
         "reasoning": {"effort": config.REASONING_EFFORT},
         "provider": config.PROVIDER_PREFERENCES,
     }
+
+
+def test_build_real_model_accepts_developer_settings_overrides(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """FR-18 AC1: developer settings can pick a different model and reasoning effort.
+
+    D-4's "Check first": both ``CHAT_MODEL_OPTIONS`` entries take the same
+    ``extra_body["reasoning"]["effort"]`` and ZDR provider routing - confirmed
+    against the real OpenRouter API for both models during WP-09's "Check
+    first" (see docs/prompts/WP-09-developer-settings.md and
+    eval/results/wp09_settings_check.json).
+    """
+    monkeypatch.setenv(config.OPENROUTER_API_KEY_ENV, "test-key")
+    model = build_real_model("anthropic/claude-haiku-4.5", "high")
+    assert model.model_name == "anthropic/claude-haiku-4.5"
+    assert model.extra_body == {
+        "reasoning": {"effort": "high"},
+        "provider": config.PROVIDER_PREFERENCES,
+    }

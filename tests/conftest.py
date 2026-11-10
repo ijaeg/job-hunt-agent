@@ -11,15 +11,31 @@ from __future__ import annotations
 
 from typing import Any
 
+import pytest
 from langchain.agents import create_agent
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage
 from langgraph.checkpoint.memory import InMemorySaver
 
+from job_hunt_agent import ba_client
 from job_hunt_agent.context import AgentContext
 from job_hunt_agent.state import JobHuntState
 
 #: Default thread id for tests that don't care about a specific value.
 TEST_THREAD_ID = "test-thread"
+
+
+@pytest.fixture(autouse=True)
+def _stub_ba_reachability_check(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Every AppTest run of ``app.py``/the developer settings page triggers
+    ``ensure_developer_settings_initialized()``'s once-per-session BA
+    reachability check (FR-19 AC3) unless demo mode is already in session
+    state - this global, autouse stub keeps every test network-free (CLAUDE.md
+    invariant 5) without every test file having to remember its own.
+    ``tests/test_ba_client.py`` tests ``check_reachable`` itself directly
+    (imported by name, unaffected by this attribute patch) with its own
+    ``httpx.MockTransport``.
+    """
+    monkeypatch.setattr(ba_client, "check_reachable", lambda *args, **kwargs: True)
 
 
 class ScriptedModel:

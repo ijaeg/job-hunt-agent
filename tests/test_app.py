@@ -404,3 +404,71 @@ def test_restart_resumes_the_same_thread_and_keeps_history(db_path: str) -> None
         ("alex", A_REAL_REF),
     ).fetchone()
     assert row == ("saved",)
+
+
+# ---------------------------------------------------------------------------
+# Token usage and cost (FR-18 AC2)
+# ---------------------------------------------------------------------------
+
+
+def test_per_turn_and_session_usage_render_after_a_turn(db_path: str) -> None:
+    """The scripted model reports a fixed usage per call (app.py's
+    ``_SCRIPTED_USAGE_METADATA``); one turn here makes two model calls (a
+    tool call, then a final answer), so the agent-loop total is 2x that."""
+    at = new_app(
+        [[{"name": "search_jobs", "args": {"keywords": "Python", "location": "Hamburg"}}], "done"]
+    )
+    at.run()
+    at.chat_input[0].set_value("find python jobs in hamburg").run()
+
+    assert not at.exception
+    captions = " ".join(str(c.value) for c in at.caption)
+    assert "22" in captions  # 2 calls x 11 prompt tokens each (agent loop)
+    assert "$0.0002" in captions  # 2 calls x $0.0001 each
+
+
+def test_session_usage_accumulates_across_two_turns(db_path: str) -> None:
+    at = new_app(["first reply", "second reply"])
+    at.run()
+    at.chat_input[0].set_value("hello").run()
+    at.chat_input[0].set_value("hello again").run()
+
+    assert not at.exception
+    # Two turns of one model call each: 2 x 11 = 22 prompt tokens total.
+    captions = " ".join(str(c.value) for c in at.caption)
+    assert "22" in captions
+
+
+# ---------------------------------------------------------------------------
+# get_job_details toggle (FR-18 AC1)
+# ---------------------------------------------------------------------------
+
+
+def test_disabling_get_job_details_removes_it_from_the_agents_tools(db_path: str) -> None:
+    """A scripted call to a tool the agent was not given comes back as
+    LangGraph's own "not a valid tool" ``ToolMessage`` - not an app.py error,
+    since the ``ToolNode`` handles an unrecognised name gracefully - but it
+    proves the toggle actually changed which tools were bound, not just the UI."""
+    from ui_shared import GET_JOB_DETAILS_ENABLED_KEY
+
+    at = new_app([[{"name": "get_job_details", "args": {"referenznummer": A_REAL_REF}}], "done"])
+    at.session_state[GET_JOB_DETAILS_ENABLED_KEY] = False
+    at.run()
+    at.chat_input[0].set_value("show me the details").run()
+
+    assert not at.exception
+    messages = storage.get_checkpointer(storage.get_connection(db_path)).get(
+        {"configurable": {"thread_id": at.query_params["thread_id"]}}
+    )["channel_values"]["messages"]
+    tool_message = next(m for m in messages if m.__class__.__name__ == "ToolMessage")
+    assert "not a valid tool" in str(tool_message.content)
+    assert "get_job_details" in str(tool_message.content)
+
+
+def test_get_job_details_still_works_when_enabled(db_path: str) -> None:
+    at = new_app([[{"name": "get_job_details", "args": {"referenznummer": A_REAL_REF}}], "done"])
+    at.run()
+    at.chat_input[0].set_value("show me the details").run()
+
+    assert not at.exception
+    assert not at.error
