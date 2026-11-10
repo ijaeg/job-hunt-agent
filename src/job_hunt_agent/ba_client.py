@@ -358,6 +358,44 @@ class BAClient:
         return details
 
 
+def check_reachable(client: httpx.Client | None = None) -> bool:
+    """One cheap, no-retry request to see whether the BA API answers (FR-19 AC3).
+
+    Used once at app start-up to decide automatic demo mode - deliberately
+    not :meth:`BAClient.search`: a short, fixed timeout and no retry loop, so
+    a dead API does not delay every app start by the full §8 retry budget.
+    A 403 (key rejected) counts as unreachable too, since the app cannot use
+    the live API either way.
+
+    Args:
+        client: Pre-built ``httpx.Client`` for tests; a short-lived real
+            client is built and closed again when omitted.
+
+    Returns:
+        True if the API answered with a usable (non-403, non-5xx, non-429)
+        status within :data:`job_hunt_agent.config.BA_REACHABILITY_TIMEOUT_SECONDS`.
+
+    Related: FR-19 AC3, spec §8
+    """
+    owns_client = client is None
+    http_client = client or httpx.Client(
+        base_url=config.BA_BASE_URL,
+        headers={"X-API-Key": config.BA_API_KEY, "Accept": "application/json"},
+    )
+    try:
+        response = http_client.get(
+            "/pc/v6/jobs",
+            params={"was": "test", "size": 1},
+            timeout=config.BA_REACHABILITY_TIMEOUT_SECONDS,
+        )
+        return response.status_code not in (403, 429) and response.status_code < 500
+    except httpx.HTTPError:
+        return False
+    finally:
+        if owns_client:
+            http_client.close()
+
+
 def _job_summary_from_fixture_listing(listing: dict[str, Any]) -> JobSummary:
     return JobSummary(
         referenznummer=listing["referenznummer"],

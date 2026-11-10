@@ -25,6 +25,7 @@ from job_hunt_agent.ba_client import (
     BAMalformedResponseError,
     BAUnavailableError,
     FixtureSource,
+    check_reachable,
     sanitize_keywords,
 )
 
@@ -740,3 +741,50 @@ def test_fixture_source_dropping_a_recorded_keyword_does_not_count_as_narrowing(
     assert not any("narrowed from" in note for note in notes)
     assert total == 2
     assert {s.referenznummer for s in summaries} == {"MUC-JAVA-SENIOR-S", "MUC-OTHER-S"}
+
+
+# ---------------------------------------------------------------------------
+# check_reachable (FR-19 AC3): the automatic demo-mode start-up check
+# ---------------------------------------------------------------------------
+
+
+def _reachability_client_with(handler: Any) -> httpx.Client:
+    transport = httpx.MockTransport(handler)
+    return httpx.Client(transport=transport, base_url="https://ba.test")
+
+
+def test_check_reachable_true_on_a_normal_response() -> None:
+    client = _reachability_client_with(lambda request: httpx.Response(200, json={}))
+    assert check_reachable(client) is True
+
+
+def test_check_reachable_false_on_timeout() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        raise httpx.TimeoutException("timed out", request=request)
+
+    client = _reachability_client_with(handler)
+    assert check_reachable(client) is False
+
+
+def test_check_reachable_false_on_5xx() -> None:
+    client = _reachability_client_with(lambda request: httpx.Response(503))
+    assert check_reachable(client) is False
+
+
+def test_check_reachable_false_on_403() -> None:
+    """A rejected key makes the live API unusable too, so this counts as unreachable."""
+    client = _reachability_client_with(lambda request: httpx.Response(403))
+    assert check_reachable(client) is False
+
+
+def test_check_reachable_no_retry() -> None:
+    """Unlike BAClient._request, one failure is final - no §8 retry loop (FR-19 AC3)."""
+    calls = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(request)
+        return httpx.Response(503)
+
+    client = _reachability_client_with(handler)
+    assert check_reachable(client) is False
+    assert len(calls) == 1

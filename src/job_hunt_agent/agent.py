@@ -56,7 +56,7 @@ def load_system_prompt() -> str:
     return _SYSTEM_PROMPT_PATH.read_text(encoding="utf-8")
 
 
-def build_agent(model: Any, conn: sqlite3.Connection) -> Any:
+def build_agent(model: Any, conn: sqlite3.Connection, tools: list[Any] | None = None) -> Any:
     """Builds the compiled agent graph (spec §5).
 
     ``context=AgentContext(job_source=..., profile=..., extraction_model=...,
@@ -70,11 +70,16 @@ def build_agent(model: Any, conn: sqlite3.Connection) -> Any:
             invariant 5).
         conn: Shared SQLite connection (``storage.get_connection``) for the
             checkpointer (FR-13) and memory store (FR-15, D-6).
+        tools: Tools offered to the main ReAct loop; defaults to
+            :data:`AGENT_TOOLS`. Developer settings' ``get_job_details``
+            toggle (FR-18 AC1) passes a filtered list instead -
+            ``assess_fit`` always loads details itself regardless, so the
+            core journey still works with the tool disabled.
 
     Returns:
         A compiled, invokable agent (``langgraph`` ``CompiledStateGraph``).
 
-    Related: spec §5, §5.4, FR-10, FR-13, FR-15, D-5, D-6
+    Related: spec §5, §5.4, FR-10, FR-13, FR-15, FR-18 AC1, D-5, D-6
     """
     checkpointer = storage.get_checkpointer(conn)
     store = storage.get_store(conn)
@@ -106,7 +111,7 @@ def build_agent(model: Any, conn: sqlite3.Connection) -> Any:
 
     return create_agent(
         model,
-        tools=AGENT_TOOLS,
+        tools=tools if tools is not None else AGENT_TOOLS,
         system_prompt=load_system_prompt(),
         state_schema=JobHuntState,
         context_schema=AgentContext,

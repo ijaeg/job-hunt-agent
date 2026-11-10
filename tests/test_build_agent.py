@@ -97,3 +97,27 @@ def test_build_agent_input_guard_blocks_before_any_model_call(tmp_path: Path) ->
     )
     assert "can't follow instructions" in str(result["messages"][-1].content).lower()
     assert model.turns == ["(should never be used)"]
+
+
+def test_build_agent_uses_a_custom_tool_list_when_given(tmp_path: Path) -> None:
+    """FR-18 AC1: disabling get_job_details removes it from the agent's own tools.
+
+    assess_fit still loads details itself regardless (spec §6.1) - this test
+    only checks that the *offered* tool list respects the override; the tool
+    disabled here was never called in this scripted turn anyway.
+    """
+    from job_hunt_agent.agent import AGENT_TOOLS
+
+    conn = storage.get_connection(str(tmp_path / "e2e3.sqlite"))
+    model = ScriptedModel(["(no tools needed)"])
+    custom_tools = [t for t in AGENT_TOOLS if t.name != "get_job_details"]
+    agent = build_agent(model, conn, tools=custom_tools)
+    ctx = AgentContext(
+        job_source=FakeSource(), profile=_profile(), extraction_model=None, conn=conn
+    )
+    cfg = {"configurable": {"thread_id": "custom-tools-thread"}}
+
+    agent.invoke({"messages": [HumanMessage("hello")], "user_id": "alex"}, config=cfg, context=ctx)
+    tool_names = {tool.name for tool in agent.nodes["tools"].bound.tools_by_name.values()}
+    assert "get_job_details" not in tool_names
+    assert "search_jobs" in tool_names

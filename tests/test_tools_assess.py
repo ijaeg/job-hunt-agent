@@ -9,9 +9,10 @@ import json
 from typing import Any
 
 from conftest import run_tool_turn
+from langchain_core.messages import AIMessage
 from langgraph.store.memory import InMemoryStore
 
-from job_hunt_agent import config
+from job_hunt_agent import config, usage
 from job_hunt_agent.ba_client import BAJobNotFoundError
 from job_hunt_agent.context import AgentContext
 from job_hunt_agent.models import JobDetails, JobRequirements, Profile, Requirement
@@ -63,6 +64,44 @@ class FakeExtractionModel:
                     raise response
                 return response
         raise AssertionError(f"no fake response configured for prompt: {content[:200]}")
+
+
+class _FakeGeneration:
+    def __init__(self, message: Any) -> None:
+        self.message = message
+
+
+class _FakeLLMResult:
+    def __init__(self, message: Any) -> None:
+        self.generations = [[_FakeGeneration(message)]]
+
+
+class FakeExtractionModelWithUsage(FakeExtractionModel):
+    """Also fires ``on_llm_end`` on any ``config["callbacks"]`` it is given.
+
+    Mirrors the real ``ChatOpenAI``/LangChain shape confirmed during WP-09's
+    "Check first" (``eval/results/wp09_settings_check.json``): a message with
+    ``usage_metadata``/``response_metadata``, passed to the callback handler.
+    """
+
+    def invoke(self, messages: list[Any], config: dict[str, Any] | None = None) -> Any:
+        result = super().invoke(messages)
+        for callback in (config or {}).get("callbacks", []):
+            usage_message = AIMessage(
+                content="",
+                usage_metadata={
+                    "input_tokens": 50,
+                    "output_tokens": 20,
+                    "total_tokens": 70,
+                    "output_token_details": {"reasoning": 5},
+                },
+                response_metadata={
+                    "model_name": "openai/gpt-5-mini",
+                    "token_usage": {"cost": 0.001},
+                },
+            )
+            callback.on_llm_end(_FakeLLMResult(usage_message))
+        return result
 
 
 def _details(ref: str, description: str) -> JobDetails:
@@ -130,6 +169,40 @@ def test_assess_fit_happy_path_updates_state() -> None:
     content = _tool_result_content(result)
     assert content["result"]["dropped_evidence"] == 0
     assert len(content["result"]["assessed"]) == 1
+
+
+def test_assess_fit_reports_extraction_usage_through_the_context_tracker() -> None:
+    """FR-18 AC2: each extraction call's usage lands in ``usage_tracker.extraction``.
+
+    The ``ThreadPoolExecutor`` the extraction calls run in does not propagate
+    an ambient callback (WP-09's "Check first"), so this confirms the
+    explicit ``config={"callbacks": [...]}`` wiring in ``tools/assess.py``
+    actually reaches the handler.
+    """
+    ad_text = "Wir suchen jemanden mit Python-Kenntnisse. " * 20
+    source = FakeSource({"A-1-S": _details("A-1-S", ad_text)})
+    model = FakeExtractionModelWithUsage(
+        {"A-1-S": _requirements("A-1-S", evidence_de="Python-Kenntnisse")}
+    )
+    tracker = usage.new_turn_usage_tracker()
+    ctx = AgentContext(
+        job_source=source,
+        profile=_profile(),
+        extraction_model=model,
+        conn=None,
+        usage_tracker=tracker,
+    )
+    run_tool_turn(
+        [assess_fit],
+        [[{"name": "assess_fit", "args": {"referenznummern": ["A-1-S"]}}], "done"],
+        ctx,
+    )
+    assert tracker.agent_loop.records == []
+    assert len(tracker.extraction.records) == 1
+    record = tracker.extraction.records[0]
+    assert record.prompt_tokens == 50
+    assert record.completion_tokens == 20
+    assert record.cost_usd == 0.001
 
 
 def test_assess_fit_rejects_more_than_eight_listings() -> None:

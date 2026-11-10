@@ -4,7 +4,7 @@
 |---|---|
 | **Project** | Turing College – AI Engineering, Sprint 3 project ("Building with AI Agents") |
 | **Author** | Ingo Jäger |
-| **Status** | v0.1.10 – first draft, 2026-11-09 (changes: see §15) |
+| **Status** | v0.1.11 – first draft, 2026-11-10 (changes: see §15) |
 | **Audience** | Developer (implementation guide) and Turing College tutor (review guide) |
 | **Stack** | Python 3.13 (uv), Streamlit, LangChain `create_agent` (LangGraph runtime) against the OpenRouter API (OpenAI-compatible), SQLite (`SqliteSaver` checkpointer, `SqliteStore` for long-term memory, own tables for tracker and profile), `httpx`, Pydantic, LangSmith |
 | **Time budget** | ≈ 50 hours over two weeks (Mon 2026-11-09 to Fri 2026-11-20), including tests, documentation and review preparation; submission by Mon 2026-11-23 |
@@ -223,7 +223,7 @@ Assesses up to 8 listings per call against the profile.
 
 #### FR-18 Developer settings (Must)
 - AC1: A separate page (not in the main flow) offers: chat model (from a configured list), reasoning effort, tool toggles for `list_tracker` and `get_job_details`, LangSmith tracing on/off, demo mode.
-- AC2: Token usage and estimated cost per turn and per session are shown (Medium 1; from the response metadata and a price table in `config.py`).
+- AC2: Token usage and cost per turn and per session are shown, split into agent loop and extraction (Medium 1). The cost OpenRouter reports for a call is used when present; otherwise it is estimated from token counts and the price table of the OpenRouter models endpoint, fetched once per session; if prices are unavailable, "cost unavailable" is shown (D-17).
 
 #### FR-19 Demo mode (Must)
 - AC1: With demo mode on, `search_jobs` and `get_job_details` read from a **cleaned fixture set** (`data/samples/fixtures/`) instead of the API.
@@ -581,6 +581,7 @@ Nothing is cut in advance: if time runs short, items further down this order mov
 | D-14 | Store connection | **Decided (2026-11-09):** the memory store (`SqliteStore`) gets its own connection to the same SQLite file; the checkpointer and the tracker/profile tables keep the shared connection of D-5. Sharing one connection between store and checkpointer caused intermittent transaction errors when both ran in different threads; 40 of 40 stress-test runs passed after the change. Details: `docs/decisions/D-14-store-connection-race.md` |
 | D-15 | Thread list | **Decided (2026-11-09):** an own table `threads` (user, thread id, title, dates) in `storage.py` maps users to their threads for the sidebar list (FR-13 AC2); the title is the first user message, cut to 60 characters. Details: `docs/decisions/D-15-thread-registry.md` |
 | D-16 | User management | **Decided (2026-11-09):** a user is selected by name in the sidebar, no authentication (§2.2); all pages use the selected user. Login via an identity provider (`st.login()`, OIDC) is named in the README as an improvement idea. Details: `docs/decisions/D-16-user-selection.md` |
+| D-17 | Price source for the cost display | **Decided (2026-11-10):** prices follow the Sprint 2 pattern: reported cost from OpenRouter when present, otherwise an estimate from token counts and the OpenRouter models endpoint (fetched once per session, failures not cached). In the WP-09 real-model check all 32 calls had their cost reported. Details: `docs/decisions/D-17-price-source.md` |
 | R-1 | API changes or becomes unavailable | Demo mode (FR-19), fixture-based evaluation |
 | R-2 | Agent loop not visible enough in the review | Demo script with refinement (S1), agent steps panel, LangSmith traces |
 | R-3 | Extraction errors lead to wrong categories | Evidence check (FR-05 AC2), "unknown" instead of guessing, fit evaluation with error analysis |
@@ -606,3 +607,4 @@ Nothing is cut in advance: if time runs short, items further down this order mov
 | v0.1.8 | 2026-11-09 | Decision D-13 recorded (§14) |
 | v0.1.9 | 2026-11-09 | Decision D-14 recorded (§14) |
 | v0.1.10 | 2026-11-09 | Decisions D-15 and D-16 recorded (§14); §11 adds the profile page (`3_Profile.py`), developer settings move to page 4 |
+| v0.1.11 | 2026-11-10 | FR-18 AC2 reworded for the price source; decision D-17 recorded (§14) |

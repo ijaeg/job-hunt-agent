@@ -87,11 +87,18 @@ def _fallback_summary(referenznummer: str, details: JobDetails) -> JobSummary:
 
 
 def _extract_one(
-    model: Any, template: str, referenznummer: str, ad_text: str
+    model: Any,
+    template: str,
+    referenznummer: str,
+    ad_text: str,
+    usage_handler: Any = None,
 ) -> tuple[JobRequirements, int] | None:
     prompt = template.format(referenznummer=referenznummer, ad_text=ad_text)
     structured_model = model.with_structured_output(JobRequirements)
-    raw: JobRequirements = structured_model.invoke([HumanMessage(prompt)])
+    kwargs: dict[str, Any] = (
+        {"config": {"callbacks": [usage_handler]}} if usage_handler is not None else {}
+    )
+    raw: JobRequirements = structured_model.invoke([HumanMessage(prompt)], **kwargs)
     return drop_non_verbatim_evidence(raw, ad_text)
 
 
@@ -133,12 +140,16 @@ def assess_fit(
 
     template = load_extraction_prompt_template()
     model = runtime.context.extraction_model
+    usage_tracker = runtime.context.usage_tracker
+    usage_handler = usage_tracker.extraction if usage_tracker is not None else None
     total_dropped_evidence = 0
     extracted: dict[str, JobRequirements] = {}
 
     def run_extraction(ref: str) -> tuple[str, JobRequirements | None, int]:
         try:
-            outcome = _extract_one(model, template, ref, details_by_ref[ref].description)
+            outcome = _extract_one(
+                model, template, ref, details_by_ref[ref].description, usage_handler
+            )
         except Exception:  # noqa: BLE001 - any failure is reported, never raised
             return ref, None, 0
         if outcome is None:

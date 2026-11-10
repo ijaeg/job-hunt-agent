@@ -43,9 +43,19 @@ class AgentContext:
             ``save_to_tracker`` (FR-09). The long-term memory store is
             reached separately, via ``ToolRuntime.store`` (D-6) - set at
             ``create_agent(..., store=...)`` time, not here.
+        usage_tracker: Holds the two ``usage.UsageCallbackHandler``s one
+            agent turn needs (FR-18 AC2) - ``assess_fit`` passes its
+            ``.extraction`` handler explicitly to every structured-extraction
+            call (``tools/assess.py``). Typed ``Any`` and defaulted to
+            ``None`` for the same reason as ``extraction_model``: importing
+            ``usage.TurnUsageTracker`` here would pull in
+            ``langchain_core.callbacks`` before it is guaranteed loaded.
+            ``None`` means "do not track usage" (most existing tests build
+            ``AgentContext`` without it).
     """
 
     job_source: JobSource
     profile: Profile
     extraction_model: Any
     conn: sqlite3.Connection
+    usage_tracker: Any = None

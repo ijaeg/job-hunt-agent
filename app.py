@@ -24,7 +24,11 @@ from pathlib import Path
 from typing import Any
 
 import streamlit as st
-from langchain_core.messages import AIMessage, HumanMessage
+from langchain_core.callbacks import CallbackManagerForLLMRun
+from langchain_core.language_models.chat_models import BaseChatModel
+from langchain_core.messages import AIMessage, BaseMessage, HumanMessage
+from langchain_core.outputs import ChatGeneration, ChatResult
+from langchain_core.runnables import Runnable
 from langgraph.types import Command
 
 # Streamlit inserts the *entry* script's own directory into sys.path while
@@ -37,12 +41,26 @@ _ROOT = Path(__file__).resolve().parent
 if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
-from job_hunt_agent import config, storage, ui_view, user_view  # noqa: E402
-from job_hunt_agent.agent import build_agent  # noqa: E402
+from job_hunt_agent import config, storage, ui_view, usage, user_view  # noqa: E402
+from job_hunt_agent.agent import AGENT_TOOLS, build_agent  # noqa: E402
 from job_hunt_agent.ba_client import BAClient, FixtureSource, JobSource  # noqa: E402
 from job_hunt_agent.context import AgentContext  # noqa: E402
 from job_hunt_agent.llm import build_real_model  # noqa: E402
-from ui_shared import get_connection, load_profile_or_none, render_user_sidebar  # noqa: E402
+from ui_shared import (  # noqa: E402
+    CHAT_MODEL_KEY,
+    DEMO_MODE_AUTO_MESSAGE_KEY,
+    DEMO_MODE_KEY,
+    GET_JOB_DETAILS_ENABLED_KEY,
+    REASONING_EFFORT_KEY,
+    ensure_developer_settings_initialized,
+    get_connection,
+    last_turn_usage_records,
+    load_profile_or_none,
+    record_turn_usage,
+    render_usage_summary,
+    render_user_sidebar,
+    session_usage_records,
+)
 
 _STATUS_LABELS: dict[str, str] = {
     "search_jobs": "Searching the job board…",
@@ -58,28 +76,73 @@ st.set_page_config(page_title="Job Hunt Agent", layout="wide")
 # referenced, not imported, per that work package's instruction. Only the
 # main ReAct loop is faked this way; ``assess_fit``'s separate extraction
 # model is not exercised by this work package's AppTest scenarios.
+#
+# A real ``BaseChatModel`` subclass (not a bare duck-typed object, as before
+# WP-09): ``create_agent``'s model node only threads ``config`` (and its
+# ``callbacks``) into a model's own ``invoke()`` call through the full
+# ``Runnable``/``BaseChatModel`` protocol - confirmed in WP-09's "Check
+# first" that a plain object's ``.invoke(messages)`` is called with no
+# config at all. Subclassing properly is what makes FR-18 AC2's usage
+# tracking exercisable in AppTest without a real OpenRouter call.
 # ---------------------------------------------------------------------------
 
+#: Fixed usage every scripted turn reports (FR-18 AC2's AppTest coverage) -
+#: not meant to resemble a real call's token counts, just non-zero and
+#: distinguishable in assertions.
+_SCRIPTED_USAGE_METADATA: dict[str, Any] = {
+    "input_tokens": 11,
+    "output_tokens": 7,
+    "total_tokens": 18,
+    "output_token_details": {"reasoning": 0},
+}
+_SCRIPTED_RESPONSE_METADATA: dict[str, Any] = {
+    "model_name": "scripted/fake-model",
+    "token_usage": {"cost": 0.0001},
+}
 
-class _ScriptedModel:
+
+class _ScriptedModel(BaseChatModel):
     """Pops the next turn from ``st.session_state["_scripted_turns"]``; no network call."""
 
-    def bind_tools(self, _tools: Any, **_kwargs: Any) -> _ScriptedModel:
+    @property
+    def _llm_type(self) -> str:
+        return "job-hunt-scripted-model"
+
+    def bind_tools(
+        self, tools: Any, *, tool_choice: str | None = None, **kwargs: Any
+    ) -> Runnable[Any, AIMessage]:
+        del tools, tool_choice, kwargs  # scripted tool calls ignore what was actually bound
         return self
 
-    def invoke(self, _messages: list[Any], **_kwargs: Any) -> AIMessage:
+    def _generate(
+        self,
+        messages: list[BaseMessage],
+        stop: list[str] | None = None,
+        run_manager: CallbackManagerForLLMRun | None = None,
+        **kwargs: Any,
+    ) -> ChatResult:
+        del messages, stop, run_manager, kwargs
         queue: list[Any] = st.session_state.get("_scripted_turns", [])
         if not queue:
-            return AIMessage(content="(scripted model: no more turns)")
-        spec = queue.pop(0)
-        st.session_state["_scripted_turns"] = queue
-        if isinstance(spec, str):
-            return AIMessage(content=spec)
-        tool_calls = [
-            {"name": call["name"], "args": call["args"], "id": f"call_{i}_{call['name']}"}
-            for i, call in enumerate(spec)
-        ]
-        return AIMessage(content="", tool_calls=tool_calls)
+            message = AIMessage(content="(scripted model: no more turns)")
+        else:
+            spec = queue.pop(0)
+            st.session_state["_scripted_turns"] = queue
+            if isinstance(spec, str):
+                message = AIMessage(content=spec)
+            else:
+                tool_calls = [
+                    {"name": call["name"], "args": call["args"], "id": f"call_{i}_{call['name']}"}
+                    for i, call in enumerate(spec)
+                ]
+                message = AIMessage(content="", tool_calls=tool_calls)
+        message = message.model_copy(
+            update={
+                "usage_metadata": _SCRIPTED_USAGE_METADATA,
+                "response_metadata": _SCRIPTED_RESPONSE_METADATA,
+            }
+        )
+        return ChatResult(generations=[ChatGeneration(message=message)])
 
 
 # ---------------------------------------------------------------------------
@@ -88,10 +151,12 @@ class _ScriptedModel:
 
 
 @st.cache_resource
-def get_model() -> Any:
+def get_model(model: str, reasoning_effort: str) -> Any:
+    """Cached per (model, reasoning_effort) - switching either in developer
+    settings (FR-18 AC1) builds (and then reuses) a distinct client."""
     if os.getenv("JOB_HUNT_FAKE_MODEL") == "1":
         return _ScriptedModel()
-    return build_real_model()
+    return build_real_model(model, reasoning_effort)
 
 
 @st.cache_resource
@@ -173,9 +238,12 @@ def run_turn(agent: Any, cfg: dict[str, Any], ctx: AgentContext, payload: Any) -
     """
     counts: dict[str, int] = {}
     seen_tool_call_ids: set[str] = set()
+    run_cfg = cfg
+    if ctx.usage_tracker is not None:
+        run_cfg = {**cfg, "callbacks": [ctx.usage_tracker.agent_loop]}
     try:
         with st.status("Thinking…", expanded=False) as status:
-            for step in agent.stream(payload, config=cfg, context=ctx, stream_mode="updates"):
+            for step in agent.stream(payload, config=run_cfg, context=ctx, stream_mode="updates"):
                 for tool_call in iter_new_tool_calls(step, seen_tool_call_ids):
                     label = _status_label(tool_call["name"], tool_call["args"], counts)
                     if label:
@@ -281,10 +349,14 @@ def render_approval(
     if len(decided) == len(requests):
         decisions = [decided[i] for i in range(len(requests))]
         st.session_state.pop("_pending_decisions", None)
+        run_cfg = cfg
+        if ctx.usage_tracker is not None:
+            run_cfg = {**cfg, "callbacks": [ctx.usage_tracker.agent_loop]}
         try:
-            agent.invoke(Command(resume={"decisions": decisions}), config=cfg, context=ctx)
+            agent.invoke(Command(resume={"decisions": decisions}), config=run_cfg, context=ctx)
         except Exception:  # noqa: BLE001 - invariant 7
             st.error("Could not apply that decision. Please try again.")
+        record_turn_usage(ctx.usage_tracker)
         st.rerun()
 
 
@@ -418,23 +490,27 @@ def render_thread_list(conn: Any, user_id: str, checkpointer: Any, current_threa
 def main() -> None:
     st.title("Job Hunt Agent")
 
+    conn = get_connection(os.getenv("DB_PATH", config.DB_PATH))
+    user_id = render_user_sidebar(conn)
+    ensure_developer_settings_initialized()
+
     try:
-        model = get_model()
+        model = get_model(st.session_state[CHAT_MODEL_KEY], st.session_state[REASONING_EFFORT_KEY])
     except RuntimeError:
         # invariant 7: a missing API key is a friendly message, never a stack trace.
         st.error(f"{config.OPENROUTER_API_KEY_ENV} is not set. Add it to .env and restart.")
         st.stop()
         return
 
-    conn = get_connection(os.getenv("DB_PATH", config.DB_PATH))
-    user_id = render_user_sidebar(conn)
     profile = load_profile_or_none(conn, user_id)
+    demo_mode = st.session_state[DEMO_MODE_KEY]
 
     with st.sidebar:
-        demo_mode = st.toggle("Demo mode", value=True)
         if st.button("New search"):
             start_new_thread()
             st.rerun()
+        st.caption("Token usage and cost this session")
+        render_usage_summary(*session_usage_records())
 
     if profile is None:
         # Goal 2 (WP-08): a user without a profile sees a hint, not the chat -
@@ -446,6 +522,9 @@ def main() -> None:
     job_source: JobSource
     if demo_mode:
         st.info("Demo data – not live listings")
+        auto_message = st.session_state.get(DEMO_MODE_AUTO_MESSAGE_KEY)
+        if auto_message:
+            st.caption(auto_message)
         job_source = get_fixture_source()
     else:
         job_source = get_live_source()
@@ -455,9 +534,21 @@ def main() -> None:
     with st.sidebar:
         render_thread_list(conn, user_id, storage.get_checkpointer(conn), thread_id)
 
+    tools = AGENT_TOOLS
+    if not st.session_state[GET_JOB_DETAILS_ENABLED_KEY]:
+        # assess_fit loads details itself regardless (spec §6.1), so the core
+        # journey still works with this tool disabled (FR-18 AC1).
+        tools = [t for t in AGENT_TOOLS if t.name != "get_job_details"]
+
     cfg = {"configurable": {"thread_id": thread_id}}
-    ctx = AgentContext(job_source=job_source, profile=profile, extraction_model=model, conn=conn)
-    agent = build_agent(model, conn)
+    ctx = AgentContext(
+        job_source=job_source,
+        profile=profile,
+        extraction_model=model,
+        conn=conn,
+        usage_tracker=usage.new_turn_usage_tracker(),
+    )
+    agent = build_agent(model, conn, tools=tools)
 
     state = agent.get_state(cfg)
     values = state.values or {}
@@ -473,6 +564,20 @@ def main() -> None:
 
     with chat_col:
         render_chat_history(messages)
+        last_agent_loop, last_extraction = last_turn_usage_records()
+        if last_agent_loop or last_extraction:
+            with st.expander("Last turn's token usage and cost", expanded=False):
+                # Addendum 1 to WP-09: the model names come from the usage
+                # records themselves (response metadata, UsageCallbackHandler),
+                # not from the current developer-settings value, so this
+                # caption shows which model actually answered this turn even
+                # if the setting changed since.
+                models = sorted({r.model for r in [*last_agent_loop, *last_extraction]})
+                st.caption(
+                    f"Model: {', '.join(models)} · "
+                    f"reasoning effort: {st.session_state[REASONING_EFFORT_KEY]}"
+                )
+                render_usage_summary(last_agent_loop, last_extraction)
 
         if state.interrupts:
             render_approval(agent, cfg, ctx, state.interrupts[0].value)
@@ -491,6 +596,7 @@ def main() -> None:
                 ctx,
                 {"messages": [HumanMessage(user_input)], "user_id": user_id},
             )
+            record_turn_usage(ctx.usage_tracker)
             st.rerun()
 
 

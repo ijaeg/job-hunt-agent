@@ -17,7 +17,7 @@ from typing import Any
 import streamlit as st
 import yaml
 
-from job_hunt_agent import config, storage
+from job_hunt_agent import ba_client, config, storage
 from job_hunt_agent.models import Profile
 from job_hunt_agent.user_view import order_users, slugify_user_id, validate_user_name
 
@@ -28,6 +28,138 @@ from job_hunt_agent.user_view import order_users, slugify_user_id, validate_user
 DEFAULT_USER_ID = "alex"
 
 _PROFILE_SEED_PATH = config.PROJECT_ROOT / "data" / "samples" / "profile_alex.yaml"
+
+# ---------------------------------------------------------------------------
+# Developer settings and automatic demo mode (FR-18 AC1, FR-19 AC3)
+# ---------------------------------------------------------------------------
+
+#: Session-state keys for developer settings; every page reads these
+#: directly, so the main page and pages/4_Developer_settings.py always agree.
+#: No widget is ever created with one of these as its own ``key`` (see the
+#: *_WIDGET_KEY constants below and :func:`sync_setting_from_widget`) -
+#: Streamlit drops a widget's session-state entry on any run that does not
+#: render that widget, which happens on every page switch in this multipage
+#: app; a widget bound directly to one of these would silently reset it to
+#: ``ensure_developer_settings_initialized()``'s default (Addendum 1 to
+#: WP-09).
+CHAT_MODEL_KEY = "dev_chat_model"
+REASONING_EFFORT_KEY = "dev_reasoning_effort"
+GET_JOB_DETAILS_ENABLED_KEY = "dev_get_job_details_enabled"
+DEMO_MODE_KEY = "demo_mode"
+DEMO_MODE_AUTO_MESSAGE_KEY = "demo_mode_auto_message"
+
+#: Throwaway keys for the widgets on pages/4_Developer_settings.py. Each
+#: widget takes its initial value from the matching setting key above (via
+#: ``index=``/``value=``) and, on change, copies its new value back via
+#: :func:`sync_setting_from_widget` - so the setting survives Streamlit
+#: discarding the widget's own entry on a page switch.
+CHAT_MODEL_WIDGET_KEY = "dev_chat_model_widget"
+REASONING_EFFORT_WIDGET_KEY = "dev_reasoning_effort_widget"
+GET_JOB_DETAILS_ENABLED_WIDGET_KEY = "dev_get_job_details_enabled_widget"
+DEMO_MODE_WIDGET_KEY = "demo_mode_widget"
+
+#: Usage records (FR-18 AC2), kept as two lists throughout - agent loop and
+#: extraction - so the UI can show the split the spec asks for, not just a
+#: combined total.
+SESSION_AGENT_LOOP_USAGE_KEY = "session_usage_agent_loop"
+SESSION_EXTRACTION_USAGE_KEY = "session_usage_extraction"
+LAST_TURN_AGENT_LOOP_USAGE_KEY = "last_turn_usage_agent_loop"
+LAST_TURN_EXTRACTION_USAGE_KEY = "last_turn_usage_extraction"
+
+
+def ensure_developer_settings_initialized(reachability_check: Any = None) -> None:
+    """Sets session-state defaults for developer settings and demo mode.
+
+    Called at the top of every page (same pattern as :func:`render_user_sidebar`),
+    so whichever page loads first in a fresh session sees the same defaults.
+    Every setting but demo mode defaults to ``config.py`` (FR-18 AC1); demo
+    mode's default is decided once per session by a BA API reachability check
+    (FR-19 AC3) - unreachable switches it on and records why, so the main
+    page can show the message once.
+
+    Args:
+        reachability_check: Defaults to :func:`job_hunt_agent.ba_client.check_reachable`,
+            looked up at call time (not bound as a default argument), so
+            tests can ``monkeypatch.setattr(ba_client, "check_reachable", ...)``
+            and never reach the real BA API (CLAUDE.md invariant 5) regardless
+            of which page runs first.
+
+    Related: FR-18 AC1, FR-19 AC3
+    """
+    st.session_state.setdefault(CHAT_MODEL_KEY, config.CHAT_MODEL)
+    st.session_state.setdefault(REASONING_EFFORT_KEY, config.REASONING_EFFORT)
+    st.session_state.setdefault(GET_JOB_DETAILS_ENABLED_KEY, True)
+    if DEMO_MODE_KEY not in st.session_state:
+        check = reachability_check or ba_client.check_reachable
+        reachable = check()
+        st.session_state[DEMO_MODE_KEY] = not reachable
+        if not reachable:
+            st.session_state[DEMO_MODE_AUTO_MESSAGE_KEY] = (
+                "Demo mode was switched on automatically: the job board API was not "
+                "reachable at start-up."
+            )
+
+
+def sync_setting_from_widget(setting_key: str, widget_key: str) -> None:
+    """``on_change`` callback: copies a developer-settings widget's value into its setting key.
+
+    Pass as ``on_change=sync_setting_from_widget`` with ``args=(setting_key,
+    widget_key)`` on each widget in pages/4_Developer_settings.py. See the
+    module-level comment above the ``*_KEY``/``*_WIDGET_KEY`` constants for
+    why the widget never owns the setting key directly (Addendum 1 to WP-09).
+
+    Related: FR-18 AC1, D-17
+    """
+    st.session_state[setting_key] = st.session_state[widget_key]
+
+
+def record_turn_usage(tracker: Any) -> None:
+    """Appends one turn's usage records to the session totals (FR-18 AC2).
+
+    Also replaces the "last turn" records shown under the newest answer, kept
+    split into agent loop and extraction throughout, per FR-18 AC2. ``tracker``
+    is ``None`` when usage was not tracked for this turn (e.g. an early return
+    before the agent ran).
+
+    Related: FR-18 AC2
+    """
+    agent_loop = tracker.agent_loop.records if tracker is not None else []
+    extraction = tracker.extraction.records if tracker is not None else []
+    st.session_state[LAST_TURN_AGENT_LOOP_USAGE_KEY] = agent_loop
+    st.session_state[LAST_TURN_EXTRACTION_USAGE_KEY] = extraction
+    st.session_state.setdefault(SESSION_AGENT_LOOP_USAGE_KEY, [])
+    st.session_state.setdefault(SESSION_EXTRACTION_USAGE_KEY, [])
+    st.session_state[SESSION_AGENT_LOOP_USAGE_KEY].extend(agent_loop)
+    st.session_state[SESSION_EXTRACTION_USAGE_KEY].extend(extraction)
+
+
+def session_usage_records() -> tuple[list[Any], list[Any]]:
+    """All usage records collected so far this session: (agent loop, extraction)."""
+    return (
+        st.session_state.get(SESSION_AGENT_LOOP_USAGE_KEY, []),
+        st.session_state.get(SESSION_EXTRACTION_USAGE_KEY, []),
+    )
+
+
+def last_turn_usage_records() -> tuple[list[Any], list[Any]]:
+    """Usage records of the most recently completed turn: (agent loop, extraction)."""
+    return (
+        st.session_state.get(LAST_TURN_AGENT_LOOP_USAGE_KEY, []),
+        st.session_state.get(LAST_TURN_EXTRACTION_USAGE_KEY, []),
+    )
+
+
+def render_usage_summary(agent_loop: list[Any], extraction: list[Any]) -> None:
+    """Renders the token/cost split the main page, sidebar and settings page all share.
+
+    Related: FR-18 AC2
+    """
+    from job_hunt_agent import usage as usage_module
+
+    combined = usage_module.aggregate([*agent_loop, *extraction])
+    st.caption(f"Total: {usage_module.usage_caption(combined)}")
+    st.caption(f"Agent loop: {usage_module.usage_caption(usage_module.aggregate(agent_loop))}")
+    st.caption(f"Extraction: {usage_module.usage_caption(usage_module.aggregate(extraction))}")
 
 
 @st.cache_resource

@@ -90,6 +90,17 @@ BA_MAX_RETRIES: int = 1
 #: Delay before the BA retry, in seconds (spec §8).
 BA_RETRY_DELAY_SECONDS: float = 2.0
 
+#: Timeout for the one-off start-up reachability check, in seconds - short and
+#: with no retry on purpose, so a dead API does not delay every app start
+#: (FR-19 AC3).
+BA_REACHABILITY_TIMEOUT_SECONDS: float = 3.0
+
+#: Model price list, fetched once per session, no API key needed (D-17, FR-18 AC2).
+OPENROUTER_MODELS_URL: str = "https://openrouter.ai/api/v1/models"
+
+#: Timeout for the price-list fetch, in seconds (D-17).
+OPENROUTER_PRICES_TIMEOUT_SECONDS: int = 10
+
 #: Request timeout for OpenRouter chat calls, in seconds (spec §8).
 OPENROUTER_TIMEOUT_SECONDS: int = 60
 
