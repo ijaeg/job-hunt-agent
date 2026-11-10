@@ -33,13 +33,30 @@ _PROFILE_SEED_PATH = config.PROJECT_ROOT / "data" / "samples" / "profile_alex.ya
 # Developer settings and automatic demo mode (FR-18 AC1, FR-19 AC3)
 # ---------------------------------------------------------------------------
 
-#: Session-state keys for developer settings; every page reads/writes these
+#: Session-state keys for developer settings; every page reads these
 #: directly, so the main page and pages/4_Developer_settings.py always agree.
+#: No widget is ever created with one of these as its own ``key`` (see the
+#: *_WIDGET_KEY constants below and :func:`sync_setting_from_widget`) -
+#: Streamlit drops a widget's session-state entry on any run that does not
+#: render that widget, which happens on every page switch in this multipage
+#: app; a widget bound directly to one of these would silently reset it to
+#: ``ensure_developer_settings_initialized()``'s default (Addendum 1 to
+#: WP-09).
 CHAT_MODEL_KEY = "dev_chat_model"
 REASONING_EFFORT_KEY = "dev_reasoning_effort"
 GET_JOB_DETAILS_ENABLED_KEY = "dev_get_job_details_enabled"
 DEMO_MODE_KEY = "demo_mode"
 DEMO_MODE_AUTO_MESSAGE_KEY = "demo_mode_auto_message"
+
+#: Throwaway keys for the widgets on pages/4_Developer_settings.py. Each
+#: widget takes its initial value from the matching setting key above (via
+#: ``index=``/``value=``) and, on change, copies its new value back via
+#: :func:`sync_setting_from_widget` - so the setting survives Streamlit
+#: discarding the widget's own entry on a page switch.
+CHAT_MODEL_WIDGET_KEY = "dev_chat_model_widget"
+REASONING_EFFORT_WIDGET_KEY = "dev_reasoning_effort_widget"
+GET_JOB_DETAILS_ENABLED_WIDGET_KEY = "dev_get_job_details_enabled_widget"
+DEMO_MODE_WIDGET_KEY = "demo_mode_widget"
 
 #: Usage records (FR-18 AC2), kept as two lists throughout - agent loop and
 #: extraction - so the UI can show the split the spec asks for, not just a
@@ -81,6 +98,19 @@ def ensure_developer_settings_initialized(reachability_check: Any = None) -> Non
                 "Demo mode was switched on automatically: the job board API was not "
                 "reachable at start-up."
             )
+
+
+def sync_setting_from_widget(setting_key: str, widget_key: str) -> None:
+    """``on_change`` callback: copies a developer-settings widget's value into its setting key.
+
+    Pass as ``on_change=sync_setting_from_widget`` with ``args=(setting_key,
+    widget_key)`` on each widget in pages/4_Developer_settings.py. See the
+    module-level comment above the ``*_KEY``/``*_WIDGET_KEY`` constants for
+    why the widget never owns the setting key directly (Addendum 1 to WP-09).
+
+    Related: FR-18 AC1, D-17
+    """
+    st.session_state[setting_key] = st.session_state[widget_key]
 
 
 def record_turn_usage(tracker: Any) -> None:
