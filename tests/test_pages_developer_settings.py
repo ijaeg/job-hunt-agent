@@ -17,6 +17,7 @@ import pytest
 from streamlit.testing.v1 import AppTest
 
 PAGE_PATH = str(Path(__file__).resolve().parents[1] / "pages" / "4_Developer_settings.py")
+APP_PATH = str(Path(__file__).resolve().parents[1] / "app.py")
 
 #: conftest.py's autouse ``_stub_ba_reachability_check`` stubs the page's own
 #: ``ensure_developer_settings_initialized()`` call for every test here too.
@@ -97,6 +98,49 @@ def test_toggling_demo_mode_persists_in_session_state(db_path: str) -> None:
 
     assert not at.exception
     assert at.session_state[DEMO_MODE_KEY] is not before
+
+
+# ---------------------------------------------------------------------------
+# A setting survives switching pages (Addendum 1 to WP-09)
+# ---------------------------------------------------------------------------
+
+
+def test_chat_model_survives_switching_to_the_main_page_and_back(
+    db_path: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Regression test for Addendum 1 to WP-09's bug: a widget bound directly
+    to ``CHAT_MODEL_KEY`` loses that session-state entry whenever a run
+    doesn't render the widget - exactly what happens visiting ``app.py``
+    between two visits to this page - and
+    ``ensure_developer_settings_initialized()``'s ``setdefault`` then quietly
+    resets it to ``config.CHAT_MODEL``. The fix moves the setting onto a key
+    no widget owns (``ui_shared.sync_setting_from_widget``), so it must
+    survive the round trip through the main page unchanged.
+    """
+    from ui_shared import CHAT_MODEL_KEY
+
+    monkeypatch.setenv("JOB_HUNT_FAKE_MODEL", "1")
+
+    at = AppTest.from_file(APP_PATH, default_timeout=30)
+    at.run()
+    assert not at.exception
+
+    at.switch_page("pages/4_Developer_settings.py")
+    at.run()
+    assert not at.exception
+    _selectbox(at, "Chat model").select("anthropic/claude-haiku-4.5").run()
+    assert at.session_state[CHAT_MODEL_KEY] == "anthropic/claude-haiku-4.5"
+
+    at.switch_page("app.py")
+    at.run()
+    assert not at.exception
+    assert at.session_state[CHAT_MODEL_KEY] == "anthropic/claude-haiku-4.5"
+
+    at.switch_page("pages/4_Developer_settings.py")
+    at.run()
+    assert not at.exception
+    assert at.session_state[CHAT_MODEL_KEY] == "anthropic/claude-haiku-4.5"
+    assert _selectbox(at, "Chat model").value == "anthropic/claude-haiku-4.5"
 
 
 # ---------------------------------------------------------------------------
