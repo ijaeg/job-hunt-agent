@@ -567,6 +567,16 @@ def main() -> None:
         last_agent_loop, last_extraction = last_turn_usage_records()
         if last_agent_loop or last_extraction:
             with st.expander("Last turn's token usage and cost", expanded=False):
+                # Addendum 1 to WP-09: the model names come from the usage
+                # records themselves (response metadata, UsageCallbackHandler),
+                # not from the current developer-settings value, so this
+                # caption shows which model actually answered this turn even
+                # if the setting changed since.
+                models = sorted({r.model for r in [*last_agent_loop, *last_extraction]})
+                st.caption(
+                    f"Model: {', '.join(models)} · "
+                    f"reasoning effort: {st.session_state[REASONING_EFFORT_KEY]}"
+                )
                 render_usage_summary(last_agent_loop, last_extraction)
 
         if state.interrupts:
