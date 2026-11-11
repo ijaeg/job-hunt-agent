@@ -26,7 +26,7 @@ from job_hunt_agent import config, storage
 from job_hunt_agent.context import AgentContext
 from job_hunt_agent.middleware.input_guard import InputGuardMiddleware
 from job_hunt_agent.middleware.limits import (
-    ResetSearchCallCounterMiddleware,
+    SearchCallLimitMiddleware,
     build_model_call_limit_middleware,
 )
 from job_hunt_agent.middleware.memory_context import LoadMemoryContextMiddleware
@@ -95,16 +95,20 @@ def build_agent(model: Any, conn: sqlite3.Connection, tools: list[Any] | None = 
         LoadMemoryContextMiddleware(),
         *build_pii_middlewares(),
         build_model_call_limit_middleware(),
-        ResetSearchCallCounterMiddleware(),
         HumanInTheLoopMiddleware(
             interrupt_on={
                 "save_to_tracker": {"allowed_decisions": ["approve", "edit", "reject"]},
                 "remember": {"allowed_decisions": ["approve", "edit", "reject"]},
             }
         ),
-        # Listed AFTER HumanInTheLoopMiddleware on purpose - see the module
-        # docstring in middleware/rejection_lock.py (D-5 finding: after_model
-        # hooks run in reverse list order).
+        # Both listed AFTER HumanInTheLoopMiddleware on purpose - see the
+        # module docstring in middleware/rejection_lock.py (D-5 finding:
+        # after_model hooks run in reverse list order). If either ran
+        # before HITL in that order, a save_to_tracker/remember call
+        # pending approval in the same step as excess search_jobs calls
+        # would make HITL interrupt before this pruning ever got a chance
+        # to run, letting the excess calls through once approved (D-19).
+        SearchCallLimitMiddleware(),
         RejectionLockMiddleware(),
         tool_error_middleware,
     ]
