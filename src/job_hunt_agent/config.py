@@ -118,6 +118,28 @@ ASSESS_FIT_TIMEOUT_SECONDS: int = 60
 ASSESS_FIT_JSON_RETRY_ATTEMPTS: int = 1
 
 # ---------------------------------------------------------------------------
+# LangSmith tracing (FR-18 AC1, spec §9.5, D-18) - off by default, optional.
+# ---------------------------------------------------------------------------
+
+#: Name of the environment variable holding the LangSmith key; never the key
+#: itself (CLAUDE.md invariant 4).
+LANGSMITH_API_KEY_ENV: str = "LANGSMITH_API_KEY"
+
+#: LangSmith project every trace is grouped under (spec §9.5).
+LANGSMITH_PROJECT: str = os.getenv("LANGSMITH_PROJECT", "job-hunt-agent")
+
+#: LangSmith region endpoint. The course key is EU (confirmed in WP-10's "Check
+#: first": the US endpoint returns 403 for it, the EU one 200), overridable for
+#: a different key via the env var of the same name.
+LANGSMITH_ENDPOINT: str = os.getenv("LANGSMITH_ENDPOINT", "https://eu.api.smith.langchain.com")
+
+#: Timeout for building the LangSmith client, in seconds. Building it makes an
+#: eager network call (``GET /info``, confirmed in WP-10's "Check first"), so
+#: this keeps a slow/unreachable LangSmith from hanging a turn - any failure or
+#: timeout is swallowed, tracing is simply off for that run (spec §8).
+LANGSMITH_CLIENT_TIMEOUT_SECONDS: int = 5
+
+# ---------------------------------------------------------------------------
 # Agent limits (FR-20)
 # ---------------------------------------------------------------------------
 

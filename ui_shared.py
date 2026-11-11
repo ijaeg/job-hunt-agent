@@ -17,7 +17,7 @@ from typing import Any
 import streamlit as st
 import yaml
 
-from job_hunt_agent import ba_client, config, storage
+from job_hunt_agent import ba_client, config, storage, tracing
 from job_hunt_agent.models import Profile
 from job_hunt_agent.user_view import order_users, slugify_user_id, validate_user_name
 
@@ -47,6 +47,9 @@ REASONING_EFFORT_KEY = "dev_reasoning_effort"
 GET_JOB_DETAILS_ENABLED_KEY = "dev_get_job_details_enabled"
 DEMO_MODE_KEY = "demo_mode"
 DEMO_MODE_AUTO_MESSAGE_KEY = "demo_mode_auto_message"
+#: Off by default, every session (D-18) - never persisted beyond the session,
+#: unlike the other settings' defaults, which come from ``config.py``.
+LANGSMITH_TRACING_KEY = "langsmith_tracing_enabled"
 
 #: Throwaway keys for the widgets on pages/4_Developer_settings.py. Each
 #: widget takes its initial value from the matching setting key above (via
@@ -57,6 +60,7 @@ CHAT_MODEL_WIDGET_KEY = "dev_chat_model_widget"
 REASONING_EFFORT_WIDGET_KEY = "dev_reasoning_effort_widget"
 GET_JOB_DETAILS_ENABLED_WIDGET_KEY = "dev_get_job_details_enabled_widget"
 DEMO_MODE_WIDGET_KEY = "demo_mode_widget"
+LANGSMITH_TRACING_WIDGET_KEY = "langsmith_tracing_widget"
 
 #: Usage records (FR-18 AC2), kept as two lists throughout - agent loop and
 #: extraction - so the UI can show the split the spec asks for, not just a
@@ -89,6 +93,7 @@ def ensure_developer_settings_initialized(reachability_check: Any = None) -> Non
     st.session_state.setdefault(CHAT_MODEL_KEY, config.CHAT_MODEL)
     st.session_state.setdefault(REASONING_EFFORT_KEY, config.REASONING_EFFORT)
     st.session_state.setdefault(GET_JOB_DETAILS_ENABLED_KEY, True)
+    st.session_state.setdefault(LANGSMITH_TRACING_KEY, False)
     if DEMO_MODE_KEY not in st.session_state:
         check = reachability_check or ba_client.check_reachable
         reachable = check()
@@ -166,6 +171,37 @@ def render_usage_summary(agent_loop: list[Any], extraction: list[Any]) -> None:
 def get_connection(db_path: str) -> Any:
     """One shared SQLite connection for the checkpointer, store, tracker and profile (D-5)."""
     return storage.get_connection(db_path)
+
+
+@st.cache_resource
+def get_langsmith_client() -> Any | None:
+    """One LangSmith client for the life of the process, or ``None`` (D-18).
+
+    Building a client makes an eager network call (``tracing.build_client``'s
+    docstring); caching it here means that cost is paid at most once per
+    process, not once per turn. A process-wide cache is fine for a local,
+    single-key, single-user app (spec §2.2) - the key never changes mid-session.
+    """
+    return tracing.build_client()
+
+
+def build_run_callbacks(thread_id: str, demo_mode: bool, scenario: str | None = None) -> list[Any]:
+    """The callback list one agent call should carry for LangSmith tracing (D-18).
+
+    Empty whenever the developer-settings toggle is off, the key is missing, or
+    the tracer fails to build (spec §8) - a caller can always do
+    ``{**cfg, "callbacks": [*other_callbacks, *build_run_callbacks(...)]}``
+    without checking anything itself.
+
+    Related: FR-18 AC1, spec §9.5, D-18
+    """
+    if not st.session_state.get(LANGSMITH_TRACING_KEY, False):
+        return []
+    client = get_langsmith_client()
+    tracer = tracing.build_tracer(
+        client, demo_mode=demo_mode, thread_id=thread_id, scenario=scenario
+    )
+    return [tracer] if tracer is not None else []
 
 
 def load_demo_profile_data() -> dict[str, Any]:

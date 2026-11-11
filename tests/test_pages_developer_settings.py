@@ -211,3 +211,87 @@ def test_renders_session_usage_totals(db_path: str) -> None:
     captions = " ".join(str(c.value) for c in at.caption)
     assert "300" in captions  # combined prompt tokens
     assert "$0.0060" in captions  # combined cost
+
+
+# ---------------------------------------------------------------------------
+# LangSmith tracing toggle (FR-18 AC1, spec §9.5, D-18)
+# ---------------------------------------------------------------------------
+
+
+def test_tracing_toggle_is_off_and_disabled_without_a_key(
+    db_path: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from job_hunt_agent import config
+
+    monkeypatch.delenv(config.LANGSMITH_API_KEY_ENV, raising=False)
+    at = new_app()
+    at.run()
+
+    assert not at.exception
+    toggle = _toggle(at, "LangSmith tracing")
+    assert toggle.value is False
+    assert toggle.disabled is True
+    assert any(config.LANGSMITH_API_KEY_ENV in str(c.value) for c in at.caption)
+
+
+def test_tracing_toggle_is_enabled_and_off_by_default_with_a_key(
+    db_path: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from job_hunt_agent import config
+
+    monkeypatch.setenv(config.LANGSMITH_API_KEY_ENV, "fake-key")
+    at = new_app()
+    at.run()
+
+    assert not at.exception
+    toggle = _toggle(at, "LangSmith tracing")
+    assert toggle.value is False  # off by default (D-18), even with a key present
+    assert toggle.disabled is False
+
+
+def test_turning_tracing_on_persists_in_session_state(
+    db_path: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from job_hunt_agent import config
+    from ui_shared import LANGSMITH_TRACING_KEY
+
+    monkeypatch.setenv(config.LANGSMITH_API_KEY_ENV, "fake-key")
+    at = new_app()
+    at.run()
+    _toggle(at, "LangSmith tracing").set_value(True).run()
+
+    assert not at.exception
+    assert at.session_state[LANGSMITH_TRACING_KEY] is True
+
+
+def test_tracing_setting_survives_switching_to_the_main_page_and_back(
+    db_path: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Same Addendum-1-to-WP-09 regression shape as the chat-model test above:
+    the setting must not reset to its default just because app.py's run
+    doesn't render this page's toggle."""
+    from job_hunt_agent import config
+    from ui_shared import LANGSMITH_TRACING_KEY
+
+    monkeypatch.setenv(config.LANGSMITH_API_KEY_ENV, "fake-key")
+    monkeypatch.setenv("JOB_HUNT_FAKE_MODEL", "1")
+
+    at = AppTest.from_file(APP_PATH, default_timeout=30)
+    at.run()
+    assert not at.exception
+
+    at.switch_page("pages/4_Developer_settings.py")
+    at.run()
+    _toggle(at, "LangSmith tracing").set_value(True).run()
+    assert at.session_state[LANGSMITH_TRACING_KEY] is True
+
+    at.switch_page("app.py")
+    at.run()
+    assert not at.exception
+    assert at.session_state[LANGSMITH_TRACING_KEY] is True
+
+    at.switch_page("pages/4_Developer_settings.py")
+    at.run()
+    assert not at.exception
+    assert at.session_state[LANGSMITH_TRACING_KEY] is True
+    assert _toggle(at, "LangSmith tracing").value is True

@@ -23,7 +23,7 @@ import sqlite3
 import sys
 import uuid
 from pathlib import Path
-from types import ModuleType
+from types import ModuleType, SimpleNamespace
 from typing import Any
 
 import pytest
@@ -88,6 +88,54 @@ def test_iter_new_tool_calls_dedups_the_same_call_echoed_by_later_middleware_ste
     all_new_calls = [tc for step in steps for tc in app.iter_new_tool_calls(step, seen)]
     assert len(all_new_calls) == 1
     assert all_new_calls[0]["name"] == "search_jobs"
+
+
+# ---------------------------------------------------------------------------
+# _build_run_cfg: usage tracking + LangSmith tracing callbacks (D-18)
+# ---------------------------------------------------------------------------
+
+
+def test_build_run_cfg_returns_cfg_unchanged_with_no_callbacks() -> None:
+    import streamlit as st
+
+    app = _load_app_module()
+    st.session_state.pop(app.DEMO_MODE_KEY, None)
+    cfg = {"configurable": {"thread_id": "t1"}}
+    ctx = SimpleNamespace(usage_tracker=None)
+
+    assert app._build_run_cfg(cfg, ctx) is cfg
+
+
+def test_build_run_cfg_includes_the_usage_tracker_callback() -> None:
+    import streamlit as st
+
+    app = _load_app_module()
+    st.session_state.pop(app.DEMO_MODE_KEY, None)
+    cfg = {"configurable": {"thread_id": "t1"}}
+    agent_loop_sentinel = object()
+    ctx = SimpleNamespace(usage_tracker=SimpleNamespace(agent_loop=agent_loop_sentinel))
+
+    run_cfg = app._build_run_cfg(cfg, ctx)
+    assert run_cfg["callbacks"] == [agent_loop_sentinel]
+
+
+def test_build_run_cfg_includes_the_tracer_when_tracing_is_on(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """No test reaches LangSmith (CLAUDE.md invariant 5):
+    ``build_run_callbacks`` itself is faked - already covered in isolation by
+    ``tests/test_ui_shared_tracing.py``."""
+    import streamlit as st
+
+    app = _load_app_module()
+    tracer_sentinel = object()
+    monkeypatch.setattr(app, "build_run_callbacks", lambda *args, **kwargs: [tracer_sentinel])
+    st.session_state[app.DEMO_MODE_KEY] = True
+    cfg = {"configurable": {"thread_id": "t1"}}
+    ctx = SimpleNamespace(usage_tracker=None)
+
+    run_cfg = app._build_run_cfg(cfg, ctx)
+    assert run_cfg["callbacks"] == [tracer_sentinel]
 
 
 @pytest.fixture

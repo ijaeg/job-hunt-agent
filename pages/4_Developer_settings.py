@@ -28,7 +28,7 @@ _ROOT = Path(__file__).resolve().parents[1]
 if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
-from job_hunt_agent import config  # noqa: E402
+from job_hunt_agent import config, tracing  # noqa: E402
 from ui_shared import (  # noqa: E402
     CHAT_MODEL_KEY,
     CHAT_MODEL_WIDGET_KEY,
@@ -37,6 +37,8 @@ from ui_shared import (  # noqa: E402
     DEMO_MODE_WIDGET_KEY,
     GET_JOB_DETAILS_ENABLED_KEY,
     GET_JOB_DETAILS_ENABLED_WIDGET_KEY,
+    LANGSMITH_TRACING_KEY,
+    LANGSMITH_TRACING_WIDGET_KEY,
     REASONING_EFFORT_KEY,
     REASONING_EFFORT_WIDGET_KEY,
     ensure_developer_settings_initialized,
@@ -98,6 +100,21 @@ def main() -> None:
     auto_message = st.session_state.get(DEMO_MODE_AUTO_MESSAGE_KEY)
     if auto_message:
         st.info(auto_message)
+
+    has_langsmith_key = tracing.langsmith_key_present()
+    if not has_langsmith_key:
+        st.session_state[LANGSMITH_TRACING_KEY] = False
+    st.toggle(
+        "LangSmith tracing",
+        value=st.session_state[LANGSMITH_TRACING_KEY],
+        key=LANGSMITH_TRACING_WIDGET_KEY,
+        on_change=sync_setting_from_widget,
+        args=(LANGSMITH_TRACING_KEY, LANGSMITH_TRACING_WIDGET_KEY),
+        disabled=not has_langsmith_key,
+        help="Off by default (D-18); traces are sent to LangSmith while this is on.",
+    )
+    if not has_langsmith_key:
+        st.caption(f"Set {config.LANGSMITH_API_KEY_ENV} to enable tracing.")
 
     st.divider()
     st.subheader("Token usage and cost this session")
