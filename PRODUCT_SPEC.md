@@ -4,7 +4,7 @@
 |---|---|
 | **Project** | Turing College – AI Engineering, Sprint 3 project ("Building with AI Agents") |
 | **Author** | Ingo Jäger |
-| **Status** | v0.1.11 – first draft, 2026-11-10 (changes: see §15) |
+| **Status** | v0.1.12 – first draft, 2026-11-11 (changes: see §15) |
 | **Audience** | Developer (implementation guide) and Turing College tutor (review guide) |
 | **Stack** | Python 3.13 (uv), Streamlit, LangChain `create_agent` (LangGraph runtime) against the OpenRouter API (OpenAI-compatible), SQLite (`SqliteSaver` checkpointer, `SqliteStore` for long-term memory, own tables for tracker and profile), `httpx`, Pydantic, LangSmith |
 | **Time budget** | ≈ 50 hours over two weeks (Mon 2026-11-09 to Fri 2026-11-20), including tests, documentation and review preparation; submission by Mon 2026-11-23 |
@@ -285,10 +285,12 @@ JobHuntState (AgentState)
 ├── user_id: str
 ├── seen_refs: list[str]           (referenznummern already returned in this thread)
 ├── shortlist: list[str]           (referenznummern currently on the shortlist)
+├── summaries: dict[str, JobSummary] (search-time fields per listing, e.g. distance)
 ├── assessments: dict[str, FitAssessment]
-├── search_calls_this_turn: int    (reset per user message)
 └── rejected_actions: list[str]    (hashes of rejected write actions, FR-10 AC3)
 ```
+
+`seen_refs`, `summaries`, `shortlist` and `assessments` use reducers (`Annotated[..., reducer]`) so they stay correct when the model calls several tools in one step (D-19): order-preserving union for reference lists, dict merge for `summaries` and `assessments`, and a tagged add/remove edit for `shortlist`. With one call per step the behaviour is the same as plain replacement. The per-message search count is not stored in state; it is derived from the message history (FR-20 AC1, D-19).
 
 Tools read and write this state through `ToolRuntime` (e.g. `search_jobs` updates `seen_refs`, `assess_fit` writes `assessments`).
 
@@ -298,7 +300,7 @@ Tools read and write this state through `ToolRuntime` (e.g. `search_jobs` update
 |---|---|---|---|---|
 | 1 | Input guard (own) | `before_model` (first turn of a message) | Length, injection patterns, fixed reply | FR-21 |
 | 2 | `PIIMiddleware` (email, custom phone) | input, tool results | Mask personal data | FR-22 |
-| 3 | Call limits (built-in or own) | `before_model`, `wrap_tool_call` | Max. model calls, max. searches | FR-20 |
+| 3 | Call limits (built-in `ModelCallLimitMiddleware`; own `SearchCallLimitMiddleware`) | `before_model`; `after_model` | Max. model calls; max. searches per user message, counted from the message history and pruned before the tools run, also when several searches are proposed in one step (D-19) | FR-20 |
 | 4 | Rejection lock (own) | `after_model` (before HITL) | Drop proposals already rejected | FR-10 AC3 |
 | 5 | `HumanInTheLoopMiddleware` | `after_model` | Interrupt before write tools | FR-10 |
 | 6 | Tool error handling (own) | `wrap_tool_call` | Exceptions → `not_applicable_reason` | FR-21 AC3 |
@@ -582,6 +584,8 @@ Nothing is cut in advance: if time runs short, items further down this order mov
 | D-15 | Thread list | **Decided (2026-11-09):** an own table `threads` (user, thread id, title, dates) in `storage.py` maps users to their threads for the sidebar list (FR-13 AC2); the title is the first user message, cut to 60 characters. Details: `docs/decisions/D-15-thread-registry.md` |
 | D-16 | User management | **Decided (2026-11-09):** a user is selected by name in the sidebar, no authentication (§2.2); all pages use the selected user. Login via an identity provider (`st.login()`, OIDC) is named in the README as an improvement idea. Details: `docs/decisions/D-16-user-selection.md` |
 | D-17 | Price source for the cost display | **Decided (2026-11-10):** prices follow the Sprint 2 pattern: reported cost from OpenRouter when present, otherwise an estimate from token counts and the OpenRouter models endpoint (fetched once per session, failures not cached). In the WP-09 real-model check all 32 calls had their cost reported. Details: `docs/decisions/D-17-price-source.md` |
+| D-18 | Data sent to LangSmith | **Decided (2026-11-11):** tracing is off by default and switched on only on the developer settings page; README traces are made in demo mode with the fictional user "alex"; the README names what is sent to LangSmith when tracing is on (FR-22 AC4). Details: `docs/decisions/D-18-langsmith-data.md` |
+| D-19 | Parallel tool calls | **Decided (2026-11-11):** state fields written by tools get reducers, and the search limit is enforced after the model step from the message history, so several tool calls in one step are safe (§5.3, §5.4). Found while recording the WP-10 traces (`InvalidUpdateError` on `seen_refs`); after the fix 5 of 5 demo runs with parallel steps completed without error. Details: `docs/decisions/D-19-parallel-tool-calls.md` |
 | R-1 | API changes or becomes unavailable | Demo mode (FR-19), fixture-based evaluation |
 | R-2 | Agent loop not visible enough in the review | Demo script with refinement (S1), agent steps panel, LangSmith traces |
 | R-3 | Extraction errors lead to wrong categories | Evidence check (FR-05 AC2), "unknown" instead of guessing, fit evaluation with error analysis |
@@ -608,3 +612,4 @@ Nothing is cut in advance: if time runs short, items further down this order mov
 | v0.1.9 | 2026-11-09 | Decision D-14 recorded (§14) |
 | v0.1.10 | 2026-11-09 | Decisions D-15 and D-16 recorded (§14); §11 adds the profile page (`3_Profile.py`), developer settings move to page 4 |
 | v0.1.11 | 2026-11-10 | FR-18 AC2 reworded for the price source; decision D-17 recorded (§14) |
+| v0.1.12 | 2026-11-11 | §5.3 reducers and `summaries`, `search_calls_this_turn` removed; §5.4 row 3 search limit after the model step; decisions D-18 and D-19 recorded (§14) |
