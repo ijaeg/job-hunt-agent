@@ -88,6 +88,59 @@ def test_disabling_get_job_details_persists_in_session_state(db_path: str) -> No
     assert at.session_state[GET_JOB_DETAILS_ENABLED_KEY] is False
 
 
+# ---------------------------------------------------------------------------
+# list_tracker toggle (FR-18 AC1, FR-12 AC1)
+# ---------------------------------------------------------------------------
+
+
+def test_list_tracker_toggle_defaults_to_on(db_path: str) -> None:
+    at = new_app()
+    at.run()
+
+    assert not at.exception
+    assert _toggle(at, "Enable list_tracker tool").value is True
+
+
+def test_disabling_list_tracker_persists_in_session_state(db_path: str) -> None:
+    from ui_shared import LIST_TRACKER_ENABLED_KEY
+
+    at = new_app()
+    at.run()
+    _toggle(at, "Enable list_tracker tool").set_value(False).run()
+
+    assert not at.exception
+    assert at.session_state[LIST_TRACKER_ENABLED_KEY] is False
+
+
+def test_list_tracker_setting_survives_switching_to_the_main_page_and_back(
+    db_path: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Same Addendum-1-to-WP-09 regression shape as the other toggles."""
+    from ui_shared import LIST_TRACKER_ENABLED_KEY
+
+    monkeypatch.setenv("JOB_HUNT_FAKE_MODEL", "1")
+
+    at = AppTest.from_file(APP_PATH, default_timeout=30)
+    at.run()
+    assert not at.exception
+
+    at.switch_page("pages/4_Developer_settings.py")
+    at.run()
+    _toggle(at, "Enable list_tracker tool").set_value(False).run()
+    assert at.session_state[LIST_TRACKER_ENABLED_KEY] is False
+
+    at.switch_page("app.py")
+    at.run()
+    assert not at.exception
+    assert at.session_state[LIST_TRACKER_ENABLED_KEY] is False
+
+    at.switch_page("pages/4_Developer_settings.py")
+    at.run()
+    assert not at.exception
+    assert at.session_state[LIST_TRACKER_ENABLED_KEY] is False
+    assert _toggle(at, "Enable list_tracker tool").value is False
+
+
 def test_toggling_demo_mode_persists_in_session_state(db_path: str) -> None:
     from ui_shared import DEMO_MODE_KEY
 

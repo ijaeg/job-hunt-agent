@@ -57,6 +57,12 @@ preference or exclude an employer, call the tool directly and let the approval s
 handle it. If a proposal was already rejected in this conversation, do not propose the
 exact same action again - explain that it was already declined.
 
+## Checking what is already saved
+
+Call list_tracker (read-only, no approval needed) when the user asks what they have
+already saved, applied to or rejected, or before suggesting listings again - skip or
+flag a listing already in the tracker instead of proposing it as new.
+
 ## Explaining the shortlist
 
 Questions about listings already assessed ("why is #3 only partial?", "which ones need

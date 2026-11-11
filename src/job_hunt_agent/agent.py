@@ -39,13 +39,15 @@ from job_hunt_agent.tools.assess import assess_fit
 from job_hunt_agent.tools.details import get_job_details
 from job_hunt_agent.tools.memory import remember
 from job_hunt_agent.tools.search import search_jobs
-from job_hunt_agent.tools.tracker import save_to_tracker
+from job_hunt_agent.tools.tracker import list_tracker, save_to_tracker
 
 _SYSTEM_PROMPT_PATH = config.PROJECT_ROOT / "prompts" / "system.md"
 
-#: The five tools of the core journey (spec §4); ``list_tracker`` is a
-#: Should item, not included (CLAUDE.md "Order of work").
-AGENT_TOOLS = [search_jobs, get_job_details, assess_fit, save_to_tracker, remember]
+#: The five Must-have tools of the core journey (spec §4) plus the Should
+#: item ``list_tracker`` (FR-12 AC1); developer settings (FR-18 AC1) can
+#: remove ``get_job_details`` and/or ``list_tracker`` from the list passed
+#: to ``build_agent``.
+AGENT_TOOLS = [search_jobs, get_job_details, assess_fit, save_to_tracker, remember, list_tracker]
 
 #: Tools gated by human approval (FR-10 AC1).
 WRITE_TOOLS = {"save_to_tracker", "remember"}

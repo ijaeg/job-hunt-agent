@@ -10,14 +10,15 @@ tracker", the approval flow, and demo-mode switching. The tracker page,
 memory page, profile form, thread list and developer settings are later
 work packages.
 
-Related: FR-01 AC1, FR-07, FR-09, FR-10 AC2, FR-10 AC5, FR-16, FR-19 AC1-AC2,
-NFR-01, NFR-03, NFR-04, D-5, D-10, D-11
+Related: FR-01 AC1, FR-07, FR-09, FR-10 AC2, FR-10 AC5, FR-16, FR-17 AC1,
+FR-19 AC1-AC2, NFR-01, NFR-03, NFR-04, D-5, D-10, D-11
 """
 
 from __future__ import annotations
 
 import os
 import sys
+import time
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
@@ -26,7 +27,7 @@ from typing import Any
 import streamlit as st
 from langchain_core.callbacks import CallbackManagerForLLMRun
 from langchain_core.language_models.chat_models import BaseChatModel
-from langchain_core.messages import AIMessage, BaseMessage, HumanMessage
+from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, ToolMessage
 from langchain_core.outputs import ChatGeneration, ChatResult
 from langchain_core.runnables import Runnable
 from langgraph.types import Command
@@ -41,7 +42,7 @@ _ROOT = Path(__file__).resolve().parent
 if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
-from job_hunt_agent import config, storage, ui_view, usage, user_view  # noqa: E402
+from job_hunt_agent import config, steps_view, storage, ui_view, usage, user_view  # noqa: E402
 from job_hunt_agent.agent import AGENT_TOOLS, build_agent  # noqa: E402
 from job_hunt_agent.ba_client import BAClient, FixtureSource, JobSource  # noqa: E402
 from job_hunt_agent.context import AgentContext  # noqa: E402
@@ -51,6 +52,7 @@ from ui_shared import (  # noqa: E402
     DEMO_MODE_AUTO_MESSAGE_KEY,
     DEMO_MODE_KEY,
     GET_JOB_DETAILS_ENABLED_KEY,
+    LIST_TRACKER_ENABLED_KEY,
     REASONING_EFFORT_KEY,
     build_run_callbacks,
     ensure_developer_settings_initialized,
@@ -67,6 +69,11 @@ _STATUS_LABELS: dict[str, str] = {
     "search_jobs": "Searching the job board…",
     "assess_fit": "Assessing fit…",
 }
+
+#: Wall-clock seconds per tool-call id, for turns run in *this* session only
+#: (FR-17 AC1's steps panel) - a fresh Python process starts this empty, so a
+#: resumed older thread's calls are simply never in it (shown as "-").
+TOOL_CALL_DURATIONS_KEY = "_tool_call_durations"
 
 st.set_page_config(page_title="Job Hunt Agent", layout="wide")
 
@@ -229,6 +236,29 @@ def iter_new_tool_calls(step: dict[str, Any], seen_tool_call_ids: set[str]) -> l
     return new_calls
 
 
+def iter_new_tool_message_ids(step: dict[str, Any], seen_tool_message_ids: set[str]) -> list[str]:
+    """Extracts genuinely new ``ToolMessage`` ids from one stream step (FR-17 AC1).
+
+    Mirrors :func:`iter_new_tool_calls`'s dedup trick - the same ``ToolMessage``
+    can be echoed by a later middleware step (e.g. ``PIIMiddleware`` scrubbing
+    its content), which must not be mistaken for the tool call finishing a
+    second time. Used by :func:`run_turn` to mark the first moment a tool
+    call's result is seen, for the steps panel's duration column.
+    """
+    new_ids: list[str] = []
+    for update in step.values():
+        if not isinstance(update, dict):
+            continue
+        for msg in update.get("messages", []):
+            if not isinstance(msg, ToolMessage) or msg.tool_call_id is None:
+                continue
+            if msg.tool_call_id in seen_tool_message_ids:
+                continue
+            seen_tool_message_ids.add(msg.tool_call_id)
+            new_ids.append(msg.tool_call_id)
+    return new_ids
+
+
 def _build_run_cfg(cfg: dict[str, Any], ctx: AgentContext) -> dict[str, Any]:
     """Adds the usage-tracking callback and, when on, a LangSmith tracer (D-18)
     to one agent call's config. Scenario tags are not known here - that is only
@@ -252,19 +282,31 @@ def run_turn(agent: Any, cfg: dict[str, Any], ctx: AgentContext, payload: Any) -
 
     Never lets an exception reach the page (invariant 7, CLAUDE.md): a
     failure becomes a friendly ``st.error`` and the chat stays usable.
+    Also times every tool call for the steps panel (FR-17 AC1): started
+    when it is first proposed, stopped when its ``ToolMessage`` is first
+    seen, kept in ``st.session_state[TOOL_CALL_DURATIONS_KEY]`` for the
+    rest of this session.
 
-    Related: FR-16 AC2, invariant 7
+    Related: FR-16 AC2, FR-17 AC1, invariant 7
     """
     counts: dict[str, int] = {}
     seen_tool_call_ids: set[str] = set()
+    seen_tool_message_ids: set[str] = set()
+    started_at: dict[str, float] = {}
+    durations = st.session_state.setdefault(TOOL_CALL_DURATIONS_KEY, {})
     run_cfg = _build_run_cfg(cfg, ctx)
     try:
         with st.status("Thinking…", expanded=False) as status:
             for step in agent.stream(payload, config=run_cfg, context=ctx, stream_mode="updates"):
                 for tool_call in iter_new_tool_calls(step, seen_tool_call_ids):
+                    started_at[tool_call["id"]] = time.perf_counter()
                     label = _status_label(tool_call["name"], tool_call["args"], counts)
                     if label:
                         status.update(label=label)
+                for tool_call_id in iter_new_tool_message_ids(step, seen_tool_message_ids):
+                    start = started_at.get(tool_call_id)
+                    if start is not None:
+                        durations[tool_call_id] = time.perf_counter() - start
             status.update(label="Done", state="complete")
     except Exception:  # noqa: BLE001 - never a stack trace in the UI (invariant 7)
         st.error(
@@ -277,14 +319,38 @@ def run_turn(agent: Any, cfg: dict[str, Any], ctx: AgentContext, payload: Any) -
 # ---------------------------------------------------------------------------
 
 
-def render_chat_history(messages: list[Any]) -> None:
-    for msg in messages:
-        if isinstance(msg, HumanMessage) and msg.content and msg.name != "profile_context":
-            # "profile_context" (middleware/profile_context.py) is injected for the
-            # model, not something the user said - never shown as a chat bubble.
-            st.chat_message("user").write(str(msg.content))
-        elif isinstance(msg, AIMessage) and msg.content:
-            st.chat_message("assistant").write(str(msg.content))
+def _duration_text(duration_seconds: float | None) -> str:
+    return f"{duration_seconds:.1f}s" if duration_seconds is not None else "-"
+
+
+def render_step_row(step: steps_view.StepRow) -> None:
+    """One line of an "Agent steps" expander (FR-17 AC1)."""
+    parallel_tag = " · parallel" if step.parallel else ""
+    result_text = step.short_result if step.short_result is not None else "pending"
+    st.caption(
+        f"**{step.tool}**{parallel_tag} · `{step.args_text}` · {result_text} · "
+        f"{_duration_text(step.duration_seconds)}"
+    )
+
+
+def render_chat_history(messages: list[Any], durations: dict[str, float] | None = None) -> None:
+    """Renders one chat bubble per turn plus its "Agent steps" expander (FR-01 AC1, FR-17 AC1).
+
+    ``durations`` only ever holds entries for turns run in the current
+    session (``run_turn``'s stream loop) - a resumed older thread's steps
+    render with no duration ("-"), per WP-12's decision.
+    """
+    for turn in steps_view.split_into_turns(messages):
+        for msg in turn:
+            if steps_view.is_user_turn_message(msg):
+                st.chat_message("user").write(str(msg.content))
+            elif isinstance(msg, AIMessage) and msg.content:
+                st.chat_message("assistant").write(str(msg.content))
+        steps = steps_view.build_turn_steps(turn, durations)
+        if steps:
+            with st.expander(f"Agent steps ({len(steps)})", expanded=False):
+                for step in steps:
+                    render_step_row(step)
 
 
 # ---------------------------------------------------------------------------
@@ -553,7 +619,9 @@ def main() -> None:
     if not st.session_state[GET_JOB_DETAILS_ENABLED_KEY]:
         # assess_fit loads details itself regardless (spec §6.1), so the core
         # journey still works with this tool disabled (FR-18 AC1).
-        tools = [t for t in AGENT_TOOLS if t.name != "get_job_details"]
+        tools = [t for t in tools if t.name != "get_job_details"]
+    if not st.session_state[LIST_TRACKER_ENABLED_KEY]:
+        tools = [t for t in tools if t.name != "list_tracker"]
 
     cfg = {"configurable": {"thread_id": thread_id}}
     ctx = AgentContext(
@@ -578,7 +646,7 @@ def main() -> None:
         )
 
     with chat_col:
-        render_chat_history(messages)
+        render_chat_history(messages, st.session_state.get(TOOL_CALL_DURATIONS_KEY))
         last_agent_loop, last_extraction = last_turn_usage_records()
         if last_agent_loop or last_extraction:
             with st.expander("Last turn's token usage and cost", expanded=False):

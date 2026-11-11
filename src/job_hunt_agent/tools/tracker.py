@@ -1,6 +1,9 @@
-"""``save_to_tracker`` tool (FR-09). Approval is middleware, not this tool's job.
+"""``save_to_tracker`` and ``list_tracker`` tools (FR-09, FR-12).
 
-Related: FR-09 AC1-AC3, FR-10, spec §6.1, §8
+``save_to_tracker`` is gated by approval (middleware, not this module's
+job); ``list_tracker`` is read-only and never gated (FR-12 AC1).
+
+Related: FR-09 AC1-AC3, FR-10, FR-12 AC1, spec §6.1, §8
 """
 
 from __future__ import annotations
@@ -106,4 +109,37 @@ def save_to_tracker(
     stored = storage.save_tracker_entry(runtime.context.conn, entry)
 
     result = ToolResult(tool="save_to_tracker", result=stored.model_dump(mode="json"))
+    return Command(update={"messages": [tool_message(result, runtime.tool_call_id)]})
+
+
+@tool
+def list_tracker(
+    runtime: ToolRuntime[AgentContext, JobHuntState],
+) -> Command:
+    """Lists the selected user's saved tracker entries.
+
+    Read-only, no approval needed - call this to answer "what have I
+    saved?" or to avoid suggesting a listing already in the tracker again.
+
+    Related: FR-12 AC1
+    """
+    user_id = runtime.state.get("user_id", "")
+    entries = storage.list_tracker_entries(runtime.context.conn, user_id)
+    result = ToolResult(
+        tool="list_tracker",
+        result={
+            "entries": [
+                {
+                    "referenznummer": entry.referenznummer,
+                    "title": entry.title,
+                    "employer": entry.employer,
+                    "status": entry.status,
+                    "follow_up_date": (
+                        entry.follow_up_date.isoformat() if entry.follow_up_date else None
+                    ),
+                }
+                for entry in entries
+            ]
+        },
+    )
     return Command(update={"messages": [tool_message(result, runtime.tool_call_id)]})

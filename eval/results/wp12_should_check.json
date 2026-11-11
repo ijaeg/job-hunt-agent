@@ -1,0 +1,205 @@
+{
+  "query": "Find Softwareentwickler jobs in München.",
+  "model": "openai/gpt-5-mini",
+  "reasoning_effort": "low",
+  "turns": [
+    {
+      "label": "1a_demo_search",
+      "user_message": "Find Softwareentwickler jobs in München.",
+      "tool_calls": [
+        {
+          "name": "search_jobs",
+          "args": {
+            "keywords": "Softwareentwickler",
+            "location": "München",
+            "radius_km": 25,
+            "published_within_days": 28,
+            "exclude_temp_agency": true,
+            "page": 1
+          }
+        },
+        {
+          "name": "search_jobs",
+          "args": {
+            "keywords": "Python FastAPI Docker PostgreSQL senior Softwareentwickler",
+            "location": "München",
+            "radius_km": 25,
+            "published_within_days": 28,
+            "exclude_temp_agency": true,
+            "page": 1
+          }
+        },
+        {
+          "name": "search_jobs",
+          "args": {
+            "keywords": "Softwareentwickler Python Java Backend senior",
+            "location": "München",
+            "radius_km": 25,
+            "published_within_days": 60,
+            "exclude_temp_agency": true,
+            "page": 1
+          }
+        },
+        {
+          "name": "get_job_details",
+          "args": {
+            "referenznummer": "12117-YF-48852-YF-S"
+          }
+        },
+        {
+          "name": "get_job_details",
+          "args": {
+            "referenznummer": "14225-d10be3b2dd249dcf-S"
+          }
+        },
+        {
+          "name": "get_job_details",
+          "args": {
+            "referenznummer": "10001-1003863378-S"
+          }
+        },
+        {
+          "name": "get_job_details",
+          "args": {
+            "referenznummer": "10001-1003935843-S"
+          }
+        },
+        {
+          "name": "get_job_details",
+          "args": {
+            "referenznummer": "19121-44499216-1011-S"
+          }
+        },
+        {
+          "name": "get_job_details",
+          "args": {
+            "referenznummer": "12336-a26f1128j0452080-S"
+          }
+        },
+        {
+          "name": "assess_fit",
+          "args": {
+            "referenznummern": [
+              "12117-YF-48852-YF-S",
+              "14225-d10be3b2dd249dcf-S",
+              "10001-1003863378-S",
+              "10001-1003935843-S",
+              "19121-44499216-1011-S",
+              "12336-a26f1128j0452080-S"
+            ]
+          }
+        }
+      ],
+      "final_answer": "Model call limits exceeded: run limit (10/10)"
+    },
+    {
+      "label": "1b_save_with_approval",
+      "user_message": "Save listing 12117-YF-48852-YF-S to the tracker as saved.",
+      "referenznummer": "12117-YF-48852-YF-S",
+      "tool_calls": [
+        {
+          "name": "save_to_tracker",
+          "args": {
+            "referenznummer": "12117-YF-48852-YF-S",
+            "status": "saved",
+            "follow_up_date": null,
+            "note": null
+          }
+        }
+      ],
+      "final_answer": "Saved."
+    },
+    {
+      "label": "2_what_have_i_saved",
+      "user_message": "What have I saved?",
+      "tool_calls": [
+        {
+          "name": "list_tracker",
+          "args": {}
+        }
+      ],
+      "final_answer": "You have 1 saved listing:\n- 12117-YF-48852-YF-S — Softwareentwickler (m/w/d) at bayoonet AG (status: saved).",
+      "used_list_tracker": true
+    },
+    {
+      "label": "3_demo_search_again",
+      "user_message": "Find Softwareentwickler jobs in München.",
+      "referenznummer_saved_earlier": "12117-YF-48852-YF-S",
+      "tool_calls": [
+        {
+          "name": "search_jobs",
+          "args": {
+            "keywords": "Softwareentwickler Python",
+            "location": "München",
+            "radius_km": 25,
+            "published_within_days": 28,
+            "exclude_temp_agency": true,
+            "page": 1
+          }
+        },
+        {
+          "name": "search_jobs",
+          "args": {
+            "keywords": "Softwareentwickler",
+            "location": "München",
+            "radius_km": 25,
+            "published_within_days": 14,
+            "exclude_temp_agency": true,
+            "page": 1
+          }
+        },
+        {
+          "name": "get_job_details",
+          "args": {
+            "referenznummer": "10001-1003863378-S"
+          }
+        },
+        {
+          "name": "get_job_details",
+          "args": {
+            "referenznummer": "10001-1003935843-S"
+          }
+        },
+        {
+          "name": "get_job_details",
+          "args": {
+            "referenznummer": "12117-YF-48852-YF-S"
+          }
+        },
+        {
+          "name": "get_job_details",
+          "args": {
+            "referenznummer": "19121-44499216-1011-S"
+          }
+        },
+        {
+          "name": "get_job_details",
+          "args": {
+            "referenznummer": "12336-a26f1128j0452080-S"
+          }
+        },
+        {
+          "name": "get_job_details",
+          "args": {
+            "referenznummer": "14225-d10be3b2dd249dcf-S"
+          }
+        }
+      ],
+      "final_answer": "I found 6 Softwareentwickler listings in München / Umkreis. One of them is already saved in your tracker.\n\n1) 12117-YF-48852-YF-S — Softwareentwickler (m/w/d), bayoonet AG (München) — category: poor — (already saved)  \n   - Key matches: Cloud & Backend skills listed (Docker, Kubernetes, REST/gRPC, Terraform, Azure DevOps).  \n   - Main gaps: requests degree/qualifikation, frontend/mobile/embedded and event-streaming/Kafka experience, very good German required in text.\n\n2) 14225-d10be3b2dd249dcf-S — Softwareentwickler - IT (m/w/d), PartSpace GmbH (München) — category: poor  \n   - Key matches: Azure DevOps / CI/CD / automated tests / agile processes.  \n   - Main gaps: expects .NET/C# backend experience, domain knowledge for CAD/PLM data and specific pipeline responsibilities.\n\n3) 10001-1003863378-S — Softwareentwickler (w/m/d) Landesvermessung, LDBV (München) — category: partial  \n   - Key matches: Java desktop/server development, relational DB/SQL, remote up to 80%.  \n   - Main gaps: heavy Java/geodata focus, requires very good German (explicit), not aligned with your Python/FastAPI skillset.\n\n4) 10001-1003935843-S — Softwareentwickler C#/.NET (m/w/d), Baader Bank AG (Unterschleißheim ~15 km) — category: poor  \n   - Key matches: CI/CD, Git/GitLab mentioned; REST APIs and DB work included.  \n   - Main gaps: strong C#/.NET banking focus (ASP.NET Core, EF, MS SQL), expects very good German.\n\n5) 19121-44499216-1011-S — Systemnaher Softwareentwickler (d/m/w), genua GmbH (Kirchheim bei München ~14 km) — category: poor  \n   - Key matches: system-/security-focused engineering, Unix, C and shell, low-level networking.  \n   - Main gaps: system/kernel/OpenBSD/C focus (not Python/Java backend); requires good German (B2).\n\n6) 12336-a26f1128j0452080-S — Senior Softwareentwickler - .NET MAUI, Blazor & Cloud, TÜV SÜD AG (München) — category: partial (low evidence)  \n   - Key matches: senior role, CI/CD in Azure DevOps, architecture decisions, REST APIs, MS SQL.  \n   - Main gaps: .NET MAUI / C# / Blazor specifics; not a Python/FastAPI match.\n\nNext steps — what would you like to do?\n- Save any other listing(s) to your tracker (I can save/apply/reject directly).  \n- I can filter these by better match to your Skills: Python, Java, FastAPI, PostgreSQL, Docker, CI/CD (Your profile Skills: Python, Java, FastAPI, PostgreSQL, Docker, CI/CD) and English native / German basic, or expand radius/publication age to try to find closer Python-backend roles."
+    },
+    {
+      "label": "2b_what_have_i_saved_list_tracker_disabled",
+      "user_message": "What have I saved?",
+      "tool_calls": [
+        {
+          "name": "get_job_details",
+          "args": {
+            "referenznummer": "12117-YF-48852-YF-S"
+          }
+        }
+      ],
+      "final_answer": "You have 1 saved listing in your tracker:\n\n- 12117-YF-48852-YF-S — Softwareentwickler (m/w/d) at bayoonet AG (München) — saved.\n\nDo you want me to add a follow-up date or a note to this saved entry?",
+      "used_list_tracker": false
+    }
+  ]
+}
