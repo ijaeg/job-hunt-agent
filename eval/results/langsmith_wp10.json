@@ -1,0 +1,36 @@
+{
+  "project": "job-hunt-agent",
+  "endpoint": "https://eu.api.smith.langchain.com",
+  "model": "openai/gpt-5-mini",
+  "reasoning_effort": "low",
+  "run_date": "2026-11-11",
+  "run_datetime_utc": "2026-11-11T08:42:33.665723+00:00",
+  "user_id": "alex",
+  "runs": [
+    {
+      "scenario": "S1",
+      "thread_id": "langsmith-demo-1f3ea951",
+      "run_id": "01a1c9c5-378e-754f-86b3-deacb66f7df6"
+    },
+    {
+      "scenario": "S3_propose",
+      "thread_id": "langsmith-demo-1f3ea951",
+      "run_id": "01a1c9c5-bf17-73fe-ac0a-3ab14c8b530a"
+    },
+    {
+      "scenario": "S3_approve",
+      "thread_id": "langsmith-demo-1f3ea951",
+      "run_id": "01a1c9c5-cc14-70e8-a529-6bfdee316331"
+    },
+    {
+      "scenario": "S4_propose",
+      "thread_id": "langsmith-demo-1f3ea951",
+      "run_id": "01a1c9c5-dad0-70de-a3e1-aa7512731685"
+    },
+    {
+      "scenario": "S4_reject",
+      "thread_id": "langsmith-demo-1f3ea951",
+      "run_id": "01a1c9c5-e288-7362-9dbf-d50ad8e45787"
+    }
+  ]
+}

@@ -1353,3 +1353,88 @@ default. Appended as `"label": "page_switch_check"` to the existing
 **Next:** show the commit proposal and wait for approval before any commit.
 Unchanged otherwise: LangSmith toggle (WP-10), `list_tracker` toggle
 (WP-11), safety tests, and evaluation (§9) remain per spec §13.
+
+## 2026-11-11 — WP-10: safety tests and LangSmith tracing
+
+**Done (Part A, spec §9.4, FR-10 AC3, FR-20-23):** `docs/safety_tests.md`
+(10 cases, approved by Ingo 2026-11-11 with three changes - A-03's check on
+evidence content not category, P-01 reading the five known names at run
+time instead of a static list, every model-reaching case run twice).
+`scripts/run_safety_tests.py` runs all 10 against the real model
+(`openai/gpt-5-mini`, reasoning effort `low`) in demo mode with a fresh
+synthetic user/thread per run. Result: **10/10 pass**
+(`eval/results/safety_wp10.json`). P-01's *check itself* failed on the
+first run (an over-broad name-candidate regex matched ad boilerplate, and
+the phone check was not gated on phone context like `pii.py`'s own
+production code, tripping on digits inside a `referenznummer` - the same
+false-positive shape as the known D-1 finding); fixed to reuse `pii.py`'s
+own line-shaped patterns and phone-context gate, verified locally against
+the five known names, then re-run - a test-harness bug, not a product
+defect.
+
+**Done (Part B, spec §9.5, Hard 2, D-18):** `src/job_hunt_agent/tracing.py`
+(`langsmith_key_present`, `build_client`, `build_tracer` - two-step so the
+client, which makes an eager `GET /info` network call, is built once and
+cached by `ui_shared.get_langsmith_client`, not once per turn);
+`config.py` gained `LANGSMITH_API_KEY_ENV`, `LANGSMITH_PROJECT`
+(`job-hunt-agent`), `LANGSMITH_ENDPOINT` (EU region - the course key gets
+403 from the US endpoint, confirmed in "Check first") and
+`LANGSMITH_CLIENT_TIMEOUT_SECONDS`. `langsmith` added as an explicit
+dependency (`uv add langsmith`) - already present transitively via
+`langchain-core`, Hard 2/D-18 already decided its use, so no separate
+decision file. Toggle on `pages/4_Developer_settings.py`: off by default,
+disabled with a caption when `LANGSMITH_API_KEY` is unset.
+`app.py`'s `_build_run_cfg` attaches the usage-tracker callback and, when
+on, a tracer via `ui_shared.build_run_callbacks`; every failure path
+(no key, client/tracer build failure) yields no tracer, never an
+exception (spec §8).
+
+**Tests:** `tests/test_tracing.py` (pure module, `Client`/`LangChainTracer`
+monkeypatched at the module seam), `tests/test_ui_shared_tracing.py`
+(`build_run_callbacks`, bare-mode `st.session_state`), three new cases in
+`tests/test_app.py` (`_build_run_cfg`) and four in
+`tests/test_pages_developer_settings.py` (renders/disabled without key,
+off by default with a key, persists across a page switch). No test
+reaches LangSmith (invariant 5). `uv run pytest`: **389 passed** (22 new),
+no skipped, 98% coverage, `tracing.py` 100%. `uv run ruff check .` /
+`ruff format --check .` clean (124 files). `uv run mypy src app.py pages`
+clean, 37 source files.
+
+**Real-model trace recording** (`scripts/run_langsmith_traces.py`, demo
+mode, user `alex`, one continuous thread so S3's "#1" has a referent -
+same pattern as `scripts/run_core_journey.py`): S1 (narrowing), S3_propose/
+S3_approve (save -> approve), S4_propose/S4_reject (remember -> reject).
+Run ids and the project name: `eval/results/langsmith_wp10.json` and
+`docs/langsmith.md` (also names what WP-14 must do to make the traces
+visible to the reviewer - a public share link or a screenshot, Ingo's call,
+not done here - and flags the project's `shortlived` trace tier as a
+retention risk to check before submission). Verified against the run's own
+SQLite file, not just the model's words: the tracker table has exactly the
+one S3 entry; the memory store is empty after S4's rejection. One raw
+model request/response (tool schemas in, `tool_calls` out) captured at the
+OpenAI SDK's `Completions.create` seam during S1's first call, long
+content (only the system prompt, in practice) replaced by a placeholder:
+`docs/function_calling_example.json`. `docs/langsmith.md` also carries the
+short FR-22 AC4 data-handling paragraph for the README (WP-14).
+
+**Bug found, not fixed in this package (out of scope - agent state, not
+safety/tracing):** during the second trace-recording attempt, the model
+called `search_jobs` twice in parallel in one step; both tool executions
+tried to update the `seen_refs` state field in the same step, and
+LangGraph raised `InvalidUpdateError: At key 'seen_refs': Can receive only
+one value per step` (`state.py`'s plain overwrite semantics assume at most
+one writer per field per step). The run was simply retried and passed with
+single calls that time, so no case in this package exercised it, but it is
+a real, reproducible failure mode FR-03 AC2's "at most 3 `search_jobs`
+calls per message" does not prevent (it limits the *count*, not whether
+several happen in parallel in one step). Needs an `Annotated` reducer on
+`seen_refs` (and any other state field a tool can update, e.g.
+`shortlist`/`assessments` if `assess_fit` is ever called twice in one
+step) - a decision/fix for a future work package, not WP-10.
+
+**Manual check for Ingo:** switch tracing on in developer settings, run the
+demo query, open the trace in LangSmith (`job-hunt-agent` project, EU
+region), switch tracing off - `docs/langsmith.md` has the exact steps.
+
+**Next:** `list_tracker` toggle (WP-11), evaluation (§9.2, §9.3) remain per
+spec §13. The `seen_refs` concurrent-update bug above is also unaddressed.
