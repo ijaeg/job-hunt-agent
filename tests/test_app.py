@@ -520,3 +520,102 @@ def test_get_job_details_still_works_when_enabled(db_path: str) -> None:
 
     assert not at.exception
     assert not at.error
+
+
+# ---------------------------------------------------------------------------
+# Agent steps panel (FR-17 AC1)
+# ---------------------------------------------------------------------------
+
+
+def test_steps_panel_renders_under_the_answer_with_a_duration(db_path: str) -> None:
+    """A turn just run in this session shows a numeric duration, not "-"."""
+    at = new_app(
+        [[{"name": "search_jobs", "args": {"keywords": "Python", "location": "Hamburg"}}], "done"]
+    )
+    at.run()
+    at.chat_input[0].set_value("find python jobs in hamburg").run()
+
+    assert not at.exception
+    expanders = [e for e in at.expander if str(e.label).startswith("Agent steps")]
+    assert len(expanders) == 1
+    assert expanders[0].label == "Agent steps (1)"
+    caption_text = " ".join(str(c.value) for c in expanders[0].caption)
+    assert "search_jobs" in caption_text
+    assert "returned" in caption_text
+    assert caption_text.rstrip().endswith("s")  # "N.Ns", not the "-" unknown-duration marker
+
+
+def test_steps_panel_shows_no_duration_for_a_resumed_older_turn(db_path: str) -> None:
+    """Steps seeded straight into the checkpointer (no stream, no session-state
+    duration entry) render with "-" - the decided behaviour for a thread
+    resumed in a fresh process that never ran this turn's stream itself."""
+    from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
+
+    thread_id = "resumed-steps-thread"
+    conn = storage.get_connection(db_path)
+    agent = build_agent(model=object(), conn=conn)
+    cfg = {"configurable": {"thread_id": thread_id}}
+    call_id = "call_0_search_jobs"
+    agent.update_state(
+        cfg,
+        {
+            "user_id": "alex",
+            "messages": [
+                HumanMessage("find python jobs"),
+                AIMessage(
+                    content="",
+                    tool_calls=[
+                        {"name": "search_jobs", "args": {"keywords": "Python"}, "id": call_id}
+                    ],
+                ),
+                ToolMessage(
+                    content=json.dumps(
+                        {
+                            "tool": "search_jobs",
+                            "result": {"total": 5, "listings": [{}]},
+                            "notes": [],
+                            "not_applicable_reason": None,
+                        }
+                    ),
+                    tool_call_id=call_id,
+                    name="search_jobs",
+                ),
+                AIMessage("Found 5."),
+            ],
+        },
+    )
+
+    at = new_app([], thread_id=thread_id)
+    at.run()
+
+    assert not at.exception
+    expanders = [e for e in at.expander if str(e.label).startswith("Agent steps")]
+    assert len(expanders) == 1
+    caption_text = " ".join(str(c.value) for c in expanders[0].caption)
+    assert caption_text.rstrip().endswith("-")
+
+
+def test_steps_panel_marks_parallel_calls(db_path: str) -> None:
+    at = new_app(
+        [
+            [
+                {
+                    "name": "search_jobs",
+                    "args": {"keywords": "Python", "location": "Hamburg"},
+                },
+                {
+                    "name": "search_jobs",
+                    "args": {"keywords": "Java", "location": "Berlin"},
+                },
+            ],
+            "done",
+        ]
+    )
+    at.run()
+    at.chat_input[0].set_value("search for two things").run()
+
+    assert not at.exception
+    expanders = [e for e in at.expander if str(e.label).startswith("Agent steps")]
+    assert expanders[0].label == "Agent steps (2)"
+    caption_text = " ".join(str(c.value) for c in expanders[0].caption)
+    assert caption_text.count("parallel") == 2
