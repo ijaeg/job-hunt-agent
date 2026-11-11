@@ -52,6 +52,7 @@ from ui_shared import (  # noqa: E402
     DEMO_MODE_KEY,
     GET_JOB_DETAILS_ENABLED_KEY,
     REASONING_EFFORT_KEY,
+    build_run_callbacks,
     ensure_developer_settings_initialized,
     get_connection,
     last_turn_usage_records,
@@ -228,6 +229,24 @@ def iter_new_tool_calls(step: dict[str, Any], seen_tool_call_ids: set[str]) -> l
     return new_calls
 
 
+def _build_run_cfg(cfg: dict[str, Any], ctx: AgentContext) -> dict[str, Any]:
+    """Adds the usage-tracking callback and, when on, a LangSmith tracer (D-18)
+    to one agent call's config. Scenario tags are not known here - that is only
+    ever set by the dedicated trace-recording script (WP-10 Part B step 3).
+
+    Related: FR-18 AC1, AC2, spec §9.5, D-18
+    """
+    callbacks: list[Any] = []
+    if ctx.usage_tracker is not None:
+        callbacks.append(ctx.usage_tracker.agent_loop)
+    callbacks.extend(
+        build_run_callbacks(
+            cfg["configurable"]["thread_id"], st.session_state.get(DEMO_MODE_KEY, False)
+        )
+    )
+    return {**cfg, "callbacks": callbacks} if callbacks else cfg
+
+
 def run_turn(agent: Any, cfg: dict[str, Any], ctx: AgentContext, payload: Any) -> None:
     """Runs one agent turn (or a resume), showing progress labels as tool calls arrive.
 
@@ -238,9 +257,7 @@ def run_turn(agent: Any, cfg: dict[str, Any], ctx: AgentContext, payload: Any) -
     """
     counts: dict[str, int] = {}
     seen_tool_call_ids: set[str] = set()
-    run_cfg = cfg
-    if ctx.usage_tracker is not None:
-        run_cfg = {**cfg, "callbacks": [ctx.usage_tracker.agent_loop]}
+    run_cfg = _build_run_cfg(cfg, ctx)
     try:
         with st.status("Thinking…", expanded=False) as status:
             for step in agent.stream(payload, config=run_cfg, context=ctx, stream_mode="updates"):
@@ -349,9 +366,7 @@ def render_approval(
     if len(decided) == len(requests):
         decisions = [decided[i] for i in range(len(requests))]
         st.session_state.pop("_pending_decisions", None)
-        run_cfg = cfg
-        if ctx.usage_tracker is not None:
-            run_cfg = {**cfg, "callbacks": [ctx.usage_tracker.agent_loop]}
+        run_cfg = _build_run_cfg(cfg, ctx)
         try:
             agent.invoke(Command(resume={"decisions": decisions}), config=run_cfg, context=ctx)
         except Exception:  # noqa: BLE001 - invariant 7
