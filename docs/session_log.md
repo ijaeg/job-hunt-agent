@@ -1438,3 +1438,105 @@ region), switch tracing off - `docs/langsmith.md` has the exact steps.
 
 **Next:** `list_tracker` toggle (WP-11), evaluation (§9.2, §9.3) remain per
 spec §13. The `seen_refs` concurrent-update bug above is also unaddressed.
+
+## WP-11: Parallel tool calls in one agent step (2026-11-11)
+
+Branch `feature/parallel-tool-calls`. Fixed the `InvalidUpdateError` found
+in WP-10 (D-19, decided: fix the cause in the state, Option A).
+
+**Check first, reported before building:**
+1. Every `JobHuntState` field and its writer(s): `seen_refs`/`summaries`
+   (only `search_jobs`, append-only), `assessments` (only `assess_fit`,
+   append-only), `shortlist` (`assess_fit` appends, `get_job_details`
+   removes on a 404, FR-04 AC3 - the only field with two writers with
+   *opposite*-direction semantics), `search_calls_this_turn` (only
+   `search_jobs`, increment), `user_id`/`rejected_actions` (single writer
+   each, unaffected).
+2. Reproduced all three crashes with a scripted model before any fix:
+   two parallel `search_jobs` -> `InvalidUpdateError` on `seen_refs`; two
+   parallel `get_job_details` (both 404) -> same on `shortlist`; two
+   parallel `assess_fit` -> same on `assessments`.
+3. Checked the built-in `ToolCallLimitMiddleware` (`langchain` 1.4.9)
+   against real agent runs (not just reading its source): it correctly
+   caps several calls proposed in one step (counts each call in the batch
+   as it allows/blocks them), but its `run_tool_call_count` does not reset
+   at the right boundary for "per user message" (FR-20 AC1): measured that
+   it correctly survives a `save_to_tracker`/`remember` HITL interrupt +
+   resume within one message (good), but it *also* survives into a
+   completely separate, later user message with no interrupt at all (3
+   calls in the next message with budget 3 were still all blocked) -
+   wrong, a fresh message must get a fresh budget. `thread_limit` doesn't
+   fit either (thread lifetime). Built own `SearchCallLimitMiddleware`
+   instead (`middleware/limits.py`): recomputes the count of `search_jobs`
+   calls proposed since the last `HumanMessage` directly from the message
+   history on every `after_model` call (no counter field, so nothing to
+   race), and drops any excess from the newest `AIMessage` before the tool
+   node runs - same technique as `RejectionLockMiddleware`. Replaces
+   `ResetSearchCallCounterMiddleware` and the `search_calls_this_turn`
+   state field, both removed.
+
+**Build:** `state.py` gives `seen_refs`/`summaries`/`assessments` an
+order-preserving-union / dict-merge reducer (`merge_refs`/`merge_dicts`) -
+safe because every write already contains the pre-step value plus its own
+additions, so `reducer(existing, new) == new` for a single call, same as
+before. `shortlist` is the one field the WP's stop rule specifically
+flagged ("if a reducer would change single-call behaviour, e.g. shortlist
+semantics, stop"): checked algebraically that no plain union/intersection
+reducer works (a union would resurrect a ref `get_job_details` just
+removed; an intersection would drop a ref `assess_fit` just added), but a
+*tagged* edit does - `ShortlistEdit(add=..., remove=...)`, with
+`get_job_details` and `assess_fit` each stating their intent instead of
+computing a full replacement list. Verified this never changes single-call
+behaviour and is order-independent for two same-step writers (proof in
+`state.py`'s docstring); this only changes each tool's internal
+`Command(update=...)` value, not `ToolResult` (spec §6's tool contract) or
+the externally-visible `shortlist: list[str]` shape the UI reads - so not
+a stop-worthy spec deviation. Flagging this reasoning prominently here
+since the WP asked for it to be checked carefully. A plain `list[str]`
+update (state-seeding via `agent.invoke`'s initial state / `update_state`,
+used by several tests) is still treated as a direct replacement.
+`SearchCallLimitMiddleware` listed *after* `HumanInTheLoopMiddleware` in
+`agent.py`'s middleware list (so its `after_model` runs *before* HITL's in
+the reverse-order execution chain, D-5) - otherwise a message with both a
+gated write-tool call and excess `search_jobs` calls in one step would let
+HITL's interrupt skip the pruning entirely.
+
+**Tests:** 5 net new (389 -> 394) - two-parallel-`search_jobs`/
+`get_job_details`/`assess_fit` reproductions (now passing, folded straight
+into the fix rather than a separate xfail commit - see report to Ingo) in
+`test_tools_search.py` (replacing the old tool-level limit test, since
+enforcement moved to the middleware)/`test_tools_details.py`/
+`test_tools_assess.py`; a new `test_middleware_limits.py` for the limit
+itself (4 parallel calls with none before -> 3 run; 2 sequential + 2
+parallel in one message -> 1 more runs; a new `HumanMessage` resets the
+budget). All existing tests stay green with no changes beyond removing
+`search_calls_this_turn` assertions. **394 tests, 0 skipped, 99%
+coverage.** `ruff check .` and `ruff format --check .` clean (128 files).
+`mypy src app.py pages` clean, 37 source files.
+
+**Real-model check** (`scripts/wp11_parallel_check.py`, demo mode,
+`FixtureSource`, query "Find Softwareentwickler jobs in München.", 5 fresh
+threads): `eval/results/wp11_parallel_check.json`. All 5 runs completed
+(reached `assess_fit`), 0 errors. Every run showed a real parallel step -
+not `search_jobs` this time, but 5-6 parallel `get_job_details` calls in
+one step (runs 1-5: 6, 5, 6, 6, 6 calls) - confirming the model does
+genuinely parallelize tool calls in practice, not just in scripted tests.
+`search_jobs` itself stayed sequential across all 5 runs (2 or 3 calls
+each, all within the limit of 3, so the limit-exceeded note was never
+exercised live - covered instead by the scripted `test_middleware_limits.py`
+cases above).
+
+**Proposed spec §5.3/§5.4 wording for the coach** (not applied by Claude
+Code per CLAUDE.md):
+- §5.3: `search_calls_this_turn` removed from the `JobHuntState` block;
+  add a line noting `seen_refs`/`summaries`/`shortlist`/`assessments` use
+  an `Annotated[..., reducer]` to stay correct under parallel tool calls
+  (D-19), with `shortlist`'s reducer applying a tagged add/remove edit
+  rather than a full replacement.
+- §5.4 row 3 ("Call limits"): `wrap_tool_call` -> `after_model`, since
+  `SearchCallLimitMiddleware` prunes before the tools node runs, and note
+  it is "own" (the built-in `ToolCallLimitMiddleware` was checked and
+  found not to reset per user message, D-19).
+
+**Next:** evaluation (§9.2, §9.3) and the `list_tracker` toggle remain per
+spec §13.
