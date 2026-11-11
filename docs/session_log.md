@@ -1540,3 +1540,102 @@ Code per CLAUDE.md):
 
 **Next:** evaluation (§9.2, §9.3) and the `list_tracker` toggle remain per
 spec §13.
+
+## 2026-11-11 — WP-12: agent steps panel and list_tracker tool (Should items)
+
+**Done:**
+
+- Prompt saved verbatim: `docs/prompts/WP-12-should-items.md`.
+- Steps panel (FR-17 AC1): new `src/job_hunt_agent/steps_view.py`, a pure
+  helper module (no Streamlit, mirrors `ui_view.py`) that splits a thread's
+  full `messages` list into one slice per real user turn
+  (`split_into_turns`/`is_user_turn_message`, which also excludes the
+  `memory_context` injected message - a latent gap in `app.py`'s own
+  `render_chat_history`, since it only excluded `profile_context` before
+  this WP; fixed alongside so both use the same predicate) and builds one
+  `StepRow` per tool call in a turn (`build_turn_steps`), flagging parallel
+  calls (D-19) and deriving a short, never-ad-text result per the WP's
+  decided per-tool text (`short_result_for_message`). `app.py`'s
+  `render_chat_history` now renders an "Agent steps (N)" expander under
+  each answer; `run_turn` times every tool call from first-proposed to
+  first-ToolMessage-seen during its own `agent.stream(...)` loop (new
+  `iter_new_tool_message_ids`, mirroring the existing dedup trick for
+  `iter_new_tool_calls`) into `st.session_state["_tool_call_durations"]`,
+  so only turns run in *this* session ever get a numeric duration; a
+  resumed older thread's steps render with "-" (decided in advance,
+  verified by a dedicated AppTest seeding messages straight into the
+  checkpointer).
+- Tool `list_tracker` (FR-12 AC1): added to `src/job_hunt_agent/tools/tracker.py`
+  next to `save_to_tracker` - read-only, no approval, returns
+  referenznummer/title/employer/status/follow-up date only (never the
+  free-text note) via `storage.list_tracker_entries`. Added to
+  `agent.AGENT_TOOLS`; `prompts/system.md` gained one short paragraph
+  ("Checking what is already saved") - no special "may be disabled"
+  wording, following `get_job_details`'s WP-09 precedent that disabling a
+  tool is purely mechanical (an unbound tool just gets LangGraph's own
+  "not a valid tool" `ToolMessage` if the model still tries it).
+- Toggle (FR-18 AC1, Medium 6): `ui_shared.LIST_TRACKER_ENABLED_KEY`
+  (default on, like `get_job_details`'s), a matching widget on
+  `pages/4_Developer_settings.py`, and `app.py`'s tool list filtering
+  extended to also drop `list_tracker` when off.
+
+**Checks first (done before building, as asked):**
+1. Steps are read back from the checkpointer's flat `messages` list, split
+   into per-turn slices at each real `HumanMessage`; a parallel step is one
+   `AIMessage` with more than one `tool_calls` entry (D-19); a call with no
+   matching `ToolMessage` yet (pending approval) gets `short_result=None`.
+2. No disablement wording needed in `prompts/system.md` for `list_tracker`,
+   matching `get_job_details`'s WP-09 precedent (see above).
+
+**Tests:** 36 net new (394 -> 430). `tests/test_steps_view.py` (24 tests,
+100% coverage of the new module): turn splitting, context-message
+exclusion, single/parallel calls, `not_applicable_reason`, a missing
+`ToolMessage`, an HITL rejection's plain-text `ToolMessage`, per-tool short
+results (including the "done"/unrecognised-tool and non-dict-JSON fallback
+branches). `tests/test_tools_tracker.py`: 4 new `list_tracker` tests
+(entries returned with exactly the decided fields, note never exposed,
+empty for a user with none, per-user isolation). `tests/test_app.py`: 5 new
+(steps panel renders with a real numeric duration after a live turn;
+renders "-" for steps seeded directly into the checkpointer, i.e. a
+resumed older turn; parallel calls both flagged; disabling `list_tracker`
+removes it from the agent's bound tools exactly like `get_job_details`;
+`list_tracker` still works when enabled). `tests/test_pages_developer_settings.py`:
+3 new (toggle defaults on, persists in session state, survives a page
+switch - mirroring the existing `get_job_details`/tracing toggle tests).
+**430 tests, 0 skipped, 99% coverage.** `ruff check .` and `ruff format
+--check .` clean (132 files). `mypy src app.py pages` clean, 38 source
+files (one fixable `dict.get` key-type mismatch in `steps_view.py`, fixed
+by widening the lookup dict's key type to `str | None` to match
+`ToolMessage.tool_call_id`).
+
+**Real-model check** (`scripts/wp12_should_check.py`, demo mode,
+`FixtureSource`, user "alex", one thread,
+`openai/gpt-5-mini`/`low`): `eval/results/wp12_should_check.json`.
+- Turn 1 (demo search then save with approval): `search_jobs` x3,
+  `get_job_details` x6, `assess_fit` x1, then `save_to_tracker` after
+  approval - all executed correctly; the trailing explanatory text after
+  `assess_fit` was cut short by FR-20 AC1's 10-model-call limit on this
+  particular run (pre-existing agent-loop behaviour, not touched by this
+  WP) but the shortlist/assessments still landed in state, so the rest of
+  the scenario was unaffected.
+- Turn 2 ("What have I saved?"): called `list_tracker` (`used_list_tracker:
+  true`) and answered correctly from its result.
+- Turn 3 (the demo query again): reused the cached assessment from turn 1
+  rather than calling `assess_fit` again (per the system prompt's existing
+  "answer from what you already extracted" rule) and explicitly marked the
+  earlier-saved listing "(already saved)" in its answer - not skipped,
+  not silently re-proposed.
+- Turn 2 repeated with `list_tracker` disabled: `used_list_tracker: false`
+  as expected (the tool was not bound); the model answered correctly from
+  conversation history instead (it had just discussed the saved listing in
+  turns 1-2 of the same thread).
+
+**Manual browser check for Ingo (4 steps):** run the demo query and open
+"Agent steps" under the answer; save a listing via the shortlist card's
+"Save to tracker" button and approve it; ask "What have I saved?" and
+confirm the answer lists it; switch `list_tracker` off in developer
+settings and ask again, confirming the answer still works (from
+conversation memory) but `list_tracker` no longer appears in that turn's
+steps panel.
+
+**Next:** evaluation (§9.2, §9.3), the remaining Must item per spec §13.
