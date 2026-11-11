@@ -1,0 +1,541 @@
+{
+  "query": "Find Softwareentwickler jobs in München.",
+  "model": "openai/gpt-5-mini",
+  "reasoning_effort": "low",
+  "runs": [
+    {
+      "run": 1,
+      "error": null,
+      "completed_assess_fit": true,
+      "search_jobs_proposed": 2,
+      "search_jobs_executed": 2,
+      "parallel_steps": [
+        {
+          "step": 2,
+          "tools": [
+            "get_job_details",
+            "get_job_details",
+            "get_job_details",
+            "get_job_details",
+            "get_job_details",
+            "get_job_details"
+          ]
+        }
+      ],
+      "steps": [
+        [
+          {
+            "name": "search_jobs",
+            "args": {
+              "keywords": "Softwareentwickler",
+              "location": "München",
+              "radius_km": 25,
+              "published_within_days": 28,
+              "exclude_temp_agency": true,
+              "page": 1
+            }
+          }
+        ],
+        [
+          {
+            "name": "search_jobs",
+            "args": {
+              "keywords": "Senior Softwareentwickler Python",
+              "location": "München",
+              "radius_km": 25,
+              "published_within_days": 14,
+              "exclude_temp_agency": true,
+              "page": 1
+            }
+          }
+        ],
+        [
+          {
+            "name": "get_job_details",
+            "args": {
+              "referenznummer": "12117-YF-48852-YF-S"
+            }
+          },
+          {
+            "name": "get_job_details",
+            "args": {
+              "referenznummer": "14225-d10be3b2dd249dcf-S"
+            }
+          },
+          {
+            "name": "get_job_details",
+            "args": {
+              "referenznummer": "10001-1003863378-S"
+            }
+          },
+          {
+            "name": "get_job_details",
+            "args": {
+              "referenznummer": "10001-1003935843-S"
+            }
+          },
+          {
+            "name": "get_job_details",
+            "args": {
+              "referenznummer": "19121-44499216-1011-S"
+            }
+          },
+          {
+            "name": "get_job_details",
+            "args": {
+              "referenznummer": "12336-a26f1128j0452080-S"
+            }
+          }
+        ],
+        [
+          {
+            "name": "assess_fit",
+            "args": {
+              "referenznummern": [
+                "12117-YF-48852-YF-S",
+                "14225-d10be3b2dd249dcf-S",
+                "10001-1003863378-S",
+                "10001-1003935843-S",
+                "19121-44499216-1011-S",
+                "12336-a26f1128j0452080-S"
+              ]
+            }
+          }
+        ]
+      ],
+      "final_shortlist_size": 6
+    },
+    {
+      "run": 2,
+      "error": null,
+      "completed_assess_fit": true,
+      "search_jobs_proposed": 3,
+      "search_jobs_executed": 3,
+      "parallel_steps": [
+        {
+          "step": 3,
+          "tools": [
+            "get_job_details",
+            "get_job_details",
+            "get_job_details",
+            "get_job_details",
+            "get_job_details"
+          ]
+        }
+      ],
+      "steps": [
+        [
+          {
+            "name": "search_jobs",
+            "args": {
+              "keywords": "Softwareentwickler Python Java FastAPI PostgreSQL Docker CI/CD",
+              "location": "München",
+              "radius_km": 25,
+              "published_within_days": 28,
+              "exclude_temp_agency": true,
+              "page": 1
+            }
+          }
+        ],
+        [
+          {
+            "name": "search_jobs",
+            "args": {
+              "keywords": "Softwareentwickler",
+              "location": "München",
+              "radius_km": 25,
+              "published_within_days": 28,
+              "exclude_temp_agency": true,
+              "page": 1
+            }
+          }
+        ],
+        [
+          {
+            "name": "search_jobs",
+            "args": {
+              "keywords": "Python FastAPI Softwareentwickler",
+              "location": "München",
+              "radius_km": 25,
+              "published_within_days": 28,
+              "exclude_temp_agency": true,
+              "page": 1
+            }
+          }
+        ],
+        [
+          {
+            "name": "get_job_details",
+            "args": {
+              "referenznummer": "12117-YF-48852-YF-S"
+            }
+          },
+          {
+            "name": "get_job_details",
+            "args": {
+              "referenznummer": "10001-1003863378-S"
+            }
+          },
+          {
+            "name": "get_job_details",
+            "args": {
+              "referenznummer": "14225-d10be3b2dd249dcf-S"
+            }
+          },
+          {
+            "name": "get_job_details",
+            "args": {
+              "referenznummer": "10001-1003935843-S"
+            }
+          },
+          {
+            "name": "get_job_details",
+            "args": {
+              "referenznummer": "12336-a26f1128j0452080-S"
+            }
+          }
+        ],
+        [
+          {
+            "name": "assess_fit",
+            "args": {
+              "referenznummern": [
+                "12117-YF-48852-YF-S",
+                "10001-1003863378-S",
+                "14225-d10be3b2dd249dcf-S",
+                "10001-1003935843-S",
+                "12336-a26f1128j0452080-S"
+              ]
+            }
+          }
+        ]
+      ],
+      "final_shortlist_size": 5
+    },
+    {
+      "run": 3,
+      "error": null,
+      "completed_assess_fit": true,
+      "search_jobs_proposed": 2,
+      "search_jobs_executed": 2,
+      "parallel_steps": [
+        {
+          "step": 2,
+          "tools": [
+            "get_job_details",
+            "get_job_details",
+            "get_job_details",
+            "get_job_details",
+            "get_job_details",
+            "get_job_details"
+          ]
+        }
+      ],
+      "steps": [
+        [
+          {
+            "name": "search_jobs",
+            "args": {
+              "keywords": "Softwareentwickler Python FastAPI Docker",
+              "location": "München",
+              "radius_km": 25,
+              "published_within_days": 28,
+              "exclude_temp_agency": true,
+              "page": 1
+            }
+          }
+        ],
+        [
+          {
+            "name": "search_jobs",
+            "args": {
+              "keywords": "Softwareentwickler",
+              "location": "München",
+              "radius_km": 25,
+              "published_within_days": 60,
+              "exclude_temp_agency": true,
+              "page": 1
+            }
+          }
+        ],
+        [
+          {
+            "name": "get_job_details",
+            "args": {
+              "referenznummer": "10001-1003863378-S"
+            }
+          },
+          {
+            "name": "get_job_details",
+            "args": {
+              "referenznummer": "10001-1003935843-S"
+            }
+          },
+          {
+            "name": "get_job_details",
+            "args": {
+              "referenznummer": "12117-YF-48852-YF-S"
+            }
+          },
+          {
+            "name": "get_job_details",
+            "args": {
+              "referenznummer": "12336-a26f1128j0452080-S"
+            }
+          },
+          {
+            "name": "get_job_details",
+            "args": {
+              "referenznummer": "14225-d10be3b2dd249dcf-S"
+            }
+          },
+          {
+            "name": "get_job_details",
+            "args": {
+              "referenznummer": "19121-44499216-1011-S"
+            }
+          }
+        ],
+        [
+          {
+            "name": "assess_fit",
+            "args": {
+              "referenznummern": [
+                "10001-1003863378-S",
+                "10001-1003935843-S",
+                "12117-YF-48852-YF-S",
+                "12336-a26f1128j0452080-S",
+                "14225-d10be3b2dd249dcf-S",
+                "19121-44499216-1011-S"
+              ]
+            }
+          }
+        ]
+      ],
+      "final_shortlist_size": 6
+    },
+    {
+      "run": 4,
+      "error": null,
+      "completed_assess_fit": true,
+      "search_jobs_proposed": 2,
+      "search_jobs_executed": 2,
+      "parallel_steps": [
+        {
+          "step": 2,
+          "tools": [
+            "get_job_details",
+            "get_job_details",
+            "get_job_details",
+            "get_job_details",
+            "get_job_details",
+            "get_job_details"
+          ]
+        }
+      ],
+      "steps": [
+        [
+          {
+            "name": "search_jobs",
+            "args": {
+              "keywords": "Softwareentwickler",
+              "location": "München",
+              "radius_km": 25,
+              "published_within_days": 28,
+              "exclude_temp_agency": true,
+              "page": 1
+            }
+          }
+        ],
+        [
+          {
+            "name": "search_jobs",
+            "args": {
+              "keywords": "Python Softwareentwickler",
+              "location": "München",
+              "radius_km": 25,
+              "published_within_days": 28,
+              "exclude_temp_agency": true,
+              "page": 1
+            }
+          }
+        ],
+        [
+          {
+            "name": "get_job_details",
+            "args": {
+              "referenznummer": "12117-YF-48852-YF-S"
+            }
+          },
+          {
+            "name": "get_job_details",
+            "args": {
+              "referenznummer": "14225-d10be3b2dd249dcf-S"
+            }
+          },
+          {
+            "name": "get_job_details",
+            "args": {
+              "referenznummer": "10001-1003863378-S"
+            }
+          },
+          {
+            "name": "get_job_details",
+            "args": {
+              "referenznummer": "10001-1003935843-S"
+            }
+          },
+          {
+            "name": "get_job_details",
+            "args": {
+              "referenznummer": "19121-44499216-1011-S"
+            }
+          },
+          {
+            "name": "get_job_details",
+            "args": {
+              "referenznummer": "12336-a26f1128j0452080-S"
+            }
+          }
+        ],
+        [
+          {
+            "name": "assess_fit",
+            "args": {
+              "referenznummern": [
+                "12117-YF-48852-YF-S",
+                "14225-d10be3b2dd249dcf-S",
+                "10001-1003863378-S",
+                "10001-1003935843-S",
+                "19121-44499216-1011-S",
+                "12336-a26f1128j0452080-S"
+              ]
+            }
+          }
+        ]
+      ],
+      "final_shortlist_size": 6
+    },
+    {
+      "run": 5,
+      "error": null,
+      "completed_assess_fit": true,
+      "search_jobs_proposed": 3,
+      "search_jobs_executed": 3,
+      "parallel_steps": [
+        {
+          "step": 3,
+          "tools": [
+            "get_job_details",
+            "get_job_details",
+            "get_job_details",
+            "get_job_details",
+            "get_job_details",
+            "get_job_details"
+          ]
+        }
+      ],
+      "steps": [
+        [
+          {
+            "name": "search_jobs",
+            "args": {
+              "keywords": "Softwareentwickler",
+              "location": "München",
+              "radius_km": 25,
+              "published_within_days": 28,
+              "exclude_temp_agency": true,
+              "page": 1
+            }
+          }
+        ],
+        [
+          {
+            "name": "search_jobs",
+            "args": {
+              "keywords": "Python FastAPI Docker",
+              "location": "München",
+              "radius_km": 25,
+              "published_within_days": 28,
+              "exclude_temp_agency": true,
+              "page": 1
+            }
+          }
+        ],
+        [
+          {
+            "name": "search_jobs",
+            "args": {
+              "keywords": "Python Softwareentwickler",
+              "location": "München",
+              "radius_km": 25,
+              "published_within_days": 14,
+              "exclude_temp_agency": true,
+              "page": 1
+            }
+          }
+        ],
+        [
+          {
+            "name": "get_job_details",
+            "args": {
+              "referenznummer": "12117-YF-48852-YF-S"
+            }
+          },
+          {
+            "name": "get_job_details",
+            "args": {
+              "referenznummer": "14225-d10be3b2dd249dcf-S"
+            }
+          },
+          {
+            "name": "get_job_details",
+            "args": {
+              "referenznummer": "10001-1003863378-S"
+            }
+          },
+          {
+            "name": "get_job_details",
+            "args": {
+              "referenznummer": "10001-1003935843-S"
+            }
+          },
+          {
+            "name": "get_job_details",
+            "args": {
+              "referenznummer": "19121-44499216-1011-S"
+            }
+          },
+          {
+            "name": "get_job_details",
+            "args": {
+              "referenznummer": "12336-a26f1128j0452080-S"
+            }
+          }
+        ],
+        [
+          {
+            "name": "assess_fit",
+            "args": {
+              "referenznummern": [
+                "12117-YF-48852-YF-S",
+                "14225-d10be3b2dd249dcf-S",
+                "10001-1003863378-S",
+                "10001-1003935843-S",
+                "19121-44499216-1011-S",
+                "12336-a26f1128j0452080-S"
+              ]
+            }
+          }
+        ]
+      ],
+      "final_shortlist_size": 6
+    }
+  ],
+  "summary": {
+    "total_runs": 5,
+    "completed_runs": 5,
+    "runs_with_parallel_steps": 5,
+    "error_runs": 0
+  }
+}

@@ -1,6 +1,12 @@
 """``search_jobs`` tool (FR-02).
 
-Related: FR-02 AC1-AC7, FR-03 AC2, FR-20 AC1, spec §6.1, §8
+The per-message call limit (FR-20 AC1) is enforced by
+``middleware.limits.SearchCallLimitMiddleware`` before this tool ever runs,
+not here - counting proposed calls from the message history instead of a
+state counter sidesteps the parallel-call race a counter field would have
+(two calls in one step would both read the same pre-increment count, D-19).
+
+Related: FR-02 AC1-AC7, FR-03 AC2, FR-20 AC1, spec §6.1, §8, D-19
 """
 
 from __future__ import annotations
@@ -9,7 +15,6 @@ from langchain.tools import ToolRuntime
 from langchain_core.tools import tool
 from langgraph.types import Command
 
-from job_hunt_agent import config
 from job_hunt_agent.ba_client import BAClientError
 from job_hunt_agent.context import AgentContext
 from job_hunt_agent.models import ToolResult
@@ -49,17 +54,6 @@ def search_jobs(
     """
     state = runtime.state
 
-    search_calls = state.get("search_calls_this_turn", 0)
-    if search_calls >= config.MAX_SEARCH_CALLS_PER_MESSAGE:
-        result = ToolResult(
-            tool="search_jobs",
-            not_applicable_reason=(
-                f"Maximum of {config.MAX_SEARCH_CALLS_PER_MESSAGE} search_jobs calls per "
-                "message already reached. Work with the existing results and tell the user."
-            ),
-        )
-        return Command(update={"messages": [tool_message(result, runtime.tool_call_id)]})
-
     try:
         summaries, total, notes = runtime.context.job_source.search(
             keywords=keywords,
@@ -92,6 +86,5 @@ def search_jobs(
             "messages": [tool_message(result, runtime.tool_call_id)],
             "seen_refs": sorted(seen_refs),
             "summaries": summaries_cache,
-            "search_calls_this_turn": search_calls + 1,
         }
     )

@@ -10,9 +10,9 @@ from typing import Any
 
 from conftest import run_tool_turn
 
-from job_hunt_agent import config
 from job_hunt_agent.ba_client import BAUnavailableError
 from job_hunt_agent.context import AgentContext
+from job_hunt_agent.middleware.limits import SearchCallLimitMiddleware
 from job_hunt_agent.models import JobSummary, Profile
 from job_hunt_agent.tools.search import search_jobs
 
@@ -87,7 +87,6 @@ def test_search_jobs_returns_listings_and_updates_seen_refs() -> None:
     )
     assert result["seen_refs"] == ["A-1-S"]
     assert "A-1-S" in result["summaries"]
-    assert result["search_calls_this_turn"] == 1
     content = _tool_result_content(result)
     assert content["result"]["total"] == 1
     assert content["result"]["listings"][0]["seen"] is False
@@ -148,21 +147,36 @@ def test_search_jobs_ba_error_is_not_applicable_reason_not_exception() -> None:
     assert "job board" in content["not_applicable_reason"].lower()
 
 
-def test_search_jobs_limit_blocks_the_fourth_call_in_one_message() -> None:
-    """FR-20 AC1 / FR-03 AC2: at most 3 ``search_jobs`` calls per message."""
-    source = FakeSource([], total=0)
-    turns = [
-        *([[{"name": "search_jobs", "args": {"keywords": "Python", "location": "Hamburg"}}]] * 4),
-        "done",
-    ]
+class _DistinctRefsPerCallSource:
+    """Returns a different referenznummer on each call (keywords-derived)."""
+
+    def search(self, keywords: str, **_kwargs: Any) -> tuple[list[JobSummary], int, list[str]]:
+        ref = f"{keywords.upper()}-1-S"
+        return [JobSummary(referenznummer=ref, title=f"{keywords} Dev")], 1, []
+
+    def get_details(self, referenznummer: str) -> Any:
+        raise NotImplementedError
+
+
+def test_two_parallel_search_jobs_calls_both_update_state() -> None:
+    """D-19: two search_jobs calls proposed in one step no longer crash.
+
+    Reproduces the WP-10 finding (``InvalidUpdateError`` on ``seen_refs``)
+    with the now-merged state: both searches' results end up in
+    ``seen_refs``/``summaries``, no duplicates.
+    """
     result = run_tool_turn(
         [search_jobs],
-        turns,
-        _context(source),
+        [
+            [
+                {"name": "search_jobs", "args": {"keywords": "python", "location": "Hamburg"}},
+                {"name": "search_jobs", "args": {"keywords": "java", "location": "Berlin"}},
+            ],
+            "done",
+        ],
+        _context(_DistinctRefsPerCallSource()),
+        middleware=[SearchCallLimitMiddleware()],
     )
-    assert len(source.calls) == config.MAX_SEARCH_CALLS_PER_MESSAGE
-    assert result["search_calls_this_turn"] == config.MAX_SEARCH_CALLS_PER_MESSAGE
-    last_tool_messages = [m for m in result["messages"] if m.__class__.__name__ == "ToolMessage"]
-    last_content = json.loads(last_tool_messages[-1].content)
-    assert last_content["result"] is None
-    assert "maximum" in last_content["not_applicable_reason"].lower()
+    assert sorted(result["seen_refs"]) == ["JAVA-1-S", "PYTHON-1-S"]
+    assert len(result["seen_refs"]) == len(set(result["seen_refs"]))
+    assert set(result["summaries"]) == set(result["seen_refs"])

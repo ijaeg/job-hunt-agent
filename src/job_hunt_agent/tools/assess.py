@@ -20,7 +20,7 @@ from job_hunt_agent.ba_client import BAClientError
 from job_hunt_agent.context import AgentContext
 from job_hunt_agent.models import JobDetails, JobRequirements, JobSummary, ToolResult
 from job_hunt_agent.rubric import assess as rubric_assess
-from job_hunt_agent.state import JobHuntState
+from job_hunt_agent.state import JobHuntState, ShortlistEdit
 from job_hunt_agent.tools._common import ba_error_reason, tool_message
 
 if TYPE_CHECKING:
@@ -179,15 +179,12 @@ def assess_fit(
     excluded_employers = _excluded_employers(runtime)
     summaries_cache = runtime.state.get("summaries", {})
 
-    assessments: dict[str, FitAssessment] = dict(runtime.state.get("assessments", {}))
-    shortlist = list(runtime.state.get("shortlist", []))
+    assessments: dict[str, FitAssessment] = {}
     for ref, requirements in extracted.items():
         details = details_by_ref[ref]
         summary = summaries_cache.get(ref) or _fallback_summary(ref, details)
         assessment = rubric_assess(summary, details, requirements, profile, excluded_employers)
         assessments[ref] = assessment
-        if ref not in shortlist:
-            shortlist.append(ref)
 
     result = ToolResult(
         tool="assess_fit",
@@ -201,6 +198,6 @@ def assess_fit(
         update={
             "messages": [tool_message(result, runtime.tool_call_id)],
             "assessments": assessments,
-            "shortlist": shortlist,
+            "shortlist": ShortlistEdit(add=tuple(extracted)),
         }
     )
