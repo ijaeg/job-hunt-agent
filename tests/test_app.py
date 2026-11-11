@@ -523,6 +523,38 @@ def test_get_job_details_still_works_when_enabled(db_path: str) -> None:
 
 
 # ---------------------------------------------------------------------------
+# list_tracker toggle (FR-18 AC1, FR-12 AC1)
+# ---------------------------------------------------------------------------
+
+
+def test_disabling_list_tracker_removes_it_from_the_agents_tools(db_path: str) -> None:
+    """Mirrors the get_job_details toggle test above (FR-18 AC1)."""
+    from ui_shared import LIST_TRACKER_ENABLED_KEY
+
+    at = new_app([[{"name": "list_tracker", "args": {}}], "done"])
+    at.session_state[LIST_TRACKER_ENABLED_KEY] = False
+    at.run()
+    at.chat_input[0].set_value("what have I saved?").run()
+
+    assert not at.exception
+    messages = storage.get_checkpointer(storage.get_connection(db_path)).get(
+        {"configurable": {"thread_id": at.query_params["thread_id"]}}
+    )["channel_values"]["messages"]
+    tool_message = next(m for m in messages if m.__class__.__name__ == "ToolMessage")
+    assert "not a valid tool" in str(tool_message.content)
+    assert "list_tracker" in str(tool_message.content)
+
+
+def test_list_tracker_still_works_when_enabled(db_path: str) -> None:
+    at = new_app([[{"name": "list_tracker", "args": {}}], "done"])
+    at.run()
+    at.chat_input[0].set_value("what have I saved?").run()
+
+    assert not at.exception
+    assert not at.error
+
+
+# ---------------------------------------------------------------------------
 # Agent steps panel (FR-17 AC1)
 # ---------------------------------------------------------------------------
 

@@ -45,6 +45,7 @@ _PROFILE_SEED_PATH = config.PROJECT_ROOT / "data" / "samples" / "profile_alex.ya
 CHAT_MODEL_KEY = "dev_chat_model"
 REASONING_EFFORT_KEY = "dev_reasoning_effort"
 GET_JOB_DETAILS_ENABLED_KEY = "dev_get_job_details_enabled"
+LIST_TRACKER_ENABLED_KEY = "dev_list_tracker_enabled"
 DEMO_MODE_KEY = "demo_mode"
 DEMO_MODE_AUTO_MESSAGE_KEY = "demo_mode_auto_message"
 #: Off by default, every session (D-18) - never persisted beyond the session,
@@ -59,6 +60,7 @@ LANGSMITH_TRACING_KEY = "langsmith_tracing_enabled"
 CHAT_MODEL_WIDGET_KEY = "dev_chat_model_widget"
 REASONING_EFFORT_WIDGET_KEY = "dev_reasoning_effort_widget"
 GET_JOB_DETAILS_ENABLED_WIDGET_KEY = "dev_get_job_details_enabled_widget"
+LIST_TRACKER_ENABLED_WIDGET_KEY = "dev_list_tracker_enabled_widget"
 DEMO_MODE_WIDGET_KEY = "demo_mode_widget"
 LANGSMITH_TRACING_WIDGET_KEY = "langsmith_tracing_widget"
 
@@ -93,6 +95,7 @@ def ensure_developer_settings_initialized(reachability_check: Any = None) -> Non
     st.session_state.setdefault(CHAT_MODEL_KEY, config.CHAT_MODEL)
     st.session_state.setdefault(REASONING_EFFORT_KEY, config.REASONING_EFFORT)
     st.session_state.setdefault(GET_JOB_DETAILS_ENABLED_KEY, True)
+    st.session_state.setdefault(LIST_TRACKER_ENABLED_KEY, True)
     st.session_state.setdefault(LANGSMITH_TRACING_KEY, False)
     if DEMO_MODE_KEY not in st.session_state:
         check = reachability_check or ba_client.check_reachable

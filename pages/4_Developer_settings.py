@@ -1,4 +1,4 @@
-"""Developer settings page: model, reasoning effort, tool toggle, demo mode,
+"""Developer settings page: model, reasoning effort, tool toggles, demo mode,
 and token usage/cost (FR-18 AC1, FR-18 AC2, FR-19 AC3).
 
 Layout only (NFR-04): no business logic. Settings live in ``st.session_state``
@@ -39,6 +39,8 @@ from ui_shared import (  # noqa: E402
     GET_JOB_DETAILS_ENABLED_WIDGET_KEY,
     LANGSMITH_TRACING_KEY,
     LANGSMITH_TRACING_WIDGET_KEY,
+    LIST_TRACKER_ENABLED_KEY,
+    LIST_TRACKER_ENABLED_WIDGET_KEY,
     REASONING_EFFORT_KEY,
     REASONING_EFFORT_WIDGET_KEY,
     ensure_developer_settings_initialized,
@@ -88,6 +90,15 @@ def main() -> None:
         on_change=sync_setting_from_widget,
         args=(GET_JOB_DETAILS_ENABLED_KEY, GET_JOB_DETAILS_ENABLED_WIDGET_KEY),
         help="assess_fit always loads listing details itself, regardless of this toggle.",
+    )
+
+    st.toggle(
+        "Enable list_tracker tool",
+        value=st.session_state[LIST_TRACKER_ENABLED_KEY],
+        key=LIST_TRACKER_ENABLED_WIDGET_KEY,
+        on_change=sync_setting_from_widget,
+        args=(LIST_TRACKER_ENABLED_KEY, LIST_TRACKER_ENABLED_WIDGET_KEY),
+        help='Lets the agent answer "what have I saved?" and avoid re-suggesting saved listings.',
     )
 
     st.toggle(
