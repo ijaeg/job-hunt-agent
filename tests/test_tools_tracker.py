@@ -6,7 +6,7 @@ Related: FR-09 AC1-AC3
 from __future__ import annotations
 
 import json
-from datetime import date, timedelta
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -15,8 +15,8 @@ from conftest import run_tool_turn
 
 from job_hunt_agent import storage
 from job_hunt_agent.context import AgentContext
-from job_hunt_agent.models import JobSummary, Profile
-from job_hunt_agent.tools.tracker import save_to_tracker, validate_follow_up_date
+from job_hunt_agent.models import JobSummary, Profile, TrackerEntry
+from job_hunt_agent.tools.tracker import list_tracker, save_to_tracker, validate_follow_up_date
 
 
 def _profile() -> Profile:
@@ -189,3 +189,84 @@ def test_save_to_tracker_rejects_invalid_status(conn: Any) -> None:
     content = _tool_result_content(result)
     assert content["result"] is None
     assert "status" in content["not_applicable_reason"].lower()
+
+
+# ---------------------------------------------------------------------------
+# list_tracker (FR-12 AC1)
+# ---------------------------------------------------------------------------
+
+
+def _entry(user_id: str, referenznummer: str, title: str = "Python Dev") -> TrackerEntry:
+    now = datetime.now(UTC)
+    return TrackerEntry(
+        user_id=user_id,
+        referenznummer=referenznummer,
+        title=title,
+        employer="Acme",
+        url=None,
+        status="saved",
+        follow_up_date=date(2030, 1, 1),
+        note="some note",
+        created_at=now,
+        updated_at=now,
+    )
+
+
+def test_list_tracker_returns_the_users_entries(conn: Any) -> None:
+    """FR-12 AC1: the agent can read back referenznummer/title/employer/status/follow-up."""
+    storage.save_tracker_entry(conn, _entry("alex", "A-1-S"))
+    result = run_tool_turn(
+        [list_tracker],
+        [[{"name": "list_tracker", "args": {}}], "done"],
+        _context(conn),
+        initial_state={"user_id": "alex"},
+    )
+    content = _tool_result_content(result)
+    entries = content["result"]["entries"]
+    assert entries == [
+        {
+            "referenznummer": "A-1-S",
+            "title": "Python Dev",
+            "employer": "Acme",
+            "status": "saved",
+            "follow_up_date": "2030-01-01",
+        }
+    ]
+
+
+def test_list_tracker_never_includes_the_free_text_note(conn: Any) -> None:
+    """Only the fields decided in WP-12 are exposed - never the free-text note."""
+    storage.save_tracker_entry(conn, _entry("alex", "A-1-S"))
+    result = run_tool_turn(
+        [list_tracker],
+        [[{"name": "list_tracker", "args": {}}], "done"],
+        _context(conn),
+        initial_state={"user_id": "alex"},
+    )
+    content = _tool_result_content(result)
+    assert "note" not in content["result"]["entries"][0]
+
+
+def test_list_tracker_is_empty_for_a_user_with_no_entries(conn: Any) -> None:
+    result = run_tool_turn(
+        [list_tracker],
+        [[{"name": "list_tracker", "args": {}}], "done"],
+        _context(conn),
+        initial_state={"user_id": "alex"},
+    )
+    content = _tool_result_content(result)
+    assert content["result"]["entries"] == []
+
+
+def test_list_tracker_is_isolated_per_user(conn: Any) -> None:
+    storage.save_tracker_entry(conn, _entry("alex", "A-1-S"))
+    storage.save_tracker_entry(conn, _entry("sam", "B-2-S"))
+    result = run_tool_turn(
+        [list_tracker],
+        [[{"name": "list_tracker", "args": {}}], "done"],
+        _context(conn),
+        initial_state={"user_id": "sam"},
+    )
+    content = _tool_result_content(result)
+    refs = [e["referenznummer"] for e in content["result"]["entries"]]
+    assert refs == ["B-2-S"]
