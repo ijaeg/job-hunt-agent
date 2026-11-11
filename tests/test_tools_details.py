@@ -86,6 +86,31 @@ def test_get_job_details_404_removes_listing_from_shortlist() -> None:
     assert result["shortlist"] == ["B-2-S"]
 
 
+def test_two_parallel_404s_remove_both_refs_from_shortlist() -> None:
+    """D-19: two get_job_details calls proposed in one step no longer crash.
+
+    Reproduces the WP-10-style finding for ``shortlist`` (both writers here
+    are removals, so a plain-overwrite ``shortlist`` would hit the same
+    ``InvalidUpdateError`` as ``seen_refs`` did) with the merged state: both
+    404'd refs are gone, the third untouched ref stays.
+    """
+    source = FakeSource()
+    source.raise_error = BAJobNotFoundError("gone")
+    result = run_tool_turn(
+        [get_job_details],
+        [
+            [
+                {"name": "get_job_details", "args": {"referenznummer": "A-1-S"}},
+                {"name": "get_job_details", "args": {"referenznummer": "B-2-S"}},
+            ],
+            "done",
+        ],
+        _context(source),
+        initial_state={"shortlist": ["A-1-S", "B-2-S", "C-3-S"]},
+    )
+    assert result["shortlist"] == ["C-3-S"]
+
+
 def test_get_job_details_unavailable_is_not_applicable_reason() -> None:
     """A transient BA failure never raises into the UI (FR-21 AC3, spec §8)."""
     source = FakeSource()

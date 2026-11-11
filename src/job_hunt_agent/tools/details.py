@@ -12,7 +12,7 @@ from langgraph.types import Command
 from job_hunt_agent.ba_client import BAClientError, BAJobNotFoundError
 from job_hunt_agent.context import AgentContext
 from job_hunt_agent.models import ToolResult
-from job_hunt_agent.state import JobHuntState
+from job_hunt_agent.state import JobHuntState, ShortlistEdit
 from job_hunt_agent.tools._common import ba_error_reason, tool_message
 
 
@@ -41,11 +41,10 @@ def get_job_details(
             tool="get_job_details",
             not_applicable_reason=f"Listing {referenznummer} is no longer available.",
         )
-        shortlist = [r for r in runtime.state.get("shortlist", []) if r != referenznummer]
         return Command(
             update={
                 "messages": [tool_message(result, runtime.tool_call_id)],
-                "shortlist": shortlist,
+                "shortlist": ShortlistEdit(remove=(referenznummer,)),
             }
         )
     except BAClientError as exc:

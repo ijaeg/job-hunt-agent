@@ -171,6 +171,36 @@ def test_assess_fit_happy_path_updates_state() -> None:
     assert len(content["result"]["assessed"]) == 1
 
 
+def test_two_parallel_assess_fit_calls_both_update_state() -> None:
+    """D-19: two assess_fit calls proposed in one step no longer crash.
+
+    Reproduces the WP-10-style finding for ``assessments``/``shortlist``
+    (both writers here only add) with the merged state: both refs end up
+    assessed and shortlisted, in call order.
+    """
+    ad_text = "Wir suchen jemanden mit Python-Kenntnisse. " * 20
+    source = FakeSource({"A-1-S": _details("A-1-S", ad_text), "B-2-S": _details("B-2-S", ad_text)})
+    model = FakeExtractionModel(
+        {
+            "A-1-S": _requirements("A-1-S", evidence_de="Python-Kenntnisse"),
+            "B-2-S": _requirements("B-2-S", evidence_de="Python-Kenntnisse"),
+        }
+    )
+    result = run_tool_turn(
+        [assess_fit],
+        [
+            [
+                {"name": "assess_fit", "args": {"referenznummern": ["A-1-S"]}},
+                {"name": "assess_fit", "args": {"referenznummern": ["B-2-S"]}},
+            ],
+            "done",
+        ],
+        _context(source, model),
+    )
+    assert set(result["assessments"]) == {"A-1-S", "B-2-S"}
+    assert sorted(result["shortlist"]) == ["A-1-S", "B-2-S"]
+
+
 def test_assess_fit_reports_extraction_usage_through_the_context_tracker() -> None:
     """FR-18 AC2: each extraction call's usage lands in ``usage_tracker.extraction``.
 
