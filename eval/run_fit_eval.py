@@ -177,7 +177,7 @@ def run_listing(
     results: list[AppResult] = []
     for run_index in range(1, runs + 1):
         try:
-            outcome = _extract_one(model, template, ref, details.description)
+            outcome = _extract_one(model, template, ref, details.title, details.description)
         except Exception as exc:  # noqa: BLE001 - recorded, never raised (spec §8)
             outcome = None
             extraction_error: str | None = str(exc)

@@ -1,6 +1,6 @@
 """Tests for :mod:`job_hunt_agent.rubric` (spec §7, FR-06).
 
-Related: FR-05, FR-06 AC1-AC4, spec §7, D-9
+Related: FR-05, FR-06 AC1-AC4, spec §7, D-9, D-23, D-25
 """
 
 from __future__ import annotations
@@ -338,6 +338,32 @@ def test_location_onsite_preference_never_needs_remote() -> None:
     assert result.rubric["location_remote"] == "met"
 
 
+def test_location_met_hybrid_with_stated_remote_type_but_no_percent() -> None:
+    """D-23: a stated remote type without a percentage (e.g. "NACH_VEREINBARUNG")
+    satisfies a hybrid preference within radius."""
+    summary = _summary(distance_km=10.0, remote_type="NACH_VEREINBARUNG", remote_percent=None)
+    result = assess(
+        summary,
+        _details(remote_type="NACH_VEREINBARUNG", remote_percent=None),
+        _requirements(),
+        _profile(remote_preference="hybrid"),
+    )
+    assert result.rubric["location_remote"] == "met"
+
+
+def test_location_not_met_remote_preference_with_stated_type_but_no_percent() -> None:
+    """D-23: the same stated-but-unquantified remote type does NOT satisfy a
+    "remote" preference - it does not guarantee fully remote work."""
+    summary = _summary(distance_km=10.0, remote_type="NACH_VEREINBARUNG", remote_percent=None)
+    result = assess(
+        summary,
+        _details(remote_type="NACH_VEREINBARUNG", remote_percent=None),
+        _requirements(),
+        _profile(remote_preference="remote"),
+    )
+    assert result.rubric["location_remote"] == "not_met"
+
+
 # ---------------------------------------------------------------------------
 # assess: seniority dimension (spec §7 "Seniority")
 # ---------------------------------------------------------------------------
@@ -482,6 +508,44 @@ def test_category_poor_below_45_percent() -> None:
     )
     assert result.category == "poor"
     assert result.exclusion_reasons == []
+
+
+def test_skills_not_met_caps_category_at_poor() -> None:
+    """D-25: a clear skill mismatch caps the category at "poor", even when
+    the weighted share of the other dimensions alone would reach "partial"."""
+    reqs = _requirements(
+        skills=[_skill("Rust"), _skill("Go")],
+        seniority="senior",
+        german_level="not_mentioned",
+    )
+    result = assess(
+        _summary(distance_km=10.0, remote_percent=None, remote_type=None),
+        _details(remote_percent=None, remote_type=None, full_time=True, contract_months=None),
+        reqs,
+        _profile(),
+    )
+    # skills=not_met(0,w2), location_remote=partly(1,w1), seniority=met(2,w1),
+    # language=unknown(excluded), employment_type=met(2,w1) -> share = 5/10 = 0.50
+    # (>= PARTIAL_THRESHOLD), but the skills:not_met cap brings it to "poor".
+    assert result.rubric["skills"] == "not_met"
+    assert result.category == "poor"
+
+
+def test_skills_partly_is_not_capped() -> None:
+    """D-25's cap only fires on "not_met", not "partly"/"met"."""
+    reqs = _requirements(
+        skills=[_skill("Python"), _skill("Java"), _skill("Rust")],
+        seniority="senior",
+        german_level="not_mentioned",
+    )
+    result = assess(
+        _summary(distance_km=10.0, remote_percent=None, remote_type=None),
+        _details(remote_percent=None, remote_type=None, full_time=True, contract_months=None),
+        reqs,
+        _profile(),
+    )
+    assert result.rubric["skills"] == "partly"
+    assert result.category != "poor"
 
 
 def test_hard_exclusion_overrides_a_high_score() -> None:

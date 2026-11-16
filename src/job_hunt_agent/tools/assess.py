@@ -1,6 +1,6 @@
 """``assess_fit`` tool (FR-05): extraction call + code-only rubric.
 
-Related: FR-05 AC1-AC6, FR-06, FR-15 AC4, spec §6.1, §7, D-4
+Related: FR-05 AC1-AC6, FR-06, FR-15 AC4, spec §6.1, §7, D-4, D-21, D-22
 """
 
 from __future__ import annotations
@@ -90,10 +90,11 @@ def _extract_one(
     model: Any,
     template: str,
     referenznummer: str,
+    title: str,
     ad_text: str,
     usage_handler: Any = None,
 ) -> tuple[JobRequirements, int] | None:
-    prompt = template.format(referenznummer=referenznummer, ad_text=ad_text)
+    prompt = template.format(referenznummer=referenznummer, title=title, ad_text=ad_text)
     structured_model = model.with_structured_output(JobRequirements)
     kwargs: dict[str, Any] = (
         {"config": {"callbacks": [usage_handler]}} if usage_handler is not None else {}
@@ -148,7 +149,12 @@ def assess_fit(
     def run_extraction(ref: str) -> tuple[str, JobRequirements | None, int]:
         try:
             outcome = _extract_one(
-                model, template, ref, details_by_ref[ref].description, usage_handler
+                model,
+                template,
+                ref,
+                details_by_ref[ref].title,
+                details_by_ref[ref].description,
+                usage_handler,
             )
         except Exception:  # noqa: BLE001 - any failure is reported, never raised
             return ref, None, 0

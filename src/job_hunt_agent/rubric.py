@@ -10,7 +10,7 @@ Weights and thresholds are **start values** confirmed/adjusted in
 editing this module ad hoc, so the decision record stays the source of
 truth for *why* a number is what it is.
 
-Related: FR-06 AC1-AC4, spec §7, D-9
+Related: FR-06 AC1-AC4, spec §7, D-9, D-23, D-25
 """
 
 from __future__ import annotations
@@ -211,7 +211,15 @@ def _location_remote_verdict(
     if profile.remote_preference == "onsite":
         remote_satisfied = True
     elif profile.remote_preference == "hybrid":
-        remote_satisfied = full_remote or (remote_percent is not None and remote_percent > 0)
+        # D-23 (2026-11-16): a stated remote type without a percentage (e.g.
+        # "NACH_VEREINBARUNG" - by arrangement) satisfies a hybrid preference;
+        # it does not guarantee fully remote work, so it does not satisfy a
+        # "remote" preference (the "else" branch below is unchanged).
+        remote_satisfied = (
+            full_remote
+            or remote_type is not None
+            or (remote_percent is not None and remote_percent > 0)
+        )
     else:  # "remote"
         remote_satisfied = full_remote
 
@@ -283,7 +291,7 @@ def assess(
         separate (FR-06 AC4), per-dimension rubric verdicts, matches, gaps
         and unknown dimensions.
 
-    Related: FR-05 AC3, FR-05 AC5, FR-06, spec §7
+    Related: FR-05 AC3, FR-05 AC5, FR-06, spec §7, D-25
     """
     exclusion_reasons = hard_exclusions(
         details, profile, excluded_employers or [], distance_km=summary.distance_km
@@ -321,6 +329,12 @@ def assess(
     low_evidence = details.low_evidence or too_many_unknowns
     if too_many_unknowns and category == "strong":
         category = "partial"
+
+    # D-25 (2026-11-16): a clear skill mismatch caps the category at "poor"
+    # regardless of the weighted share - mirrors the unknown-dimensions cap
+    # above (a specific dimension outcome overriding the weighted average).
+    if rubric["skills"] == "not_met" and category != "poor":
+        category = "poor"
 
     if exclusion_reasons:
         category = "excluded"
