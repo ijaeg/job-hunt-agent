@@ -1,10 +1,13 @@
-"""Fit evaluation (spec §9.3, WP-14): app vs. hand label.
+"""Fit evaluation (spec §9.3, WP-14, WP-14b): app vs. hand label.
 
 Runs the real ``assess_fit`` extraction-and-rubric code path (reused, not
 copied, from ``job_hunt_agent.tools.assess``/``job_hunt_agent.rubric``) over
-one set (``dev`` or ``test``) of ``eval/fit_set.yaml`` against the fixture
-set (demo mode, invariant 6, NFR-09) and compares the result with Ingo's
-hand label (``eval/fit_labels.csv``, D-20).
+one set - ``dev``/``test`` from ``eval/fit_set.yaml`` (WP-14 round 1; both
+are now development listings, D-26 step 1), or ``round2`` from
+``eval/fit_set_round2.yaml`` (WP-14b/D-26's fresh test set for the new
+skills metric, D-27) - against the fixture set (demo mode, invariant 6,
+NFR-09) and compares the result with Ingo's hand label
+(``eval/fit_labels.csv``, D-20).
 
 Each listing is extracted **twice**, independently, so run-to-run spread is
 visible (mirrors §9.2's "each scenario runs twice"). The ``JobSummary`` is
@@ -24,12 +27,13 @@ Usage (needs OPENROUTER_API_KEY; runs against the fixture set, not the
 real BA API):
     uv run python eval/run_fit_eval.py --set dev
     uv run python eval/run_fit_eval.py --set test
+    uv run python eval/run_fit_eval.py --set round2
 
 Writes:
-    eval/results/fit_eval_dev.json / fit_eval_test.json
+    eval/results/fit_eval_dev.json / fit_eval_test.json / fit_eval_round2_test.json
 
 Related: spec §7, §9.1, §9.3, FR-05 AC2, FR-06, NFR-09, invariant 6, D-9,
-D-20, WP-14
+D-20, D-26, D-27, WP-14, WP-14b
 """
 
 from __future__ import annotations
@@ -59,6 +63,9 @@ from job_hunt_agent.rubric import assess as rubric_assess  # noqa: E402
 from job_hunt_agent.tools.assess import _extract_one, load_extraction_prompt_template  # noqa: E402
 
 FIT_SET_PATH = PROJECT_ROOT / "eval" / "fit_set.yaml"
+#: WP-14b/D-26's fresh test set (10 listings), drawn after fit_set.yaml's 20
+#: became all-development; labelled into the same eval/fit_labels.csv.
+FIT_SET_ROUND2_PATH = PROJECT_ROOT / "eval" / "fit_set_round2.yaml"
 FIT_LABELS_PATH = PROJECT_ROOT / "eval" / "fit_labels.csv"
 LISTINGS_PATH = PROJECT_ROOT / "data" / "samples" / "fixtures" / "listings.json"
 RECORDED_SEARCHES_PATH = PROJECT_ROOT / "data" / "samples" / "fixtures" / "recorded_searches.json"
@@ -319,13 +326,21 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--set",
-        choices=["dev", "test"],
+        choices=["dev", "test", "round2"],
         required=True,
-        help="Which eval/fit_set.yaml split to run (invariant 6: test is never used for tuning).",
+        help=(
+            "Which set to run: 'dev'/'test' are eval/fit_set.yaml's splits "
+            "(now both development, D-26 step 1); 'round2' is the fresh "
+            "WP-14b/D-26 test set, eval/fit_set_round2.yaml (invariant 6: "
+            "never used for tuning)."
+        ),
     )
     args = parser.parse_args()
 
-    fit_set = [row for row in load_fit_set() if row["set"] == args.set]
+    if args.set == "round2":
+        fit_set = load_fit_set(FIT_SET_ROUND2_PATH)
+    else:
+        fit_set = [row for row in load_fit_set() if row["set"] == args.set]
     labels = load_labels()
     raw_listings: list[dict[str, Any]] = json.loads(LISTINGS_PATH.read_text(encoding="utf-8"))
     listings_by_ref = {listing["referenznummer"]: listing for listing in raw_listings}
@@ -405,7 +420,8 @@ def main() -> int:
     }
 
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
-    out_path = RESULTS_DIR / f"fit_eval_{args.set}.json"
+    out_name = "fit_eval_round2_test.json" if args.set == "round2" else f"fit_eval_{args.set}.json"
+    out_path = RESULTS_DIR / out_name
     out_path.write_text(json.dumps(results, indent=2, ensure_ascii=False), encoding="utf-8")
     print(f"\nResults: {out_path}")
     print(

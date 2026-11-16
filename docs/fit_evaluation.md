@@ -340,3 +340,265 @@ sit):
 > preference satisfied; a `remote` preference still requires a confirmed
 > 100 % remote share, since a stated-but-unquantified type does not
 > guarantee fully remote work (D-23).
+
+---
+
+## Second round (D-26)
+
+Round 1's headline finding was that the skills metric - share of *all*
+extracted skills the profile covers - made `skills: not_met` fire on all
+12 test listings, because real ads name 10-60 technologies against Alex's
+6-skill profile. D-26 opened a second, rule-bound round to replace that
+metric: a fresh 10-listing test set drawn and approved *before* any code
+change, the new metric tuned on the 20 now-development listings only (by
+re-scoring stored round-1 extractions, no new model calls), a stop
+criterion fixed in advance, and - only if that criterion was met - one new
+test run, reported whatever its outcome (D-26 rules 1-4).
+
+### Sanity check
+
+Before computing anything with a new metric, `eval/rescore_fit_round2.py`
+re-scored all 40 stored round-1 runs (8 dev + 12 test listings, now all
+"development") with the **current** (shipped) metric and compared the
+result against the stored skills verdicts and categories. **40/40
+matched exactly** - the re-scoring harness itself introduces no
+discrepancy, so the subsequent new-metric numbers are not an artifact of
+the harness.
+
+### Dev-set variants (D-27)
+
+Four variants were computed on the 20 development listings: `matched` =
+number of distinct profile skills found among the extracted skills;
+`not_met` if 0, `partly` if `1 <= matched < N`, `met` if `matched >= N`;
+N = 2 or 3, each with and without D-25's cap (`skills: not_met` caps the
+category at `poor`). D-26's stop criterion: ≥ 12/20 correct category in
+both runs, ≤ 2 listings differing between runs.
+
+| Variant | Correct run 1 | Correct run 2 | Skills dim. agreement (r1/r2) | Categories differing between runs | Meets stop criterion? |
+|---|---|---|---|---|---|
+| N=2, with cap | 10/20 (50.0%) | 10/20 (50.0%) | 60.0% / 55.0% | 0 | No |
+| N=2, no cap | 8/20 (40.0%) | 8/20 (40.0%) | 60.0% / 55.0% | 0 | No |
+| N=3, with cap | 14/20 (70.0%) | 15/20 (75.0%) | 75.0% / 70.0% | 1 | **Yes** |
+| N=3, no cap | 12/20 (60.0%) | 13/20 (65.0%) | 75.0% / 70.0% | 1 | Yes (run 1 at the floor) |
+
+For reference, round 1's current metric scored 33.3% on its 12-listing
+test set and, applied to all 20 now-development listings, 40% (8/20, both
+runs) - N=3 with cap nearly doubles that. Removing D-25's cap never helps
+(it is unaffected by which skills metric feeds it, and still catches a
+genuine zero-overlap case independently).
+
+**Chosen variant (D-27): N = 3, with cap.** The only variant with real
+margin over the stop criterion. Its known cost, measured on the dev set:
+3 of 20 listings in run 1 (2 in run 2) reach `category: strong` where
+Ingo's label is `partial` - no listing in the labelled set is ever
+`strong`, so these are guaranteed false positives. Only one of the three
+(`19913-3074751792188001-S`) is actually driven by the new metric (3
+matched skills -> `skills: met`); the other two score `skills: partly`
+and reach `strong` because the other four dimensions alone carry the
+weighted share over `STRONG_THRESHOLD` - a pre-existing shape (identical
+to what D-25 was built to catch, but at the opposite end: `not_met` vs.
+`partly`) that recurs independently of which skills metric is in use.
+Implemented in `src/job_hunt_agent/rubric.py` (`_skills_verdict`,
+`SKILLS_MATCHED_THRESHOLD = 3`), with `category_from_rubric` pulled out
+of `assess` as a pure function so this re-scoring could happen without a
+model call; tests in `tests/test_rubric.py`.
+
+### Fresh test set
+
+10 listings, drawn from the real fixture listings not already in
+`eval/fit_set.yaml` by a written rule (`random.Random(1400)`, same strata
+as round 1, employer cap 2 across all 30), approved by Ingo before any
+code change (D-26 rule 1), recorded in `eval/fit_set_round2.yaml`.
+Labelled blind (D-20) with `scripts/label_fit.py`, extended to continue
+into this set after the original 20; 5 of the 10 labels were corrected
+after a coach review against `docs/labelling_guide.md`, each with a note
+in `eval/fit_labels.csv` (`12265-485605_JB5289418-S`,
+`12336-a26f1192j0455715-S`, `19121-44499216-1011-S`,
+`14225-d10be3b2dd249dcf-S`, `10001-1003935843-S`).
+
+**Run once, 2026-11-16** (invariant 6: never used for tuning, no code or
+threshold change after this run). `openai/gpt-5-mini`, reasoning effort
+`low`. 10 listings, 2 runs each. Full output:
+`eval/results/fit_eval_round2_test.json`.
+
+#### Numbers
+
+| Metric | Run 1 | Run 2 |
+|---|---|---|
+| **Category accuracy (vs. label)** | **60.0% (6/10)** | **60.0% (6/10)** |
+| Skills dimension agreement | 90.0% | 90.0% |
+| Location/remote dimension agreement | 60.0% | 60.0% |
+| Seniority dimension agreement | 100.0% | 70.0% |
+| Language dimension agreement | 90.0% | 90.0% |
+| Employment type dimension agreement | 80.0% | 80.0% |
+
+Category accuracy nearly doubles round 1's 33.3% - consistent with the
+dev-set improvement (D-27) carrying over to an unseen sample.
+
+**4x4 confusion matrix** (rows = Ingo's label, columns = app category):
+
+Run 1:
+
+| label \ app | strong | partial | poor | excluded |
+|---|---|---|---|---|
+| **strong** | 1 | 0 | 0 | 0 |
+| **partial** | 1 | 3 | 0 | 0 |
+| **poor** | 1 | 1 | 1 | 0 |
+| **excluded** | 0 | 1 | 0 | 1 |
+
+Run 2:
+
+| label \ app | strong | partial | poor | excluded |
+|---|---|---|---|---|
+| **strong** | 1 | 0 | 0 | 0 |
+| **partial** | 1 | 3 | 0 | 0 |
+| **poor** | 0 | 2 | 1 | 0 |
+| **excluded** | 0 | 1 | 0 | 1 |
+
+`dropped_evidence`: **4** across the 20 runs (10 listings x 2) - low,
+consistent with round 1's test-set finding that D-21's granularity fix
+holds up on an unseen sample.
+
+**Run-to-run agreement:** category **9/10 (90%)** - only
+`14225-d10be3b2dd249dcf-S` differs (`strong` run 1 vs. `partial` run 2).
+Per-dimension: skills 10/10, location_remote 10/10, seniority 7/10,
+language 10/10, employment_type 10/10 - seniority is the only dimension
+with spread, all three cases the model inferring a level in one run that
+it left unmentioned in the other (see `extraction_error` below).
+
+#### Every disagreement, with cause
+
+27 disagreements across 10 listings x 2 runs x 6 fields (120 comparisons).
+Classified the same way as round 1 (reading the ad text and extraction
+output against §7):
+
+| Cause | Count |
+|---|---|
+| `data_issue` | 14 |
+| `rubric_rule_or_threshold` | 8 |
+| `extraction_error` | 3 |
+| `label_ambiguity` | 2 |
+| `code_deviation` | 0 |
+
+This is a markedly different distribution from round 1, where
+`rubric_rule_or_threshold` dominated (32 of 61) because the old skills
+metric made `not_met` fire almost everywhere. With that fixed,
+`data_issue` - mostly D-24's already-documented limitation - becomes the
+largest class on this sample.
+
+- **`data_issue` (14, the dominant cause):**
+  - **D-24's remote-free-text-vs-structured-fields gap recurs on 3 of 10
+    listings** (`12265-485605_JB5289418-S`, `17338-61cf767722ad450056-S`,
+    `19121-44499216-1011-S`, 2 disagreements each - `location_remote` in
+    both runs): the ad text states remote/mobile/hybrid work
+    (`"mobiles Arbeiten"`, title `"- Hybrid"`) but `remote_type`/
+    `remote_percent` are empty, so the rubric's structured-fields-only
+    rule (D-24, Option 1, no code change) computes `partly` where Ingo's
+    label, reading the free text, says `met`. Consistent with round 1's
+    finding that this gap affects roughly a third of listings.
+  - **`12336-a26f1192j0455715-S` is a BA data contradiction** (per this
+    round's reporting instruction): the listing's location is München,
+    but it came from the Hamburg 25 km search with no `distance_km` at
+    all, so the rubric's "no distance counts as within radius" rule (the
+    same rule the labelling guide documents) computes `partly`/`partial`
+    where Ingo's label - reading the actual München location against a
+    Hamburg-origin search - says `not_met`/`excluded` (category and
+    `location_remote`, both runs: 4 disagreements).
+  - **A `full_time` structured-field contradiction recurs on the two
+    listings sharing fixture source prefix `13644`** (`13644-313096-S`,
+    employer "zeb", and `13644-313865-S`, employer "PTA";
+    `employment_type`, both runs: 4 disagreements): `full_time` is
+    `False` in the fixture data for both, but neither ad text mentions
+    part-time at all - the structured field looks unreliable for this
+    source batch, not a genuine part-time signal, so Ingo's `met` label
+    stands. (A third, unrelated listing in this set, `10001-1003900679-S`,
+    employer "PTA GmbH" from a different source prefix `10001`, has
+    `full_time: True` and is not part of this pattern.)
+- **`rubric_rule_or_threshold` (8):**
+  - **The false-`strong` risk flagged in D-27 recurred on the test set**
+    (`10001-1003900679-S`, both runs, 4 disagreements - `category` and
+    `skills`): 3 of Alex's 6 profile skills (Python, Java, CI/CD) appear
+    among the extracted skills, scoring `skills: met` under the new
+    metric (`matched >= N=3`) and pushing the category to `strong`; Ingo's
+    label is `partial`. This is the same mechanism D-27 already reported
+    as a known cost of N=3 before the test run (dev-set listing
+    `19913-3074751792188001-S`) - confirmed, not new.
+  - **Two listings reach a category Ingo would not, on dimension verdicts
+    that otherwise agree or nearly agree with the label**
+    (`14225-d10be3b2dd249dcf-S` run 1: `strong` vs. `poor`, run 2:
+    `partial` vs. `poor`; `10001-1003935843-S`: `partial` vs. `poor`,
+    both runs - 4 disagreements): for `10001-1003935843-S`, all 5
+    dimension verdicts match the label exactly, yet the weighted-share
+    category still disagrees - the same shape D-25 was built for, but
+    with `skills: partly` (not `not_met`), so the cap does not apply.
+    For `14225-d10be3b2dd249dcf-S` run 1, only 3 of 5 dimensions are known
+    (seniority and language drop out as `unknown`), and `skills: partly`
+    plus two `met` dimensions lands the share at exactly 0.75
+    (`STRONG_THRESHOLD`) - a small known-dimension set can round a
+    middling skills result up to `strong` on its own, independent of the
+    skills metric. Both are a holistic-judgment-vs-weighted-average gap,
+    not an extraction or data problem.
+- **`extraction_error` (3):** every case is the model inferring a
+  `seniority` level in one run that it left `unmentioned` (matching the
+  label) in the other - `12265-485605_JB5289418-S`,
+  `10001-1003964360-S`, `14225-d10be3b2dd249dcf-S` (one run each,
+  accounting for all 3 of the dimension's 7/10 run-to-run disagreements
+  above).
+- **`label_ambiguity` (2):** `13644-313096-S`'s `language` dimension, both
+  runs - the ad asks for "sehr gute Deutschkenntnisse (mindestens
+  C1-Niveau, verhandlungssicher)"; the app reads this as one level above
+  Alex's `basic` (`partly`), Ingo's label reads the same wording as two or
+  more levels above (`not_met`) - a defensible judgment call on where a
+  C1/business-fluent requirement sits on the four-level scale, not a
+  wrong extraction (the model's `german_level` output matches what it
+  read).
+- **`code_deviation` (0):** none on this set.
+
+### Limitations (second round)
+
+- **The chosen metric's false-`strong` risk is confirmed, not just
+  theoretical.** D-27 flagged it from 3 dev-set listings; it recurred on
+  1 of 10 fresh test listings, in both runs - small-sample evidence
+  either way, but consistent across two independent samples now.
+- **`data_issue` dominance on this 10-listing sample is partly a quirk of
+  the draw**, not evidence that data problems got more common: 6 of the
+  14 `data_issue` disagreements are the same D-24 remote-free-text gap
+  already measured on round 1 (there: 4 of 12 listings; here: 3 of 10
+  listings x 2 runs, consistent), and 4 more are the `13644`-source-prefix
+  listings' shared `full_time` anomaly - two root causes counted per
+  field/run, not 10 independent findings.
+- **Small sample, again.** 10 fresh test listings is not enough to
+  separate "this specific draw" from "this metric's general behaviour" -
+  the 60% category accuracy is a real, large improvement over round 1's
+  33.3%, but neither number should be read as a precise rate.
+- **One labeller, who also designed the rubric** (unchanged from round 1).
+  Both rounds had a coach review against the labelling guide before the
+  labels were committed - round 1's WP-13 addendum 3 corrected 9
+  location/remote verdicts with notes in `eval/fit_labels.csv`, this
+  round's review corrected 5 of 10 rows, also with notes - but a coach
+  review of Ingo's own labels is still not a second independent
+  labeller's judgment.
+- **Still no listing labelled `strong`, until now.** This round's test
+  set has the evaluation's first-ever `strong`-labelled listing
+  (`17338-61cf767722ad450056-S`), and the app gets it right in both runs
+  - a first, small, positive data point on a category round 1 could not
+  test at all in either direction.
+
+### Proposed spec §7 wording (round 2)
+
+One change, for the coach to apply to `PRODUCT_SPEC.md` (CLAUDE.md: Claude
+Code does not edit the spec directly) - replaces the existing "Skills"
+row's matching description, which still describes round 1's "share of
+all extracted skills" metric:
+
+> **Skills:** a profile skill matches when it occurs in an extracted
+> skill name as a **whole word**, case-insensitive (unchanged, D-9). The
+> verdict is based on how many *distinct profile skills* the ad names,
+> not the share of all skills the ad names: `met` if 3 or more profile
+> skills are found, `partly` if 1 or 2 are found, `not met` if none are
+> found, `unknown` if no skill was extracted at all (D-21, D-26, D-27).
+
+This replaces the round-1 wording ("≥ 70% of extracted skills in profile
+/ 40-69% / < 40%") in the §7 table's "Skills" row and its explanatory
+paragraph; the `not_met` -> `poor` cap (D-25, already proposed above) is
+unaffected and still applies to the new verdict.

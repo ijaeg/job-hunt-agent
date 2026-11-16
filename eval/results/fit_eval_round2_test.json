@@ -1,0 +1,3162 @@
+{
+  "set": "round2",
+  "model": "openai/gpt-5-mini",
+  "reasoning_effort": "low",
+  "run_date": "2026-11-16",
+  "run_datetime_utc": "2026-11-16T17:38:28.636862+00:00",
+  "n_listings": 10,
+  "category_accuracy_by_run": {
+    "1": 0.6,
+    "2": 0.6
+  },
+  "confusion_matrix_by_run": {
+    "1": {
+      "strong": {
+        "strong": 1,
+        "partial": 0,
+        "poor": 0,
+        "excluded": 0
+      },
+      "partial": {
+        "strong": 1,
+        "partial": 3,
+        "poor": 0,
+        "excluded": 0
+      },
+      "poor": {
+        "strong": 1,
+        "partial": 1,
+        "poor": 1,
+        "excluded": 0
+      },
+      "excluded": {
+        "strong": 0,
+        "partial": 1,
+        "poor": 0,
+        "excluded": 1
+      }
+    },
+    "2": {
+      "strong": {
+        "strong": 1,
+        "partial": 0,
+        "poor": 0,
+        "excluded": 0
+      },
+      "partial": {
+        "strong": 1,
+        "partial": 3,
+        "poor": 0,
+        "excluded": 0
+      },
+      "poor": {
+        "strong": 0,
+        "partial": 2,
+        "poor": 1,
+        "excluded": 0
+      },
+      "excluded": {
+        "strong": 0,
+        "partial": 1,
+        "poor": 0,
+        "excluded": 1
+      }
+    }
+  },
+  "dimension_agreement_by_run": {
+    "1": {
+      "skills": 0.9,
+      "location_remote": 0.6,
+      "seniority": 1.0,
+      "language": 0.9,
+      "employment_type": 0.8
+    },
+    "2": {
+      "skills": 0.9,
+      "location_remote": 0.6,
+      "seniority": 0.7,
+      "language": 0.9,
+      "employment_type": 0.8
+    }
+  },
+  "total_dropped_evidence": 4,
+  "disagreements": [
+    {
+      "referenznummer": "12265-485605_JB5289418-S",
+      "run": 1,
+      "field": "location_remote",
+      "app_value": "partly",
+      "label_value": "met",
+      "label_note": "5 km vom Suchort München; Text nennt mobiles Arbeiten (Korrektur nach Leitfaden)",
+      "cause": "data_issue"
+    },
+    {
+      "referenznummer": "12265-485605_JB5289418-S",
+      "run": 2,
+      "field": "location_remote",
+      "app_value": "partly",
+      "label_value": "met",
+      "label_note": "5 km vom Suchort München; Text nennt mobiles Arbeiten (Korrektur nach Leitfaden)",
+      "cause": "data_issue"
+    },
+    {
+      "referenznummer": "12265-485605_JB5289418-S",
+      "run": 2,
+      "field": "seniority",
+      "app_value": "partly",
+      "label_value": "unknown",
+      "label_note": "",
+      "cause": "extraction_error"
+    },
+    {
+      "referenznummer": "13644-313096-S",
+      "run": 1,
+      "field": "language",
+      "app_value": "partly",
+      "label_value": "not_met",
+      "label_note": "",
+      "cause": "label_ambiguity"
+    },
+    {
+      "referenznummer": "13644-313096-S",
+      "run": 1,
+      "field": "employment_type",
+      "app_value": "not_met",
+      "label_value": "met",
+      "label_note": "",
+      "cause": "data_issue"
+    },
+    {
+      "referenznummer": "13644-313096-S",
+      "run": 2,
+      "field": "language",
+      "app_value": "partly",
+      "label_value": "not_met",
+      "label_note": "",
+      "cause": "label_ambiguity"
+    },
+    {
+      "referenznummer": "13644-313096-S",
+      "run": 2,
+      "field": "employment_type",
+      "app_value": "not_met",
+      "label_value": "met",
+      "label_note": "",
+      "cause": "data_issue"
+    },
+    {
+      "referenznummer": "10001-1003964360-S",
+      "run": 2,
+      "field": "seniority",
+      "app_value": "met",
+      "label_value": "unknown",
+      "label_note": "",
+      "cause": "extraction_error"
+    },
+    {
+      "referenznummer": "12336-a26f1192j0455715-S",
+      "run": 1,
+      "field": "category",
+      "app_value": "partial",
+      "label_value": "excluded",
+      "label_note": "",
+      "cause": "data_issue"
+    },
+    {
+      "referenznummer": "12336-a26f1192j0455715-S",
+      "run": 1,
+      "field": "location_remote",
+      "app_value": "partly",
+      "label_value": "not_met",
+      "label_note": "Ort München aus Suche Hamburg 25 km; Entfernung fehlt in den Daten (Datenwiderspruch); außerhalb Radius -> harter Ausschluss",
+      "cause": "data_issue"
+    },
+    {
+      "referenznummer": "12336-a26f1192j0455715-S",
+      "run": 2,
+      "field": "category",
+      "app_value": "partial",
+      "label_value": "excluded",
+      "label_note": "",
+      "cause": "data_issue"
+    },
+    {
+      "referenznummer": "12336-a26f1192j0455715-S",
+      "run": 2,
+      "field": "location_remote",
+      "app_value": "partly",
+      "label_value": "not_met",
+      "label_note": "Ort München aus Suche Hamburg 25 km; Entfernung fehlt in den Daten (Datenwiderspruch); außerhalb Radius -> harter Ausschluss",
+      "cause": "data_issue"
+    },
+    {
+      "referenznummer": "17338-61cf767722ad450056-S",
+      "run": 1,
+      "field": "location_remote",
+      "app_value": "partly",
+      "label_value": "met",
+      "label_note": "",
+      "cause": "data_issue"
+    },
+    {
+      "referenznummer": "17338-61cf767722ad450056-S",
+      "run": 2,
+      "field": "location_remote",
+      "app_value": "partly",
+      "label_value": "met",
+      "label_note": "",
+      "cause": "data_issue"
+    },
+    {
+      "referenznummer": "13644-313865-S",
+      "run": 1,
+      "field": "employment_type",
+      "app_value": "not_met",
+      "label_value": "met",
+      "label_note": "",
+      "cause": "data_issue"
+    },
+    {
+      "referenznummer": "13644-313865-S",
+      "run": 2,
+      "field": "employment_type",
+      "app_value": "not_met",
+      "label_value": "met",
+      "label_note": "",
+      "cause": "data_issue"
+    },
+    {
+      "referenznummer": "10001-1003900679-S",
+      "run": 1,
+      "field": "category",
+      "app_value": "strong",
+      "label_value": "partial",
+      "label_note": "",
+      "cause": "rubric_rule_or_threshold"
+    },
+    {
+      "referenznummer": "10001-1003900679-S",
+      "run": 1,
+      "field": "skills",
+      "app_value": "met",
+      "label_value": "partly",
+      "label_note": "",
+      "cause": "rubric_rule_or_threshold"
+    },
+    {
+      "referenznummer": "10001-1003900679-S",
+      "run": 2,
+      "field": "category",
+      "app_value": "strong",
+      "label_value": "partial",
+      "label_note": "",
+      "cause": "rubric_rule_or_threshold"
+    },
+    {
+      "referenznummer": "10001-1003900679-S",
+      "run": 2,
+      "field": "skills",
+      "app_value": "met",
+      "label_value": "partly",
+      "label_note": "",
+      "cause": "rubric_rule_or_threshold"
+    },
+    {
+      "referenznummer": "19121-44499216-1011-S",
+      "run": 1,
+      "field": "location_remote",
+      "app_value": "partly",
+      "label_value": "met",
+      "label_note": "14 km vom Suchort München; Text nennt mobiles Arbeiten (Korrektur nach Leitfaden)",
+      "cause": "data_issue"
+    },
+    {
+      "referenznummer": "19121-44499216-1011-S",
+      "run": 2,
+      "field": "location_remote",
+      "app_value": "partly",
+      "label_value": "met",
+      "label_note": "14 km vom Suchort München; Text nennt mobiles Arbeiten (Korrektur nach Leitfaden)",
+      "cause": "data_issue"
+    },
+    {
+      "referenznummer": "14225-d10be3b2dd249dcf-S",
+      "run": 1,
+      "field": "category",
+      "app_value": "strong",
+      "label_value": "poor",
+      "label_note": "",
+      "cause": "rubric_rule_or_threshold"
+    },
+    {
+      "referenznummer": "14225-d10be3b2dd249dcf-S",
+      "run": 2,
+      "field": "category",
+      "app_value": "partial",
+      "label_value": "poor",
+      "label_note": "",
+      "cause": "rubric_rule_or_threshold"
+    },
+    {
+      "referenznummer": "14225-d10be3b2dd249dcf-S",
+      "run": 2,
+      "field": "seniority",
+      "app_value": "partly",
+      "label_value": "unknown",
+      "label_note": "",
+      "cause": "extraction_error"
+    },
+    {
+      "referenznummer": "10001-1003935843-S",
+      "run": 1,
+      "field": "category",
+      "app_value": "partial",
+      "label_value": "poor",
+      "label_note": "",
+      "cause": "rubric_rule_or_threshold"
+    },
+    {
+      "referenznummer": "10001-1003935843-S",
+      "run": 2,
+      "field": "category",
+      "app_value": "partial",
+      "label_value": "poor",
+      "label_note": "",
+      "cause": "rubric_rule_or_threshold"
+    }
+  ],
+  "listings": [
+    {
+      "referenznummer": "12265-485605_JB5289418-S",
+      "title": "Embedded-Software-Entwickler (m/w/d)",
+      "employer": "FERCHAU GmbH Niederlassung München Mobility",
+      "stratum": "temp_agency",
+      "search_location": "München (radius 25 km, query \"Softwareentwickler\")",
+      "label": {
+        "referenznummer": "12265-485605_JB5289418-S",
+        "category": "excluded",
+        "skills_verdict": "partly",
+        "location_remote_verdict": "met",
+        "seniority_verdict": "unknown",
+        "language_verdict": "partly",
+        "employment_type_verdict": "met",
+        "skills_note": "",
+        "location_remote_note": "5 km vom Suchort München; Text nennt mobiles Arbeiten (Korrektur nach Leitfaden)",
+        "seniority_note": "",
+        "language_note": "",
+        "employment_type_note": "",
+        "timestamp": "2026-11-16T17:02:15.448921+00:00"
+      },
+      "runs": [
+        {
+          "referenznummer": "12265-485605_JB5289418-S",
+          "run": 1,
+          "category": "excluded",
+          "rubric": {
+            "skills": "partly",
+            "location_remote": "partly",
+            "seniority": "unknown",
+            "language": "partly",
+            "employment_type": "met"
+          },
+          "exclusion_reasons": [
+            "temporary agency work (Arbeitnehmerüberlassung)"
+          ],
+          "dropped_evidence": 0,
+          "low_evidence": false,
+          "extracted_skills": [
+            {
+              "name": "C",
+              "required": false,
+              "evidence_de": "C/C++/Qt (QML)",
+              "evidence_en": "C/C++/Qt (QML)"
+            },
+            {
+              "name": "C++",
+              "required": false,
+              "evidence_de": "C/C++/Qt (QML)",
+              "evidence_en": "C/C++/Qt (QML)"
+            },
+            {
+              "name": "Qt",
+              "required": false,
+              "evidence_de": "C/C++/Qt (QML)",
+              "evidence_en": "C/C++/Qt (QML)"
+            },
+            {
+              "name": "QML",
+              "required": false,
+              "evidence_de": "C/C++/Qt (QML)",
+              "evidence_en": "C/C++/Qt (QML)"
+            },
+            {
+              "name": "Python",
+              "required": false,
+              "evidence_de": "C/C++/Qt (QML) und Python",
+              "evidence_en": "C/C++/Qt (QML) and Python"
+            },
+            {
+              "name": "Mikrocontroller-Programmierung",
+              "required": false,
+              "evidence_de": "praktische Erfahrung mit Mikrocontroller-Programmierung",
+              "evidence_en": "practical experience with microcontroller programming"
+            },
+            {
+              "name": "ECU",
+              "required": false,
+              "evidence_de": "ECU, Mikrocontroller, Firmware, Infotainment",
+              "evidence_en": "ECU, microcontroller, firmware, infotainment"
+            },
+            {
+              "name": "Firmware",
+              "required": false,
+              "evidence_de": "ECU, Mikrocontroller, Firmware, Infotainment",
+              "evidence_en": "ECU, microcontroller, firmware, infotainment"
+            },
+            {
+              "name": "Infotainment",
+              "required": false,
+              "evidence_de": "ECU, Mikrocontroller, Firmware, Infotainment",
+              "evidence_en": "ECU, microcontroller, firmware, infotainment"
+            },
+            {
+              "name": "Hardware-in-the-Loop (HiL)",
+              "required": false,
+              "evidence_de": "insbesondere im Umfeld von Hardware-in-the-Loop (HiL)",
+              "evidence_en": "especially in the area of Hardware-in-the-Loop (HiL)"
+            },
+            {
+              "name": "automatisierte Softwaretests",
+              "required": false,
+              "evidence_de": "Entwicklung und Implementierung von Lösungen für automatisierte Softwaretests",
+              "evidence_en": "development and implementation of solutions for automated software tests"
+            },
+            {
+              "name": "Unit-Tests",
+              "required": false,
+              "evidence_de": "Softwaretests auf Unit- und Komponentenebene",
+              "evidence_en": "software tests at unit and component level"
+            },
+            {
+              "name": "Code-Review",
+              "required": false,
+              "evidence_de": "strukturierte Code-Reviews",
+              "evidence_en": "structured code reviews"
+            },
+            {
+              "name": "CAN",
+              "required": false,
+              "evidence_de": "gängigen Feldbussystemen (CAN, I²C, SPI, Ethernet)",
+              "evidence_en": "common fieldbus systems (CAN, I²C, SPI, Ethernet)"
+            },
+            {
+              "name": "I²C",
+              "required": false,
+              "evidence_de": "gängigen Feldbussystemen (CAN, I²C, SPI, Ethernet)",
+              "evidence_en": "common fieldbus systems (CAN, I²C, SPI, Ethernet)"
+            },
+            {
+              "name": "SPI",
+              "required": false,
+              "evidence_de": "gängigen Feldbussystemen (CAN, I²C, SPI, Ethernet)",
+              "evidence_en": "common fieldbus systems (CAN, I²C, SPI, Ethernet)"
+            },
+            {
+              "name": "Ethernet",
+              "required": false,
+              "evidence_de": "gängigen Feldbussystemen (CAN, I²C, SPI, Ethernet)",
+              "evidence_en": "common fieldbus systems (CAN, I²C, SPI, Ethernet)"
+            }
+          ],
+          "extraction_error": null
+        },
+        {
+          "referenznummer": "12265-485605_JB5289418-S",
+          "run": 2,
+          "category": "excluded",
+          "rubric": {
+            "skills": "partly",
+            "location_remote": "partly",
+            "seniority": "partly",
+            "language": "partly",
+            "employment_type": "met"
+          },
+          "exclusion_reasons": [
+            "temporary agency work (Arbeitnehmerüberlassung)"
+          ],
+          "dropped_evidence": 0,
+          "low_evidence": false,
+          "extracted_skills": [
+            {
+              "name": "C",
+              "required": false,
+              "evidence_de": "mehrjährige Erfahrung (mindestens 3 Jahre) in der Embedded-Entwicklung mit C/C++/Qt (QML) und Python",
+              "evidence_en": "several years of experience (at least 3 years) in embedded development with C/C++/Qt (QML) and Python"
+            },
+            {
+              "name": "C++",
+              "required": false,
+              "evidence_de": "mehrjährige Erfahrung (mindestens 3 Jahre) in der Embedded-Entwicklung mit C/C++/Qt (QML) und Python",
+              "evidence_en": "several years of experience (at least 3 years) in embedded development with C/C++/Qt (QML) and Python"
+            },
+            {
+              "name": "Qt",
+              "required": false,
+              "evidence_de": "mehrjährige Erfahrung (mindestens 3 Jahre) in der Embedded-Entwicklung mit C/C++/Qt (QML) und Python",
+              "evidence_en": "several years of experience (at least 3 years) in embedded development with C/C++/Qt (QML) and Python"
+            },
+            {
+              "name": "QML",
+              "required": false,
+              "evidence_de": "mehrjährige Erfahrung (mindestens 3 Jahre) in der Embedded-Entwicklung mit C/C++/Qt (QML) und Python",
+              "evidence_en": "several years of experience (at least 3 years) in embedded development with C/C++/Qt (QML) and Python"
+            },
+            {
+              "name": "Python",
+              "required": false,
+              "evidence_de": "mehrjährige Erfahrung (mindestens 3 Jahre) in der Embedded-Entwicklung mit C/C++/Qt (QML) und Python",
+              "evidence_en": "several years of experience (at least 3 years) in embedded development with C/C++/Qt (QML) and Python"
+            },
+            {
+              "name": "Mikrocontroller-Programmierung",
+              "required": false,
+              "evidence_de": "Du hast praktische Erfahrung mit Mikrocontroller-Programmierung, ECU, Firmware, Infotainment oder ähnlichen Bereichen",
+              "evidence_en": "You have practical experience with microcontroller programming, ECU, firmware, infotainment or similar areas"
+            },
+            {
+              "name": "ECU",
+              "required": false,
+              "evidence_de": "Du hast praktische Erfahrung mit Mikrocontroller-Programmierung, ECU, Firmware, Infotainment oder ähnlichen Bereichen",
+              "evidence_en": "You have practical experience with microcontroller programming, ECU, firmware, infotainment or similar areas"
+            },
+            {
+              "name": "Firmware",
+              "required": false,
+              "evidence_de": "Du hast praktische Erfahrung mit Mikrocontroller-Programmierung, ECU, Firmware, Infotainment oder ähnlichen Bereichen",
+              "evidence_en": "You have practical experience with microcontroller programming, ECU, firmware, infotainment or similar areas"
+            },
+            {
+              "name": "Infotainment",
+              "required": false,
+              "evidence_de": "Du hast praktische Erfahrung mit Mikrocontroller-Programmierung, ECU, Firmware, Infotainment oder ähnlichen Bereichen",
+              "evidence_en": "You have practical experience with microcontroller programming, ECU, firmware, infotainment or similar areas"
+            },
+            {
+              "name": "CAN",
+              "required": false,
+              "evidence_de": "Du hast Kenntnisse in gängigen Feldbussystemen (CAN, I²C, SPI, Ethernet)",
+              "evidence_en": "You have knowledge of common fieldbus systems (CAN, I²C, SPI, Ethernet)"
+            },
+            {
+              "name": "I²C",
+              "required": false,
+              "evidence_de": "Du hast Kenntnisse in gängigen Feldbussystemen (CAN, I²C, SPI, Ethernet)",
+              "evidence_en": "You have knowledge of common fieldbus systems (CAN, I²C, SPI, Ethernet)"
+            },
+            {
+              "name": "SPI",
+              "required": false,
+              "evidence_de": "Du hast Kenntnisse in gängigen Feldbussystemen (CAN, I²C, SPI, Ethernet)",
+              "evidence_en": "You have knowledge of common fieldbus systems (CAN, I²C, SPI, Ethernet)"
+            },
+            {
+              "name": "Ethernet",
+              "required": false,
+              "evidence_de": "Du hast Kenntnisse in gängigen Feldbussystemen (CAN, I²C, SPI, Ethernet)",
+              "evidence_en": "You have knowledge of common fieldbus systems (CAN, I²C, SPI, Ethernet)"
+            },
+            {
+              "name": "Hardware-in-the-Loop (HiL)",
+              "required": false,
+              "evidence_de": "insbesondere im Umfeld von Hardware-in-the-Loop (HiL)",
+              "evidence_en": "particularly in the area of Hardware-in-the-Loop (HiL)"
+            },
+            {
+              "name": "Unit testing",
+              "required": false,
+              "evidence_de": "Du führst strukturierte Code-Reviews sowie Softwaretests auf Unit- und Komponentenebene durch",
+              "evidence_en": "You perform structured code reviews as well as software tests at unit and component level"
+            },
+            {
+              "name": "Code reviews",
+              "required": false,
+              "evidence_de": "Du führst strukturierte Code-Reviews sowie Softwaretests auf Unit- und Komponentenebene durch",
+              "evidence_en": "You perform structured code reviews as well as software tests at unit and component level"
+            }
+          ],
+          "extraction_error": null
+        }
+      ],
+      "run_to_run_agreement": {
+        "category": true,
+        "skills": true,
+        "location_remote": true,
+        "seniority": false,
+        "language": true,
+        "employment_type": true
+      }
+    },
+    {
+      "referenznummer": "13644-313096-S",
+      "title": "Java-Fullstack-Entwickler - Sparkassen (w|m|d) | findic",
+      "employer": "zeb",
+      "stratum": "skill_match",
+      "search_location": "Hamburg (radius 25 km, query \"Java Entwickler\")",
+      "label": {
+        "referenznummer": "13644-313096-S",
+        "category": "partial",
+        "skills_verdict": "partly",
+        "location_remote_verdict": "met",
+        "seniority_verdict": "unknown",
+        "language_verdict": "not_met",
+        "employment_type_verdict": "met",
+        "skills_note": "",
+        "location_remote_note": "",
+        "seniority_note": "",
+        "language_note": "",
+        "employment_type_note": "",
+        "timestamp": "2026-11-16T17:04:46.032516+00:00"
+      },
+      "runs": [
+        {
+          "referenznummer": "13644-313096-S",
+          "run": 1,
+          "category": "partial",
+          "rubric": {
+            "skills": "partly",
+            "location_remote": "met",
+            "seniority": "unknown",
+            "language": "partly",
+            "employment_type": "not_met"
+          },
+          "exclusion_reasons": [],
+          "dropped_evidence": 0,
+          "low_evidence": false,
+          "extracted_skills": [
+            {
+              "name": "Java",
+              "required": false,
+              "evidence_de": "Du verfügst über fundierte Erfahrungen in der Entwicklung moderner Softwarelösungen mit Java, Spring Boot, React, JavaScript und TypeScript.",
+              "evidence_en": "You have solid experience in developing modern software solutions with Java, Spring Boot, React, JavaScript and TypeScript."
+            },
+            {
+              "name": "Spring Boot",
+              "required": false,
+              "evidence_de": "Du verfügst über fundierte Erfahrungen in der Entwicklung moderner Softwarelösungen mit Java, Spring Boot, React, JavaScript und TypeScript.",
+              "evidence_en": "You have solid experience in developing modern software solutions with Java, Spring Boot, React, JavaScript and TypeScript."
+            },
+            {
+              "name": "React",
+              "required": false,
+              "evidence_de": "Du verfügst über fundierte Erfahrungen in der Entwicklung moderner Softwarelösungen mit Java, Spring Boot, React, JavaScript und TypeScript.",
+              "evidence_en": "You have solid experience in developing modern software solutions with Java, Spring Boot, React, JavaScript and TypeScript."
+            },
+            {
+              "name": "JavaScript",
+              "required": false,
+              "evidence_de": "Du verfügst über fundierte Erfahrungen in der Entwicklung moderner Softwarelösungen mit Java, Spring Boot, React, JavaScript und TypeScript.",
+              "evidence_en": "You have solid experience in developing modern software solutions with Java, Spring Boot, React, JavaScript and TypeScript."
+            },
+            {
+              "name": "TypeScript",
+              "required": false,
+              "evidence_de": "Du verfügst über fundierte Erfahrungen in der Entwicklung moderner Softwarelösungen mit Java, Spring Boot, React, JavaScript und TypeScript.",
+              "evidence_en": "You have solid experience in developing modern software solutions with Java, Spring Boot, React, JavaScript and TypeScript."
+            },
+            {
+              "name": "Relational Databases",
+              "required": false,
+              "evidence_de": "Der Umgang mit relationalen Datenbanken, insbesondere DB2, sowie die Entwicklung performanter SQL-Abfragen gehören für dich zum Alltag.",
+              "evidence_en": "Working with relational databases, especially DB2, as well as developing performant SQL queries is part of your everyday work."
+            },
+            {
+              "name": "DB2",
+              "required": false,
+              "evidence_de": "Der Umgang mit relationalen Datenbanken, insbesondere DB2, sowie die Entwicklung performanter SQL-Abfragen gehören für dich zum Alltag.",
+              "evidence_en": "Working with relational databases, especially DB2, as well as developing performant SQL queries is part of your everyday work."
+            },
+            {
+              "name": "SQL",
+              "required": false,
+              "evidence_de": "Der Umgang mit relationalen Datenbanken, insbesondere DB2, sowie die Entwicklung performanter SQL-Abfragen gehören für dich zum Alltag.",
+              "evidence_en": "Working with relational databases, especially DB2, as well as developing performant SQL queries is part of your everyday work."
+            }
+          ],
+          "extraction_error": null
+        },
+        {
+          "referenznummer": "13644-313096-S",
+          "run": 2,
+          "category": "partial",
+          "rubric": {
+            "skills": "partly",
+            "location_remote": "met",
+            "seniority": "unknown",
+            "language": "partly",
+            "employment_type": "not_met"
+          },
+          "exclusion_reasons": [],
+          "dropped_evidence": 0,
+          "low_evidence": false,
+          "extracted_skills": [
+            {
+              "name": "Java",
+              "required": false,
+              "evidence_de": "mit Java, Spring Boot, React, JavaScript und TypeScript.",
+              "evidence_en": "with Java, Spring Boot, React, JavaScript and TypeScript."
+            },
+            {
+              "name": "Spring Boot",
+              "required": false,
+              "evidence_de": "mit Java, Spring Boot, React, JavaScript und TypeScript.",
+              "evidence_en": "with Java, Spring Boot, React, JavaScript and TypeScript."
+            },
+            {
+              "name": "React",
+              "required": false,
+              "evidence_de": "mit Java, Spring Boot, React, JavaScript und TypeScript.",
+              "evidence_en": "with Java, Spring Boot, React, JavaScript and TypeScript."
+            },
+            {
+              "name": "JavaScript",
+              "required": false,
+              "evidence_de": "mit Java, Spring Boot, React, JavaScript und TypeScript.",
+              "evidence_en": "with Java, Spring Boot, React, JavaScript and TypeScript."
+            },
+            {
+              "name": "TypeScript",
+              "required": false,
+              "evidence_de": "mit Java, Spring Boot, React, JavaScript und TypeScript.",
+              "evidence_en": "with Java, Spring Boot, React, JavaScript and TypeScript."
+            },
+            {
+              "name": "relationale Datenbanken",
+              "required": false,
+              "evidence_de": "Der Umgang mit relationalen Datenbanken, insbesondere DB2, sowie die Entwicklung performanter SQL-Abfragen gehören für dich zum Alltag.",
+              "evidence_en": "Working with relational databases, in particular DB2, as well as developing performant SQL queries are part of your everyday work."
+            },
+            {
+              "name": "DB2",
+              "required": false,
+              "evidence_de": "insbesondere DB2",
+              "evidence_en": "in particular DB2"
+            },
+            {
+              "name": "SQL",
+              "required": false,
+              "evidence_de": "Entwicklung performanter SQL-Abfragen",
+              "evidence_en": "development of performant SQL queries"
+            }
+          ],
+          "extraction_error": null
+        }
+      ],
+      "run_to_run_agreement": {
+        "category": true,
+        "skills": true,
+        "location_remote": true,
+        "seniority": true,
+        "language": true,
+        "employment_type": true
+      }
+    },
+    {
+      "referenznummer": "10001-1003964360-S",
+      "title": "Public Cloud Engineer (m/w/d) Schwerpunkt Generative AI",
+      "employer": "SIGNAL IDUNA Krankenversicherung a. G.",
+      "stratum": "skill_match",
+      "search_location": "Hamburg (radius 50 km, query \"AI Engineer\")",
+      "label": {
+        "referenznummer": "10001-1003964360-S",
+        "category": "partial",
+        "skills_verdict": "partly",
+        "location_remote_verdict": "partly",
+        "seniority_verdict": "unknown",
+        "language_verdict": "partly",
+        "employment_type_verdict": "met",
+        "skills_note": "",
+        "location_remote_note": "",
+        "seniority_note": "",
+        "language_note": "",
+        "employment_type_note": "",
+        "timestamp": "2026-11-16T17:06:42.283728+00:00"
+      },
+      "runs": [
+        {
+          "referenznummer": "10001-1003964360-S",
+          "run": 1,
+          "category": "partial",
+          "rubric": {
+            "skills": "partly",
+            "location_remote": "partly",
+            "seniority": "unknown",
+            "language": "partly",
+            "employment_type": "met"
+          },
+          "exclusion_reasons": [],
+          "dropped_evidence": 0,
+          "low_evidence": false,
+          "extracted_skills": [
+            {
+              "name": "Google Cloud",
+              "required": false,
+              "evidence_de": "Google Cloud",
+              "evidence_en": "Google Cloud"
+            },
+            {
+              "name": "Vertex AI",
+              "required": false,
+              "evidence_de": "Vertex AI",
+              "evidence_en": "Vertex AI"
+            },
+            {
+              "name": "LangChain",
+              "required": false,
+              "evidence_de": "LangChain",
+              "evidence_en": "LangChain"
+            },
+            {
+              "name": "Gemini",
+              "required": false,
+              "evidence_de": "Gemini",
+              "evidence_en": "Gemini"
+            },
+            {
+              "name": "Python",
+              "required": false,
+              "evidence_de": "Python-basierte Microservices",
+              "evidence_en": "Python-based microservices"
+            },
+            {
+              "name": "Microservices",
+              "required": false,
+              "evidence_de": "Python-basierte Microservices",
+              "evidence_en": "Python-based microservices"
+            },
+            {
+              "name": "Cloud Run",
+              "required": false,
+              "evidence_de": "Cloud Run",
+              "evidence_en": "Cloud Run"
+            },
+            {
+              "name": "Cloud Build",
+              "required": false,
+              "evidence_de": "Cloud Build",
+              "evidence_en": "Cloud Build"
+            },
+            {
+              "name": "Terraform",
+              "required": false,
+              "evidence_de": "Terraform",
+              "evidence_en": "Terraform"
+            },
+            {
+              "name": "Infrastructure as Code (IaC)",
+              "required": false,
+              "evidence_de": "Terraform (IaC)",
+              "evidence_en": "Terraform (IaC)"
+            },
+            {
+              "name": "CI/CD",
+              "required": false,
+              "evidence_de": "CI/CD-Pipeline",
+              "evidence_en": "CI/CD pipeline"
+            },
+            {
+              "name": "GitLab",
+              "required": false,
+              "evidence_de": "GitLab",
+              "evidence_en": "GitLab"
+            },
+            {
+              "name": "GitHub",
+              "required": false,
+              "evidence_de": "GitHub",
+              "evidence_en": "GitHub"
+            },
+            {
+              "name": "Bitbucket",
+              "required": false,
+              "evidence_de": "Bitbucket",
+              "evidence_en": "Bitbucket"
+            },
+            {
+              "name": "Large Language Models (LLMs)",
+              "required": false,
+              "evidence_de": "Large Language Models (LLMs)",
+              "evidence_en": "Large Language Models (LLMs)"
+            },
+            {
+              "name": "Generative AI",
+              "required": false,
+              "evidence_de": "Generative AI-Lösungen",
+              "evidence_en": "Generative AI solutions"
+            },
+            {
+              "name": "AWS",
+              "required": false,
+              "evidence_de": "AWS",
+              "evidence_en": "AWS"
+            },
+            {
+              "name": "Azure",
+              "required": false,
+              "evidence_de": "Azure",
+              "evidence_en": "Azure"
+            },
+            {
+              "name": "GCP",
+              "required": false,
+              "evidence_de": "GCP",
+              "evidence_en": "GCP"
+            },
+            {
+              "name": "agile methods",
+              "required": false,
+              "evidence_de": "praktische Erfahrungen mit agilen Methoden",
+              "evidence_en": "practical experience with agile methods"
+            },
+            {
+              "name": "Cloud security",
+              "required": false,
+              "evidence_de": "Cloud Sicherheitskonzepten",
+              "evidence_en": "cloud security concepts"
+            },
+            {
+              "name": "data protection",
+              "required": false,
+              "evidence_de": "datenschutzrechtlichen, rechtlichen und ethischen Gesichtspunkten",
+              "evidence_en": "data protection, legal and ethical aspects"
+            }
+          ],
+          "extraction_error": null
+        },
+        {
+          "referenznummer": "10001-1003964360-S",
+          "run": 2,
+          "category": "partial",
+          "rubric": {
+            "skills": "partly",
+            "location_remote": "partly",
+            "seniority": "met",
+            "language": "partly",
+            "employment_type": "met"
+          },
+          "exclusion_reasons": [],
+          "dropped_evidence": 0,
+          "low_evidence": false,
+          "extracted_skills": [
+            {
+              "name": "Google Cloud",
+              "required": false,
+              "evidence_de": "Google Cloud",
+              "evidence_en": "Google Cloud"
+            },
+            {
+              "name": "Vertex AI",
+              "required": false,
+              "evidence_de": "Vertex AI",
+              "evidence_en": "Vertex AI"
+            },
+            {
+              "name": "LangChain",
+              "required": false,
+              "evidence_de": "LangChain",
+              "evidence_en": "LangChain"
+            },
+            {
+              "name": "Gemini",
+              "required": false,
+              "evidence_de": "Gemini",
+              "evidence_en": "Gemini"
+            },
+            {
+              "name": "Python",
+              "required": false,
+              "evidence_de": "Python-basierte Microservices",
+              "evidence_en": "Python-based microservices"
+            },
+            {
+              "name": "Microservices",
+              "required": false,
+              "evidence_de": "Python-basierte Microservices",
+              "evidence_en": "Python-based microservices"
+            },
+            {
+              "name": "Cloud Run",
+              "required": false,
+              "evidence_de": "Cloud Run",
+              "evidence_en": "Cloud Run"
+            },
+            {
+              "name": "Cloud Build",
+              "required": false,
+              "evidence_de": "Cloud Build",
+              "evidence_en": "Cloud Build"
+            },
+            {
+              "name": "Terraform",
+              "required": false,
+              "evidence_de": "Terraform",
+              "evidence_en": "Terraform"
+            },
+            {
+              "name": "AWS",
+              "required": false,
+              "evidence_de": "Public Cloud (AWS, Azure, vorzugsweise GCP)",
+              "evidence_en": "Public Cloud (AWS, Azure, preferably GCP)"
+            },
+            {
+              "name": "Azure",
+              "required": false,
+              "evidence_de": "Public Cloud (AWS, Azure, vorzugsweise GCP)",
+              "evidence_en": "Public Cloud (AWS, Azure, preferably GCP)"
+            },
+            {
+              "name": "GCP",
+              "required": false,
+              "evidence_de": "Public Cloud (AWS, Azure, vorzugsweise GCP)",
+              "evidence_en": "Public Cloud (AWS, Azure, preferably GCP)"
+            },
+            {
+              "name": "GitLab",
+              "required": false,
+              "evidence_de": "Versionskontrollsystemen wie GitLab, GitHub oder Bitbucket",
+              "evidence_en": "version control systems such as GitLab, GitHub or Bitbucket"
+            },
+            {
+              "name": "GitHub",
+              "required": false,
+              "evidence_de": "Versionskontrollsystemen wie GitLab, GitHub oder Bitbucket",
+              "evidence_en": "version control systems such as GitLab, GitHub or Bitbucket"
+            },
+            {
+              "name": "Bitbucket",
+              "required": false,
+              "evidence_de": "Versionskontrollsystemen wie GitLab, GitHub oder Bitbucket",
+              "evidence_en": "version control systems such as GitLab, GitHub or Bitbucket"
+            },
+            {
+              "name": "CI/CD",
+              "required": false,
+              "evidence_de": "CI/CD",
+              "evidence_en": "CI/CD"
+            },
+            {
+              "name": "Agile methods",
+              "required": false,
+              "evidence_de": "praktische Erfahrungen mit agilen Methoden und agil geführten Projekten",
+              "evidence_en": "practical experience with agile methods and agile-run projects"
+            },
+            {
+              "name": "Large Language Models",
+              "required": false,
+              "evidence_de": "Large Language Models (LLMs)",
+              "evidence_en": "Large Language Models (LLMs)"
+            },
+            {
+              "name": "Generative AI",
+              "required": false,
+              "evidence_de": "Generative AI",
+              "evidence_en": "Generative AI"
+            },
+            {
+              "name": "Security concepts",
+              "required": false,
+              "evidence_de": "Cloud Sicherheitskonzepten",
+              "evidence_en": "cloud security concepts"
+            }
+          ],
+          "extraction_error": null
+        }
+      ],
+      "run_to_run_agreement": {
+        "category": true,
+        "skills": true,
+        "location_remote": true,
+        "seniority": false,
+        "language": true,
+        "employment_type": true
+      }
+    },
+    {
+      "referenznummer": "12336-a26f1192j0455715-S",
+      "title": "Senior / Lead Java Developer – Kafka / Financial Services (all genders)",
+      "employer": "EXXETA AG",
+      "stratum": "skill_match",
+      "search_location": "Hamburg (radius 25 km, query \"Java Entwickler\")",
+      "label": {
+        "referenznummer": "12336-a26f1192j0455715-S",
+        "category": "excluded",
+        "skills_verdict": "partly",
+        "location_remote_verdict": "not_met",
+        "seniority_verdict": "met",
+        "language_verdict": "partly",
+        "employment_type_verdict": "met",
+        "skills_note": "Text nennt Java und Kafka; Java im Profil (Korrektur nach Leitfaden)",
+        "location_remote_note": "Ort München aus Suche Hamburg 25 km; Entfernung fehlt in den Daten (Datenwiderspruch); außerhalb Radius -> harter Ausschluss",
+        "seniority_note": "",
+        "language_note": "",
+        "employment_type_note": "",
+        "timestamp": "2026-11-16T17:08:29.746059+00:00"
+      },
+      "runs": [
+        {
+          "referenznummer": "12336-a26f1192j0455715-S",
+          "run": 1,
+          "category": "partial",
+          "rubric": {
+            "skills": "partly",
+            "location_remote": "partly",
+            "seniority": "met",
+            "language": "partly",
+            "employment_type": "met"
+          },
+          "exclusion_reasons": [],
+          "dropped_evidence": 0,
+          "low_evidence": true,
+          "extracted_skills": [
+            {
+              "name": "Java",
+              "required": false,
+              "evidence_de": "Java Developer",
+              "evidence_en": "Java Developer"
+            },
+            {
+              "name": "Apache Kafka",
+              "required": false,
+              "evidence_de": "Apache Kafka",
+              "evidence_en": "Apache Kafka"
+            },
+            {
+              "name": "Microservices",
+              "required": false,
+              "evidence_de": "Microservices-Architekturen",
+              "evidence_en": "microservices architectures"
+            },
+            {
+              "name": "BaFin",
+              "required": false,
+              "evidence_de": "BaFin/MiFID-II-Compliance",
+              "evidence_en": "BaFin/MiFID II compliance"
+            },
+            {
+              "name": "MiFID II",
+              "required": false,
+              "evidence_de": "MiFID-II",
+              "evidence_en": "MiFID II"
+            },
+            {
+              "name": "Team leadership",
+              "required": false,
+              "evidence_de": "führst Teams durch Kompetenz",
+              "evidence_en": "lead teams through expertise"
+            }
+          ],
+          "extraction_error": null
+        },
+        {
+          "referenznummer": "12336-a26f1192j0455715-S",
+          "run": 2,
+          "category": "partial",
+          "rubric": {
+            "skills": "partly",
+            "location_remote": "partly",
+            "seniority": "met",
+            "language": "partly",
+            "employment_type": "met"
+          },
+          "exclusion_reasons": [],
+          "dropped_evidence": 0,
+          "low_evidence": true,
+          "extracted_skills": [
+            {
+              "name": "Java",
+              "required": false,
+              "evidence_de": "Java Developer",
+              "evidence_en": "Java Developer"
+            },
+            {
+              "name": "Apache Kafka",
+              "required": false,
+              "evidence_de": "Apache Kafka",
+              "evidence_en": "Apache Kafka"
+            },
+            {
+              "name": "Microservices",
+              "required": false,
+              "evidence_de": "Microservices-Architekturen",
+              "evidence_en": "microservices architectures"
+            },
+            {
+              "name": "Legacy-Systeme",
+              "required": false,
+              "evidence_de": "Legacy-Systeme",
+              "evidence_en": "legacy systems"
+            },
+            {
+              "name": "BaFin",
+              "required": false,
+              "evidence_de": "BaFin",
+              "evidence_en": "BaFin (Federal Financial Supervisory Authority)"
+            },
+            {
+              "name": "MiFID-II",
+              "required": false,
+              "evidence_de": "MiFID-II",
+              "evidence_en": "MiFID II"
+            },
+            {
+              "name": "Teamführung",
+              "required": false,
+              "evidence_de": "führst Teams",
+              "evidence_en": "lead teams"
+            }
+          ],
+          "extraction_error": null
+        }
+      ],
+      "run_to_run_agreement": {
+        "category": true,
+        "skills": true,
+        "location_remote": true,
+        "seniority": true,
+        "language": true,
+        "employment_type": true
+      }
+    },
+    {
+      "referenznummer": "17338-61cf767722ad450056-S",
+      "title": "Java / Angular Fullstack Developer (m/w/d) - Hybrid",
+      "employer": "Neptune IT",
+      "stratum": "skill_match",
+      "search_location": "Hamburg (radius 25 km, query \"Java Entwickler\")",
+      "label": {
+        "referenznummer": "17338-61cf767722ad450056-S",
+        "category": "strong",
+        "skills_verdict": "met",
+        "location_remote_verdict": "met",
+        "seniority_verdict": "unknown",
+        "language_verdict": "partly",
+        "employment_type_verdict": "met",
+        "skills_note": "",
+        "location_remote_note": "",
+        "seniority_note": "",
+        "language_note": "",
+        "employment_type_note": "",
+        "timestamp": "2026-11-16T17:13:04.786452+00:00"
+      },
+      "runs": [
+        {
+          "referenznummer": "17338-61cf767722ad450056-S",
+          "run": 1,
+          "category": "strong",
+          "rubric": {
+            "skills": "met",
+            "location_remote": "partly",
+            "seniority": "unknown",
+            "language": "partly",
+            "employment_type": "met"
+          },
+          "exclusion_reasons": [],
+          "dropped_evidence": 0,
+          "low_evidence": false,
+          "extracted_skills": [
+            {
+              "name": "Java",
+              "required": false,
+              "evidence_de": "Sehr gute Kenntnisse in Java (11+), Spring Boot, JPA/Hibernate",
+              "evidence_en": "Very good knowledge in Java (11+), Spring Boot, JPA/Hibernate"
+            },
+            {
+              "name": "Angular",
+              "required": false,
+              "evidence_de": "Verwendete Technologien:Java, Angular, Spring, Spring Boot, Docker",
+              "evidence_en": "Technologies used: Java, Angular, Spring, Spring Boot, Docker"
+            },
+            {
+              "name": "Spring",
+              "required": false,
+              "evidence_de": "Verwendete Technologien:Java, Angular, Spring, Spring Boot, Docker",
+              "evidence_en": "Technologies used: Java, Angular, Spring, Spring Boot, Docker"
+            },
+            {
+              "name": "Spring Boot",
+              "required": false,
+              "evidence_de": "Implementierung von Geschäftsprozessen in Java (Spring Boot)",
+              "evidence_en": "Implementation of business processes in Java (Spring Boot)"
+            },
+            {
+              "name": "Docker",
+              "required": false,
+              "evidence_de": "Verwendete Technologien:Java, Angular, Spring, Spring Boot, Docker",
+              "evidence_en": "Technologies used: Java, Angular, Spring, Spring Boot, Docker"
+            },
+            {
+              "name": "TypeScript",
+              "required": false,
+              "evidence_de": "Gute Kenntnisse in TypeScript und Angular (v13+)",
+              "evidence_en": "Good knowledge in TypeScript and Angular (v13+)"
+            },
+            {
+              "name": "JPA/Hibernate",
+              "required": false,
+              "evidence_de": "Sehr gute Kenntnisse in Java (11+), Spring Boot, JPA/Hibernate",
+              "evidence_en": "Very good knowledge in Java (11+), Spring Boot, JPA/Hibernate"
+            },
+            {
+              "name": "PostgreSQL",
+              "required": false,
+              "evidence_de": "Erfahrung mit relationalen Datenbanken (PostgreSQL, Oracle o. Ä.)",
+              "evidence_en": "Experience with relational databases (PostgreSQL, Oracle etc.)"
+            },
+            {
+              "name": "Oracle",
+              "required": false,
+              "evidence_de": "Erfahrung mit relationalen Datenbanken (PostgreSQL, Oracle o. Ä.)",
+              "evidence_en": "Experience with relational databases (PostgreSQL, Oracle etc.)"
+            },
+            {
+              "name": "RESTful APIs",
+              "required": false,
+              "evidence_de": "Verständnis von RESTful APIs, Microservices und Clean Code",
+              "evidence_en": "Understanding of RESTful APIs, Microservices and Clean Code"
+            },
+            {
+              "name": "Microservices",
+              "required": false,
+              "evidence_de": "Verständnis von RESTful APIs, Microservices und Clean Code",
+              "evidence_en": "Understanding of RESTful APIs, Microservices and Clean Code"
+            },
+            {
+              "name": "Clean Code",
+              "required": false,
+              "evidence_de": "Verständnis von RESTful APIs, Microservices und Clean Code",
+              "evidence_en": "Understanding of RESTful APIs, Microservices and Clean Code"
+            },
+            {
+              "name": "JUnit",
+              "required": false,
+              "evidence_de": "Sicherstellung von Qualität, Stabilität und Testbarkeit (JUnit, Cypress etc.)",
+              "evidence_en": "Ensuring quality, stability and testability (JUnit, Cypress etc.)"
+            },
+            {
+              "name": "Cypress",
+              "required": false,
+              "evidence_de": "Sicherstellung von Qualität, Stabilität und Testbarkeit (JUnit, Cypress etc.)",
+              "evidence_en": "Ensuring quality, stability and testability (JUnit, Cypress etc.)"
+            },
+            {
+              "name": "GitLab",
+              "required": false,
+              "evidence_de": "Moderne Tools &amp; Methoden (Agile, GitLab, CI/CD, Code Reviews)",
+              "evidence_en": "Modern tools & methods (Agile, GitLab, CI/CD, Code Reviews)"
+            },
+            {
+              "name": "CI/CD",
+              "required": false,
+              "evidence_de": "Moderne Tools &amp; Methoden (Agile, GitLab, CI/CD, Code Reviews)",
+              "evidence_en": "Modern tools & methods (Agile, GitLab, CI/CD, Code Reviews)"
+            },
+            {
+              "name": "Code Reviews",
+              "required": false,
+              "evidence_de": "Moderne Tools &amp; Methoden (Agile, GitLab, CI/CD, Code Reviews)",
+              "evidence_en": "Modern tools & methods (Agile, GitLab, CI/CD, Code Reviews)"
+            },
+            {
+              "name": "Agile",
+              "required": false,
+              "evidence_de": "Moderne Tools &amp; Methoden (Agile, GitLab, CI/CD, Code Reviews)",
+              "evidence_en": "Modern tools & methods (Agile, GitLab, CI/CD, Code Reviews)"
+            }
+          ],
+          "extraction_error": null
+        },
+        {
+          "referenznummer": "17338-61cf767722ad450056-S",
+          "run": 2,
+          "category": "strong",
+          "rubric": {
+            "skills": "met",
+            "location_remote": "partly",
+            "seniority": "unknown",
+            "language": "partly",
+            "employment_type": "met"
+          },
+          "exclusion_reasons": [],
+          "dropped_evidence": 0,
+          "low_evidence": false,
+          "extracted_skills": [
+            {
+              "name": "Java",
+              "required": false,
+              "evidence_de": "Sehr gute Kenntnisse in Java (11+), Spring Boot, JPA/Hibernate",
+              "evidence_en": "Very good knowledge of Java (11+), Spring Boot, JPA/Hibernate"
+            },
+            {
+              "name": "Angular",
+              "required": false,
+              "evidence_de": "Gute Kenntnisse in TypeScript und Angular (v13+)",
+              "evidence_en": "Good knowledge of TypeScript and Angular (v13+)"
+            },
+            {
+              "name": "Spring",
+              "required": false,
+              "evidence_de": "Verwendete Technologien:Java, Angular, Spring, Spring Boot, Docker.",
+              "evidence_en": "Technologies used: Java, Angular, Spring, Spring Boot, Docker."
+            },
+            {
+              "name": "Spring Boot",
+              "required": false,
+              "evidence_de": "Implementierung von Geschäftsprozessen in Java (Spring Boot)",
+              "evidence_en": "Implementation of business processes in Java (Spring Boot)"
+            },
+            {
+              "name": "Docker",
+              "required": false,
+              "evidence_de": "Verwendete Technologien:Java, Angular, Spring, Spring Boot, Docker.",
+              "evidence_en": "Technologies used: Java, Angular, Spring, Spring Boot, Docker."
+            },
+            {
+              "name": "TypeScript",
+              "required": false,
+              "evidence_de": "Implementierung moderner, performanter Frontend-Komponenten mit Angular/Typescript",
+              "evidence_en": "Implementation of modern, performant frontend components with Angular/Typescript"
+            },
+            {
+              "name": "JPA/Hibernate",
+              "required": false,
+              "evidence_de": "Sehr gute Kenntnisse in Java (11+), Spring Boot, JPA/Hibernate",
+              "evidence_en": "Very good knowledge of Java (11+), Spring Boot, JPA/Hibernate"
+            },
+            {
+              "name": "PostgreSQL",
+              "required": false,
+              "evidence_de": "Erfahrung mit relationalen Datenbanken (PostgreSQL, Oracle o. Ä.)",
+              "evidence_en": "Experience with relational databases (PostgreSQL, Oracle, etc.)"
+            },
+            {
+              "name": "Oracle",
+              "required": false,
+              "evidence_de": "Erfahrung mit relationalen Datenbanken (PostgreSQL, Oracle o. Ä.)",
+              "evidence_en": "Experience with relational databases (PostgreSQL, Oracle, etc.)"
+            },
+            {
+              "name": "RESTful APIs",
+              "required": false,
+              "evidence_de": "Verständnis von RESTful APIs, Microservices und Clean Code",
+              "evidence_en": "Understanding of RESTful APIs, microservices and clean code"
+            },
+            {
+              "name": "Microservices",
+              "required": false,
+              "evidence_de": "Verständnis von RESTful APIs, Microservices und Clean Code",
+              "evidence_en": "Understanding of RESTful APIs, microservices and clean code"
+            },
+            {
+              "name": "Clean Code",
+              "required": false,
+              "evidence_de": "Verständnis von RESTful APIs, Microservices und Clean Code",
+              "evidence_en": "Understanding of RESTful APIs, microservices and clean code"
+            },
+            {
+              "name": "JUnit",
+              "required": false,
+              "evidence_de": "Sicherstellung von Qualität, Stabilität und Testbarkeit (JUnit, Cypress etc.)",
+              "evidence_en": "Ensuring quality, stability and testability (JUnit, Cypress etc.)"
+            },
+            {
+              "name": "Cypress",
+              "required": false,
+              "evidence_de": "Sicherstellung von Qualität, Stabilität und Testbarkeit (JUnit, Cypress etc.)",
+              "evidence_en": "Ensuring quality, stability and testability (JUnit, Cypress etc.)"
+            },
+            {
+              "name": "Continuous Delivery Pipelines",
+              "required": false,
+              "evidence_de": "Mitarbeit an Architekturentscheidungen und Continuous Delivery Pipelines",
+              "evidence_en": "Contribution to architecture decisions and continuous delivery pipelines"
+            },
+            {
+              "name": "Agile",
+              "required": false,
+              "evidence_de": "Moderne Tools &amp; Methoden (Agile, GitLab, CI/CD, Code Reviews)",
+              "evidence_en": "Modern tools & methods (Agile, GitLab, CI/CD, Code Reviews)"
+            },
+            {
+              "name": "GitLab",
+              "required": false,
+              "evidence_de": "Moderne Tools &amp; Methoden (Agile, GitLab, CI/CD, Code Reviews)",
+              "evidence_en": "Modern tools & methods (Agile, GitLab, CI/CD, Code Reviews)"
+            },
+            {
+              "name": "CI/CD",
+              "required": false,
+              "evidence_de": "Moderne Tools &amp; Methoden (Agile, GitLab, CI/CD, Code Reviews)",
+              "evidence_en": "Modern tools & methods (Agile, GitLab, CI/CD, Code Reviews)"
+            },
+            {
+              "name": "Code Reviews",
+              "required": false,
+              "evidence_de": "Moderne Tools &amp; Methoden (Agile, GitLab, CI/CD, Code Reviews)",
+              "evidence_en": "Modern tools & methods (Agile, GitLab, CI/CD, Code Reviews)"
+            },
+            {
+              "name": "Git",
+              "required": false,
+              "evidence_de": "Moderne Tools &amp; Methoden (Agile, GitLab, CI/CD, Code Reviews)",
+              "evidence_en": "Modern tools & methods (Agile, GitLab, CI/CD, Code Reviews)"
+            }
+          ],
+          "extraction_error": null
+        }
+      ],
+      "run_to_run_agreement": {
+        "category": true,
+        "skills": true,
+        "location_remote": true,
+        "seniority": true,
+        "language": true,
+        "employment_type": true
+      }
+    },
+    {
+      "referenznummer": "13644-313865-S",
+      "title": "AI Engineer / KI-Entwickler – LLM & RAG (m/w/d)",
+      "employer": "PTA",
+      "stratum": "skill_match",
+      "search_location": "Hamburg (radius 50 km, query \"AI Engineer\")",
+      "label": {
+        "referenznummer": "13644-313865-S",
+        "category": "partial",
+        "skills_verdict": "partly",
+        "location_remote_verdict": "met",
+        "seniority_verdict": "unknown",
+        "language_verdict": "partly",
+        "employment_type_verdict": "met",
+        "skills_note": "",
+        "location_remote_note": "",
+        "seniority_note": "",
+        "language_note": "",
+        "employment_type_note": "",
+        "timestamp": "2026-11-16T17:14:14.549108+00:00"
+      },
+      "runs": [
+        {
+          "referenznummer": "13644-313865-S",
+          "run": 1,
+          "category": "partial",
+          "rubric": {
+            "skills": "partly",
+            "location_remote": "met",
+            "seniority": "unknown",
+            "language": "partly",
+            "employment_type": "not_met"
+          },
+          "exclusion_reasons": [],
+          "dropped_evidence": 0,
+          "low_evidence": false,
+          "extracted_skills": [
+            {
+              "name": "Python",
+              "required": false,
+              "evidence_de": "Mindestens drei Jahre Erfahrung in der Softwareentwicklung mit Python",
+              "evidence_en": "At least three years of experience in software development with Python"
+            },
+            {
+              "name": "Object-oriented programming",
+              "required": false,
+              "evidence_de": "objektorientierter Programmierung",
+              "evidence_en": "object-oriented programming"
+            },
+            {
+              "name": "Automated testing",
+              "required": false,
+              "evidence_de": "automatisierte Tests",
+              "evidence_en": "automated tests"
+            },
+            {
+              "name": "Data structures",
+              "required": false,
+              "evidence_de": "Datenstrukturen",
+              "evidence_en": "data structures"
+            },
+            {
+              "name": "Algorithms",
+              "required": false,
+              "evidence_de": "Algorithmen",
+              "evidence_en": "algorithms"
+            },
+            {
+              "name": "Prompt Engineering",
+              "required": false,
+              "evidence_de": "Prompt Engineering",
+              "evidence_en": "prompt engineering"
+            },
+            {
+              "name": "Retrieval-Augmented Generation",
+              "required": false,
+              "evidence_de": "Retrieval-Augmented Generation",
+              "evidence_en": "retrieval-augmented generation"
+            },
+            {
+              "name": "APIs",
+              "required": false,
+              "evidence_de": "Anbindung von Modellen über APIs",
+              "evidence_en": "connecting models via APIs"
+            },
+            {
+              "name": "LangChain",
+              "required": false,
+              "evidence_de": "LangChain",
+              "evidence_en": "LangChain"
+            },
+            {
+              "name": "Embeddings",
+              "required": false,
+              "evidence_de": "Embeddings",
+              "evidence_en": "embeddings"
+            },
+            {
+              "name": "Vector databases",
+              "required": false,
+              "evidence_de": "Vektordatenbanken",
+              "evidence_en": "vector databases"
+            },
+            {
+              "name": "Chunking",
+              "required": false,
+              "evidence_de": "Chunking",
+              "evidence_en": "chunking"
+            },
+            {
+              "name": "Re-Ranking",
+              "required": false,
+              "evidence_de": "Re-Ranking",
+              "evidence_en": "re-ranking"
+            },
+            {
+              "name": "Document pipelines",
+              "required": false,
+              "evidence_de": "Dokumentenpipelines",
+              "evidence_en": "document pipelines"
+            },
+            {
+              "name": "OCR",
+              "required": false,
+              "evidence_de": "Texterkennung",
+              "evidence_en": "text recognition (OCR)"
+            },
+            {
+              "name": "Information extraction",
+              "required": false,
+              "evidence_de": "Extraktion",
+              "evidence_en": "extraction"
+            },
+            {
+              "name": "Classification",
+              "required": false,
+              "evidence_de": "Klassifikation",
+              "evidence_en": "classification"
+            },
+            {
+              "name": "Summarization",
+              "required": false,
+              "evidence_de": "Zusammenfassung",
+              "evidence_en": "summarization"
+            },
+            {
+              "name": "SQL",
+              "required": false,
+              "evidence_de": "Sicherer Umgang mit SQL",
+              "evidence_en": "confident use of SQL"
+            },
+            {
+              "name": "Microsoft Azure",
+              "required": false,
+              "evidence_de": "Microsoft Azure",
+              "evidence_en": "Microsoft Azure"
+            },
+            {
+              "name": "AWS",
+              "required": false,
+              "evidence_de": "AWS",
+              "evidence_en": "AWS"
+            },
+            {
+              "name": "Google Cloud",
+              "required": false,
+              "evidence_de": "Google Cloud",
+              "evidence_en": "Google Cloud"
+            },
+            {
+              "name": "Containers",
+              "required": false,
+              "evidence_de": "Containern",
+              "evidence_en": "containers"
+            },
+            {
+              "name": "CI/CD",
+              "required": false,
+              "evidence_de": "CI/CD",
+              "evidence_en": "CI/CD"
+            },
+            {
+              "name": "Monitoring",
+              "required": false,
+              "evidence_de": "Monitoring",
+              "evidence_en": "monitoring"
+            },
+            {
+              "name": "Azure Document Intelligence",
+              "required": false,
+              "evidence_de": "Azure Document Intelligence",
+              "evidence_en": "Azure Document Intelligence"
+            },
+            {
+              "name": "Agentic AI",
+              "required": false,
+              "evidence_de": "Agentic AI",
+              "evidence_en": "agentic AI"
+            },
+            {
+              "name": "DevSecOps",
+              "required": false,
+              "evidence_de": "DevSecOps",
+              "evidence_en": "DevSecOps"
+            },
+            {
+              "name": "Kubernetes",
+              "required": false,
+              "evidence_de": "Kubernetes",
+              "evidence_en": "Kubernetes"
+            },
+            {
+              "name": "Terraform",
+              "required": false,
+              "evidence_de": "Terraform",
+              "evidence_en": "Terraform"
+            }
+          ],
+          "extraction_error": null
+        },
+        {
+          "referenznummer": "13644-313865-S",
+          "run": 2,
+          "category": "partial",
+          "rubric": {
+            "skills": "partly",
+            "location_remote": "met",
+            "seniority": "unknown",
+            "language": "partly",
+            "employment_type": "not_met"
+          },
+          "exclusion_reasons": [],
+          "dropped_evidence": 0,
+          "low_evidence": false,
+          "extracted_skills": [
+            {
+              "name": "Python",
+              "required": false,
+              "evidence_de": "Mindestens drei Jahre Erfahrung in der Softwareentwicklung mit Python, davon mindestens ein Jahr in KI-Projekten, die produktiv gegangen sind.",
+              "evidence_en": "At least three years of experience in software development with Python, of which at least one year in AI projects that went into production."
+            },
+            {
+              "name": "Python",
+              "required": false,
+              "evidence_de": "Fundierte Python-Kenntnisse, von objektorientierter Programmierung über automatisierte Tests bis zum Verständnis, wie Datenstrukturen, Algorithmen und Designentscheidungen die Performance beeinflussen.",
+              "evidence_en": "Solid Python skills, from object-oriented programming to automated tests to understanding how data structures, algorithms and design decisions affect performance."
+            },
+            {
+              "name": "Prompt Engineering",
+              "required": false,
+              "evidence_de": "Praxis mit großen Sprachmodellen: Prompt Engineering, Retrieval-Augmented Generation und die Anbindung von Modellen über APIs, mit LangChain oder einer vergleichbaren Bibliothek.",
+              "evidence_en": "Practical experience with large language models: prompt engineering, retrieval-augmented generation and connecting models via APIs, with LangChain or a comparable library."
+            },
+            {
+              "name": "Retrieval-Augmented Generation",
+              "required": false,
+              "evidence_de": "Praxis mit großen Sprachmodellen: Prompt Engineering, Retrieval-Augmented Generation und die Anbindung von Modellen über APIs, mit LangChain oder einer vergleichbaren Bibliothek.",
+              "evidence_en": "Practical experience with large language models: prompt engineering, retrieval-augmented generation and connecting models via APIs, with LangChain or a comparable library."
+            },
+            {
+              "name": "APIs",
+              "required": false,
+              "evidence_de": "die Anbindung von Modellen über APIs",
+              "evidence_en": "connecting models via APIs"
+            },
+            {
+              "name": "LangChain",
+              "required": false,
+              "evidence_de": "mit LangChain oder einer vergleichbaren Bibliothek",
+              "evidence_en": "with LangChain or a comparable library"
+            },
+            {
+              "name": "RAG architectures",
+              "required": false,
+              "evidence_de": "Sie bauen RAG-Architekturen: Dokumente aufbereiten, Chunking, Embeddings, Vektordatenbanken, Retrieval und Re-Ranking.",
+              "evidence_en": "You build RAG architectures: prepare documents, chunking, embeddings, vector databases, retrieval and re-ranking."
+            },
+            {
+              "name": "Chunking",
+              "required": false,
+              "evidence_de": "Chunking",
+              "evidence_en": "chunking"
+            },
+            {
+              "name": "Embeddings",
+              "required": false,
+              "evidence_de": "Embeddings",
+              "evidence_en": "embeddings"
+            },
+            {
+              "name": "Vektordatenbanken",
+              "required": false,
+              "evidence_de": "Vektordatenbanken",
+              "evidence_en": "vector databases"
+            },
+            {
+              "name": "Retrieval",
+              "required": false,
+              "evidence_de": "Retrieval",
+              "evidence_en": "retrieval"
+            },
+            {
+              "name": "Re-Ranking",
+              "required": false,
+              "evidence_de": "Re-Ranking",
+              "evidence_en": "re-ranking"
+            },
+            {
+              "name": "Document pipelines",
+              "required": false,
+              "evidence_de": "entwickeln Sie Anwendungen auf Basis großer Sprachmodelle, von Assistenten über Dokumentenpipelines bis zu Agenten",
+              "evidence_en": "you develop applications based on large language models, from assistants to document pipelines to agents"
+            },
+            {
+              "name": "Texterkennung",
+              "required": false,
+              "evidence_de": "Pipelines für Texterkennung, Strukturierung, Extraktion, Klassifikation und Zusammenfassung.",
+              "evidence_en": "pipelines for text recognition, structuring, extraction, classification and summarization."
+            },
+            {
+              "name": "Strukturierung",
+              "required": false,
+              "evidence_de": "Pipelines für Texterkennung, Strukturierung, Extraktion, Klassifikation und Zusammenfassung.",
+              "evidence_en": "pipelines for text recognition, structuring, extraction, classification and summarization."
+            },
+            {
+              "name": "Extraktion",
+              "required": false,
+              "evidence_de": "Pipelines für Texterkennung, Strukturierung, Extraktion, Klassifikation und Zusammenfassung.",
+              "evidence_en": "pipelines for text recognition, structuring, extraction, classification and summarization."
+            },
+            {
+              "name": "Klassifikation",
+              "required": false,
+              "evidence_de": "Pipelines für Texterkennung, Strukturierung, Extraktion, Klassifikation und Zusammenfassung.",
+              "evidence_en": "pipelines for text recognition, structuring, extraction, classification and summarization."
+            },
+            {
+              "name": "Summarization",
+              "required": false,
+              "evidence_de": "Pipelines für Texterkennung, Strukturierung, Extraktion, Klassifikation und Zusammenfassung.",
+              "evidence_en": "pipelines for text recognition, structuring, extraction, classification and summarization."
+            },
+            {
+              "name": "Backend services",
+              "required": false,
+              "evidence_de": "Über Backend-Services und Schnittstellen binden Sie die KI-Komponenten an die Systeme unserer Kunden an.",
+              "evidence_en": "You integrate the AI components into our clients' systems via backend services and interfaces."
+            },
+            {
+              "name": "Containers",
+              "required": false,
+              "evidence_de": "Mit Containern, CI/CD und Monitoring bringen Sie sie in Betrieb, in der Cloud oder beim Kunden vor Ort.",
+              "evidence_en": "You bring them into operation with containers, CI/CD and monitoring, in the cloud or on the client's premises."
+            },
+            {
+              "name": "CI/CD",
+              "required": false,
+              "evidence_de": "Mit Containern, CI/CD und Monitoring bringen Sie sie in Betrieb, in der Cloud oder beim Kunden vor Ort.",
+              "evidence_en": "You bring them into operation with containers, CI/CD and monitoring, in the cloud or on the client's premises."
+            },
+            {
+              "name": "Monitoring",
+              "required": false,
+              "evidence_de": "Mit Containern, CI/CD und Monitoring bringen Sie sie in Betrieb, in der Cloud oder beim Kunden vor Ort.",
+              "evidence_en": "You bring them into operation with containers, CI/CD and monitoring, in the cloud or on the client's premises."
+            },
+            {
+              "name": "SQL",
+              "required": false,
+              "evidence_de": "Sicherer Umgang mit SQL und unterschiedlichen Datenbanken.",
+              "evidence_en": "Confident handling of SQL and different databases."
+            },
+            {
+              "name": "Microsoft Azure",
+              "required": false,
+              "evidence_de": "mindestens einer Cloud-Plattform wie Microsoft Azure, AWS oder Google Cloud.",
+              "evidence_en": "at least one cloud platform such as Microsoft Azure, AWS or Google Cloud."
+            },
+            {
+              "name": "AWS",
+              "required": false,
+              "evidence_de": "mindestens einer Cloud-Plattform wie Microsoft Azure, AWS oder Google Cloud.",
+              "evidence_en": "at least one cloud platform such as Microsoft Azure, AWS or Google Cloud."
+            },
+            {
+              "name": "Google Cloud",
+              "required": false,
+              "evidence_de": "mindestens einer Cloud-Plattform wie Microsoft Azure, AWS oder Google Cloud.",
+              "evidence_en": "at least one cloud platform such as Microsoft Azure, AWS or Google Cloud."
+            },
+            {
+              "name": "Azure Document Intelligence",
+              "required": false,
+              "evidence_de": "Erfahrung mit Dokumentenverarbeitung (etwa Azure Document Intelligence)",
+              "evidence_en": "experience with document processing (e.g. Azure Document Intelligence)"
+            },
+            {
+              "name": "Agentic AI",
+              "required": false,
+              "evidence_de": "Agentic AI",
+              "evidence_en": "agentic AI"
+            },
+            {
+              "name": "DevSecOps",
+              "required": false,
+              "evidence_de": "DevSecOps mit Kubernetes und Terraform.",
+              "evidence_en": "DevSecOps with Kubernetes and Terraform."
+            },
+            {
+              "name": "Kubernetes",
+              "required": false,
+              "evidence_de": "DevSecOps mit Kubernetes und Terraform.",
+              "evidence_en": "DevSecOps with Kubernetes and Terraform."
+            },
+            {
+              "name": "Terraform",
+              "required": false,
+              "evidence_de": "DevSecOps mit Kubernetes und Terraform.",
+              "evidence_en": "DevSecOps with Kubernetes and Terraform."
+            },
+            {
+              "name": "Large language models",
+              "required": false,
+              "evidence_de": "Praxis mit großen Sprachmodellen",
+              "evidence_en": "practical experience with large language models"
+            },
+            {
+              "name": "Document processing",
+              "required": false,
+              "evidence_de": "Sie machen unstrukturierte Dokumente nutzbar, mit Pipelines für Texterkennung, Strukturierung, Extraktion, Klassifikation und Zusammenfassung.",
+              "evidence_en": "You make unstructured documents usable, with pipelines for text recognition, structuring, extraction, classification and summarization."
+            },
+            {
+              "name": "Customer communication",
+              "required": false,
+              "evidence_de": "Freude am direkten Austausch mit Kunden, auch vor Ort, wenn das Projekt es erfordert.",
+              "evidence_en": "Enjoy direct exchange with customers, also on-site when the project requires it."
+            },
+            {
+              "name": "Automated tests",
+              "required": false,
+              "evidence_de": "Fundierte Python-Kenntnisse, von objektorientierter Programmierung über automatisierte Tests bis zum Verständnis, wie Datenstrukturen, Algorithmen und Designentscheidungen die Performance beeinflussen.",
+              "evidence_en": "Solid Python skills, from object-oriented programming to automated tests to understanding how data structures, algorithms and design decisions affect performance."
+            }
+          ],
+          "extraction_error": null
+        }
+      ],
+      "run_to_run_agreement": {
+        "category": true,
+        "skills": true,
+        "location_remote": true,
+        "seniority": true,
+        "language": true,
+        "employment_type": true
+      }
+    },
+    {
+      "referenznummer": "10001-1003900679-S",
+      "title": "Software Engineer AI-driven Development / Agentic Coding (m/w/d)",
+      "employer": "PTA GmbH",
+      "stratum": "skill_match",
+      "search_location": "Hamburg (radius 50 km, query \"AI Engineer\")",
+      "label": {
+        "referenznummer": "10001-1003900679-S",
+        "category": "partial",
+        "skills_verdict": "partly",
+        "location_remote_verdict": "met",
+        "seniority_verdict": "unknown",
+        "language_verdict": "partly",
+        "employment_type_verdict": "met",
+        "skills_note": "",
+        "location_remote_note": "",
+        "seniority_note": "",
+        "language_note": "",
+        "employment_type_note": "",
+        "timestamp": "2026-11-16T17:15:27.146155+00:00"
+      },
+      "runs": [
+        {
+          "referenznummer": "10001-1003900679-S",
+          "run": 1,
+          "category": "strong",
+          "rubric": {
+            "skills": "met",
+            "location_remote": "met",
+            "seniority": "unknown",
+            "language": "partly",
+            "employment_type": "met"
+          },
+          "exclusion_reasons": [],
+          "dropped_evidence": 0,
+          "low_evidence": false,
+          "extracted_skills": [
+            {
+              "name": "Java",
+              "required": false,
+              "evidence_de": "Java/Spring Boot",
+              "evidence_en": "Java/Spring Boot"
+            },
+            {
+              "name": "Spring Boot",
+              "required": false,
+              "evidence_de": "Java/Spring Boot",
+              "evidence_en": "Java/Spring Boot"
+            },
+            {
+              "name": "Microsoft .NET",
+              "required": false,
+              "evidence_de": "Microsoft .NET",
+              "evidence_en": "Microsoft .NET"
+            },
+            {
+              "name": "JavaScript",
+              "required": false,
+              "evidence_de": "JavaScript/TypeScript",
+              "evidence_en": "JavaScript/TypeScript"
+            },
+            {
+              "name": "TypeScript",
+              "required": false,
+              "evidence_de": "JavaScript/TypeScript",
+              "evidence_en": "JavaScript/TypeScript"
+            },
+            {
+              "name": "Python",
+              "required": false,
+              "evidence_de": "Python",
+              "evidence_en": "Python"
+            },
+            {
+              "name": "Container",
+              "required": false,
+              "evidence_de": "inklusive Container und REST",
+              "evidence_en": "including containers and REST"
+            },
+            {
+              "name": "REST",
+              "required": false,
+              "evidence_de": "inklusive Container und REST",
+              "evidence_en": "including containers and REST"
+            },
+            {
+              "name": "GitHub Copilot",
+              "required": false,
+              "evidence_de": "GitHub Copilot",
+              "evidence_en": "GitHub Copilot"
+            },
+            {
+              "name": "Claude Code",
+              "required": false,
+              "evidence_de": "Claude Code",
+              "evidence_en": "Claude Code"
+            },
+            {
+              "name": "Codex",
+              "required": false,
+              "evidence_de": "Codex",
+              "evidence_en": "Codex"
+            },
+            {
+              "name": "OpenCode",
+              "required": false,
+              "evidence_de": "OpenCode",
+              "evidence_en": "OpenCode"
+            },
+            {
+              "name": "CI/CD",
+              "required": false,
+              "evidence_de": "CI/CD-Pipelines",
+              "evidence_en": "CI/CD pipelines"
+            },
+            {
+              "name": "Tests",
+              "required": false,
+              "evidence_de": "Tests",
+              "evidence_en": "tests"
+            },
+            {
+              "name": "Code Reviews",
+              "required": false,
+              "evidence_de": "Code-Reviews",
+              "evidence_en": "code reviews"
+            },
+            {
+              "name": "Pairing-Sessions",
+              "required": false,
+              "evidence_de": "Pairing-Sessions",
+              "evidence_en": "pairing sessions"
+            },
+            {
+              "name": "Spec-Driven-Development",
+              "required": false,
+              "evidence_de": "Spec-Driven-Development-Ansatz",
+              "evidence_en": "Spec-driven development approach"
+            },
+            {
+              "name": "KI-Agenten",
+              "required": false,
+              "evidence_de": "KI-Agenten wie Claude Code, GitHub Copilot oder Codex setzen Sie gezielt ein",
+              "evidence_en": "You use AI agents such as Claude Code, GitHub Copilot or Codex in a targeted way"
+            }
+          ],
+          "extraction_error": null
+        },
+        {
+          "referenznummer": "10001-1003900679-S",
+          "run": 2,
+          "category": "strong",
+          "rubric": {
+            "skills": "met",
+            "location_remote": "met",
+            "seniority": "unknown",
+            "language": "partly",
+            "employment_type": "met"
+          },
+          "exclusion_reasons": [],
+          "dropped_evidence": 0,
+          "low_evidence": false,
+          "extracted_skills": [
+            {
+              "name": "Java",
+              "required": false,
+              "evidence_de": "Java/Spring Boot",
+              "evidence_en": "Java/Spring Boot"
+            },
+            {
+              "name": "Spring Boot",
+              "required": false,
+              "evidence_de": "Java/Spring Boot",
+              "evidence_en": "Java/Spring Boot"
+            },
+            {
+              "name": "Microsoft .NET",
+              "required": false,
+              "evidence_de": "Microsoft .NET",
+              "evidence_en": "Microsoft .NET"
+            },
+            {
+              "name": "JavaScript",
+              "required": false,
+              "evidence_de": "JavaScript/TypeScript",
+              "evidence_en": "JavaScript/TypeScript"
+            },
+            {
+              "name": "TypeScript",
+              "required": false,
+              "evidence_de": "JavaScript/TypeScript",
+              "evidence_en": "JavaScript/TypeScript"
+            },
+            {
+              "name": "Python",
+              "required": false,
+              "evidence_de": "Python",
+              "evidence_en": "Python"
+            },
+            {
+              "name": "Container",
+              "required": false,
+              "evidence_de": "inklusive Container und REST",
+              "evidence_en": "including containers and REST"
+            },
+            {
+              "name": "REST",
+              "required": false,
+              "evidence_de": "inklusive Container und REST",
+              "evidence_en": "including containers and REST"
+            },
+            {
+              "name": "GitHub Copilot",
+              "required": false,
+              "evidence_de": "GitHub Copilot",
+              "evidence_en": "GitHub Copilot"
+            },
+            {
+              "name": "Claude Code",
+              "required": false,
+              "evidence_de": "Claude Code",
+              "evidence_en": "Claude Code"
+            },
+            {
+              "name": "Codex",
+              "required": false,
+              "evidence_de": "Codex",
+              "evidence_en": "Codex"
+            },
+            {
+              "name": "OpenCode",
+              "required": false,
+              "evidence_de": "OpenCode",
+              "evidence_en": "OpenCode"
+            },
+            {
+              "name": "CI/CD",
+              "required": false,
+              "evidence_de": "CI/CD-Pipelines",
+              "evidence_en": "CI/CD pipelines"
+            },
+            {
+              "name": "Tests",
+              "required": false,
+              "evidence_de": "mit Tests, Code-Reviews und einer belastbaren Qualitätssicherung.",
+              "evidence_en": "with tests, code reviews and reliable quality assurance."
+            },
+            {
+              "name": "Code-Reviews",
+              "required": false,
+              "evidence_de": "mit Tests, Code-Reviews und einer belastbaren Qualitätssicherung.",
+              "evidence_en": "with tests, code reviews and reliable quality assurance."
+            },
+            {
+              "name": "Quality assurance",
+              "required": false,
+              "evidence_de": "mit Tests, Code-Reviews und einer belastbaren Qualitätssicherung.",
+              "evidence_en": "with tests, code reviews and reliable quality assurance."
+            },
+            {
+              "name": "Spec-Driven-Development",
+              "required": false,
+              "evidence_de": "Spec-Driven-Development-Ansatz",
+              "evidence_en": "Spec-Driven-Development approach"
+            },
+            {
+              "name": "Agentic Coding",
+              "required": false,
+              "evidence_de": "Agentic Coding",
+              "evidence_en": "Agentic Coding"
+            },
+            {
+              "name": "Requirements engineering",
+              "required": false,
+              "evidence_de": "Requirements mit prüfbaren Akzeptanzkriterien",
+              "evidence_en": "requirements with verifiable acceptance criteria"
+            },
+            {
+              "name": "Pair Programming",
+              "required": false,
+              "evidence_de": "Pairing-Sessions",
+              "evidence_en": "pairing sessions"
+            }
+          ],
+          "extraction_error": null
+        }
+      ],
+      "run_to_run_agreement": {
+        "category": true,
+        "skills": true,
+        "location_remote": true,
+        "seniority": true,
+        "language": true,
+        "employment_type": true
+      }
+    },
+    {
+      "referenznummer": "19121-44499216-1011-S",
+      "title": "Systemnaher Softwareentwickler (d/m/w)",
+      "employer": "genua GmbH",
+      "stratum": "no_skill_match",
+      "search_location": "München (radius 25 km, query \"Softwareentwickler\")",
+      "label": {
+        "referenznummer": "19121-44499216-1011-S",
+        "category": "poor",
+        "skills_verdict": "not_met",
+        "location_remote_verdict": "met",
+        "seniority_verdict": "unknown",
+        "language_verdict": "partly",
+        "employment_type_verdict": "met",
+        "skills_note": "",
+        "location_remote_note": "14 km vom Suchort München; Text nennt mobiles Arbeiten (Korrektur nach Leitfaden)",
+        "seniority_note": "",
+        "language_note": "",
+        "employment_type_note": "",
+        "timestamp": "2026-11-16T17:16:55.923409+00:00"
+      },
+      "runs": [
+        {
+          "referenznummer": "19121-44499216-1011-S",
+          "run": 1,
+          "category": "poor",
+          "rubric": {
+            "skills": "not_met",
+            "location_remote": "partly",
+            "seniority": "unknown",
+            "language": "partly",
+            "employment_type": "met"
+          },
+          "exclusion_reasons": [],
+          "dropped_evidence": 0,
+          "low_evidence": false,
+          "extracted_skills": [
+            {
+              "name": "OpenBSD",
+              "required": false,
+              "evidence_de": "systemnahe Anwendungen für unsere OpenBSD-basierten Produkte",
+              "evidence_en": "system-level applications for our OpenBSD-based products"
+            },
+            {
+              "name": "Unix",
+              "required": false,
+              "evidence_de": "Unix-Systeme sind für dich kein Neuland.",
+              "evidence_en": "Unix systems are not new to you."
+            },
+            {
+              "name": "Linux",
+              "required": false,
+              "evidence_de": "Unix-Betriebssystemen wie Linux oder BSD",
+              "evidence_en": "Unix operating systems such as Linux or BSD"
+            },
+            {
+              "name": "BSD",
+              "required": false,
+              "evidence_de": "Unix-Betriebssystemen wie Linux oder BSD",
+              "evidence_en": "Unix operating systems such as Linux or BSD"
+            },
+            {
+              "name": "Kernel-nahen Themen",
+              "required": false,
+              "evidence_de": "gutes Verständnis von Kernel-nahen Themen",
+              "evidence_en": "good understanding of kernel-near topics"
+            },
+            {
+              "name": "C",
+              "required": false,
+              "evidence_de": "sehr gute Kenntnisse in C und Shell",
+              "evidence_en": "very good knowledge in C and shell"
+            },
+            {
+              "name": "Shell",
+              "required": false,
+              "evidence_de": "sehr gute Kenntnisse in C und Shell",
+              "evidence_en": "very good knowledge in C and shell"
+            },
+            {
+              "name": "Ruby",
+              "required": false,
+              "evidence_de": "Grundkenntnisse in Skriptsprachen wie Ruby oder Perl",
+              "evidence_en": "basic knowledge in scripting languages such as Ruby or Perl"
+            },
+            {
+              "name": "Perl",
+              "required": false,
+              "evidence_de": "Grundkenntnisse in Skriptsprachen wie Ruby oder Perl",
+              "evidence_en": "basic knowledge in scripting languages such as Ruby or Perl"
+            },
+            {
+              "name": "make",
+              "required": false,
+              "evidence_de": "Entwicklungswerkzeugen wie make und git",
+              "evidence_en": "development tools such as make and git"
+            },
+            {
+              "name": "git",
+              "required": false,
+              "evidence_de": "Entwicklungswerkzeugen wie make und git",
+              "evidence_en": "development tools such as make and git"
+            },
+            {
+              "name": "TCP/IP",
+              "required": false,
+              "evidence_de": "erweiterte Kenntnisse im Bereich TCP/IP",
+              "evidence_en": "advanced knowledge in the area of TCP/IP"
+            },
+            {
+              "name": "Netzwerke",
+              "required": false,
+              "evidence_de": "technischen Zusammenhänge moderner Netzwerke",
+              "evidence_en": "technical interrelationships of modern networks"
+            }
+          ],
+          "extraction_error": null
+        },
+        {
+          "referenznummer": "19121-44499216-1011-S",
+          "run": 2,
+          "category": "poor",
+          "rubric": {
+            "skills": "not_met",
+            "location_remote": "partly",
+            "seniority": "unknown",
+            "language": "partly",
+            "employment_type": "met"
+          },
+          "exclusion_reasons": [],
+          "dropped_evidence": 0,
+          "low_evidence": false,
+          "extracted_skills": [
+            {
+              "name": "OpenBSD",
+              "required": false,
+              "evidence_de": "Du entwickelst systemnahe Anwendungen für unsere OpenBSD-basierten Produkte",
+              "evidence_en": "You develop system-level applications for our OpenBSD-based products"
+            },
+            {
+              "name": "System programming",
+              "required": false,
+              "evidence_de": "systemnahe Entwicklung",
+              "evidence_en": "system-level development"
+            },
+            {
+              "name": "Unix",
+              "required": false,
+              "evidence_de": "Unix-Systeme sind für dich kein Neuland.",
+              "evidence_en": "Unix systems are not new territory for you."
+            },
+            {
+              "name": "Linux",
+              "required": false,
+              "evidence_de": "Unix-Betriebssystemen wie Linux oder BSD",
+              "evidence_en": "Unix operating systems such as Linux or BSD"
+            },
+            {
+              "name": "BSD",
+              "required": false,
+              "evidence_de": "Unix-Betriebssystemen wie Linux oder BSD",
+              "evidence_en": "Unix operating systems such as Linux or BSD"
+            },
+            {
+              "name": "Kernel",
+              "required": false,
+              "evidence_de": "ein gutes Verständnis von Kernel-nahen Themen",
+              "evidence_en": "a good understanding of kernel-level topics"
+            },
+            {
+              "name": "C",
+              "required": false,
+              "evidence_de": "Du hast sehr gute Kenntnisse in C und Shell",
+              "evidence_en": "You have very good knowledge in C and shell"
+            },
+            {
+              "name": "Shell",
+              "required": false,
+              "evidence_de": "Du hast sehr gute Kenntnisse in C und Shell",
+              "evidence_en": "You have very good knowledge in C and shell"
+            },
+            {
+              "name": "Ruby",
+              "required": false,
+              "evidence_de": "Grundkenntnisse in Skriptsprachen wie Ruby oder Perl",
+              "evidence_en": "Basic knowledge in scripting languages such as Ruby or Perl"
+            },
+            {
+              "name": "Perl",
+              "required": false,
+              "evidence_de": "Grundkenntnisse in Skriptsprachen wie Ruby oder Perl",
+              "evidence_en": "Basic knowledge in scripting languages such as Ruby or Perl"
+            },
+            {
+              "name": "make",
+              "required": false,
+              "evidence_de": "Mit Entwicklungswerkzeugen wie make und git bist du vertraut",
+              "evidence_en": "You are familiar with development tools such as make and git"
+            },
+            {
+              "name": "git",
+              "required": false,
+              "evidence_de": "Mit Entwicklungswerkzeugen wie make und git bist du vertraut",
+              "evidence_en": "You are familiar with development tools such as make and git"
+            },
+            {
+              "name": "TCP/IP",
+              "required": false,
+              "evidence_de": "Du verfügst über erweiterte Kenntnisse im Bereich TCP/IP",
+              "evidence_en": "You have advanced knowledge in the area of TCP/IP"
+            },
+            {
+              "name": "Networking",
+              "required": false,
+              "evidence_de": "interessierst dich für die technischen Zusammenhänge moderner Netzwerke",
+              "evidence_en": "you are interested in the technical interrelationships of modern networks"
+            }
+          ],
+          "extraction_error": null
+        }
+      ],
+      "run_to_run_agreement": {
+        "category": true,
+        "skills": true,
+        "location_remote": true,
+        "seniority": true,
+        "language": true,
+        "employment_type": true
+      }
+    },
+    {
+      "referenznummer": "14225-d10be3b2dd249dcf-S",
+      "title": "Softwareentwickler - IT (m/w/d)",
+      "employer": "PartSpace GmbH",
+      "stratum": "no_skill_match",
+      "search_location": "München (radius 25 km, query \"Softwareentwickler\")",
+      "label": {
+        "referenznummer": "14225-d10be3b2dd249dcf-S",
+        "category": "poor",
+        "skills_verdict": "partly",
+        "location_remote_verdict": "met",
+        "seniority_verdict": "unknown",
+        "language_verdict": "unknown",
+        "employment_type_verdict": "met",
+        "skills_note": "",
+        "location_remote_note": "Homeoffice nach Vereinbarung; Entfernung fehlt (zählt als im Radius) (Regel aus WP-13)",
+        "seniority_note": "",
+        "language_note": "",
+        "employment_type_note": "",
+        "timestamp": "2026-11-16T17:19:15.215566+00:00"
+      },
+      "runs": [
+        {
+          "referenznummer": "14225-d10be3b2dd249dcf-S",
+          "run": 1,
+          "category": "strong",
+          "rubric": {
+            "skills": "partly",
+            "location_remote": "met",
+            "seniority": "unknown",
+            "language": "unknown",
+            "employment_type": "met"
+          },
+          "exclusion_reasons": [],
+          "dropped_evidence": 0,
+          "low_evidence": false,
+          "extracted_skills": [
+            {
+              "name": ".NET/C#",
+              "required": false,
+              "evidence_de": "Du entwickelst und erweiterst moderne Backend-Anwendungen mit .NET/C# und stellst eine hohe Codequalität durch Tests, Reviews und Dokumentation sicher",
+              "evidence_en": "You develop and extend modern backend applications with .NET/C# and ensure high code quality through tests, reviews and documentation"
+            },
+            {
+              "name": "Backend development",
+              "required": false,
+              "evidence_de": "Du entwickelst und erweiterst moderne Backend-Anwendungen mit .NET/C# und stellst eine hohe Codequalität durch Tests, Reviews und Dokumentation sicher",
+              "evidence_en": "You develop and extend modern backend applications with .NET/C# and ensure high code quality through tests, reviews and documentation"
+            },
+            {
+              "name": "Tests",
+              "required": false,
+              "evidence_de": "stellst eine hohe Codequalität durch Tests, Reviews und Dokumentation sicher",
+              "evidence_en": "ensure high code quality through tests, reviews and documentation"
+            },
+            {
+              "name": "Code reviews",
+              "required": false,
+              "evidence_de": "stellst eine hohe Codequalität durch Tests, Reviews und Dokumentation sicher",
+              "evidence_en": "ensure high code quality through tests, reviews and documentation"
+            },
+            {
+              "name": "Documentation",
+              "required": false,
+              "evidence_de": "stellst eine hohe Codequalität durch Tests, Reviews und Dokumentation sicher",
+              "evidence_en": "ensure high code quality through tests, reviews and documentation"
+            },
+            {
+              "name": "Import pipeline",
+              "required": false,
+              "evidence_de": "Du wartest und verbesserst Teile der Import-Pipeline für Bauteil- und Kundendaten, einschließlich Clustering und kundendatenbezogener Tool-Endpunkte",
+              "evidence_en": "You maintain and improve parts of the import pipeline for part and customer data, including clustering and customer-data-related tool endpoints"
+            },
+            {
+              "name": "Clustering",
+              "required": false,
+              "evidence_de": "einschließlich Clustering und kundendatenbezogener Tool-Endpunkte",
+              "evidence_en": "including clustering and customer-data-related tool endpoints"
+            },
+            {
+              "name": "Tool endpoints",
+              "required": false,
+              "evidence_de": "kundendatenbezogener Tool-Endpunkte",
+              "evidence_en": "customer-data-related tool endpoints"
+            },
+            {
+              "name": "Kalkulationsalgorithmen",
+              "required": false,
+              "evidence_de": "Du implementierst neue Kalkulationsalgorithmen und validierst diese bei Bedarf",
+              "evidence_en": "You implement new calculation algorithms and validate them if necessary"
+            },
+            {
+              "name": "CAD",
+              "required": false,
+              "evidence_de": "Du hast idealerweise bereits mit CAD-, PLM-, PDM- oder ERP-nahen Datenstrukturen gearbeitet",
+              "evidence_en": "Ideally you have already worked with CAD-, PLM-, PDM- or ERP-adjacent data structures"
+            },
+            {
+              "name": "PLM",
+              "required": false,
+              "evidence_de": "Du hast idealerweise bereits mit CAD-, PLM-, PDM- oder ERP-nahen Datenstrukturen gearbeitet",
+              "evidence_en": "Ideally you have already worked with CAD-, PLM-, PDM- or ERP-adjacent data structures"
+            },
+            {
+              "name": "PDM",
+              "required": false,
+              "evidence_de": "Du hast idealerweise bereits mit CAD-, PLM-, PDM- oder ERP-nahen Datenstrukturen gearbeitet",
+              "evidence_en": "Ideally you have already worked with CAD-, PLM-, PDM- or ERP-adjacent data structures"
+            },
+            {
+              "name": "ERP",
+              "required": false,
+              "evidence_de": "Du hast idealerweise bereits mit CAD-, PLM-, PDM- oder ERP-nahen Datenstrukturen gearbeitet",
+              "evidence_en": "Ideally you have already worked with CAD-, PLM-, PDM- or ERP-adjacent data structures"
+            },
+            {
+              "name": "Azure DevOps",
+              "required": false,
+              "evidence_de": "Du bewegst dich sicher in Azure DevOps, CI/CD, automatisierten Tests und agilen Entwicklungsprozessen",
+              "evidence_en": "You are comfortable in Azure DevOps, CI/CD, automated tests and agile development processes"
+            },
+            {
+              "name": "CI/CD",
+              "required": false,
+              "evidence_de": "Du bewegst dich sicher in Azure DevOps, CI/CD, automatisierten Tests und agilen Entwicklungsprozessen",
+              "evidence_en": "You are comfortable in Azure DevOps, CI/CD, automated tests and agile development processes"
+            },
+            {
+              "name": "Automated tests",
+              "required": false,
+              "evidence_de": "Du bewegst dich sicher in Azure DevOps, CI/CD, automatisierten Tests und agilen Entwicklungsprozessen",
+              "evidence_en": "You are comfortable in Azure DevOps, CI/CD, automated tests and agile development processes"
+            },
+            {
+              "name": "Agile development",
+              "required": false,
+              "evidence_de": "Du bewegst dich sicher in Azure DevOps, CI/CD, automatisierten Tests und agilen Entwicklungsprozessen",
+              "evidence_en": "You are comfortable in Azure DevOps, CI/CD, automated tests and agile development processes"
+            },
+            {
+              "name": "Feature extraction",
+              "required": false,
+              "evidence_de": "berätst KI- sowie Feature-Extraction-Teams fachlich",
+              "evidence_en": "advise AI and feature-extraction teams professionally"
+            },
+            {
+              "name": "Working with technical drawings",
+              "required": false,
+              "evidence_de": "Du hast keine Berührungsängste mit komplexen technischen oder industriellen Daten und verstehst Bauteile, technische Zeichnungen, Fertigungstechnologien und industrielle Prozesse nicht nur oberflächlich",
+              "evidence_en": "You are not afraid of complex technical or industrial data and understand parts, technical drawings, manufacturing technologies and industrial processes not just superficially"
+            }
+          ],
+          "extraction_error": null
+        },
+        {
+          "referenznummer": "14225-d10be3b2dd249dcf-S",
+          "run": 2,
+          "category": "partial",
+          "rubric": {
+            "skills": "partly",
+            "location_remote": "met",
+            "seniority": "partly",
+            "language": "unknown",
+            "employment_type": "met"
+          },
+          "exclusion_reasons": [],
+          "dropped_evidence": 0,
+          "low_evidence": false,
+          "extracted_skills": [
+            {
+              "name": ".NET/C#",
+              "required": false,
+              "evidence_de": "mit .NET/C#",
+              "evidence_en": "with .NET/C#"
+            },
+            {
+              "name": ".NET",
+              "required": false,
+              "evidence_de": "mit .NET/C#",
+              "evidence_en": "with .NET/C#"
+            },
+            {
+              "name": "C#",
+              "required": false,
+              "evidence_de": "mit .NET/C#",
+              "evidence_en": "with .NET/C#"
+            },
+            {
+              "name": "Backend-Entwicklung",
+              "required": false,
+              "evidence_de": "mehrjährige Erfahrung in der Backend-Entwicklung mit .NET/C#",
+              "evidence_en": "several years of experience in backend development with .NET/C#"
+            },
+            {
+              "name": "Import-Pipeline",
+              "required": false,
+              "evidence_de": "Du wartest und verbesserst Teile der Import-Pipeline für Bauteil- und Kundendaten",
+              "evidence_en": "You maintain and improve parts of the import pipeline for part and customer data"
+            },
+            {
+              "name": "Clustering",
+              "required": false,
+              "evidence_de": "einschließlich Clustering und kundendatenbezogener Tool-Endpunkte",
+              "evidence_en": "including clustering and customer-data-related tool endpoints"
+            },
+            {
+              "name": "Customer Success (Zusammenarbeit)",
+              "required": false,
+              "evidence_de": "in enger Zusammenarbeit mit Customer Success",
+              "evidence_en": "in close collaboration with Customer Success"
+            },
+            {
+              "name": "Kalkulationsalgorithmen",
+              "required": false,
+              "evidence_de": "Du implementierst neue Kalkulationsalgorithmen und validierst diese bei Bedarf",
+              "evidence_en": "You implement new calculation algorithms and validate them if needed"
+            },
+            {
+              "name": "CAD",
+              "required": false,
+              "evidence_de": "CAD-, PLM-, PDM- oder ERP-nahen Datenstrukturen",
+              "evidence_en": "CAD-, PLM-, PDM- or ERP-related data structures"
+            },
+            {
+              "name": "PLM",
+              "required": false,
+              "evidence_de": "CAD-, PLM-, PDM- oder ERP-nahen Datenstrukturen",
+              "evidence_en": "CAD-, PLM-, PDM- or ERP-related data structures"
+            },
+            {
+              "name": "PDM",
+              "required": false,
+              "evidence_de": "CAD-, PLM-, PDM- oder ERP-nahen Datenstrukturen",
+              "evidence_en": "CAD-, PLM-, PDM- or ERP-related data structures"
+            },
+            {
+              "name": "ERP",
+              "required": false,
+              "evidence_de": "CAD-, PLM-, PDM- oder ERP-nahen Datenstrukturen",
+              "evidence_en": "CAD-, PLM-, PDM- or ERP-related data structures"
+            },
+            {
+              "name": "Azure DevOps",
+              "required": false,
+              "evidence_de": "Du bewegst dich sicher in Azure DevOps, CI/CD, automatisierten Tests und agilen Entwicklungsprozessen",
+              "evidence_en": "You are confident with Azure DevOps, CI/CD, automated tests and agile development processes"
+            },
+            {
+              "name": "CI/CD",
+              "required": false,
+              "evidence_de": "Du bewegst dich sicher in Azure DevOps, CI/CD, automatisierten Tests und agilen Entwicklungsprozessen",
+              "evidence_en": "You are confident with Azure DevOps, CI/CD, automated tests and agile development processes"
+            },
+            {
+              "name": "automatisierte Tests",
+              "required": false,
+              "evidence_de": "Du bewegst dich sicher in Azure DevOps, CI/CD, automatisierten Tests und agilen Entwicklungsprozessen",
+              "evidence_en": "You are confident with Azure DevOps, CI/CD, automated tests and agile development processes"
+            },
+            {
+              "name": "agile development",
+              "required": false,
+              "evidence_de": "agilen Entwicklungsprozessen",
+              "evidence_en": "agile development processes"
+            },
+            {
+              "name": "Tests, Reviews und Dokumentation",
+              "required": false,
+              "evidence_de": "durch Tests, Reviews und Dokumentation",
+              "evidence_en": "through tests, reviews and documentation"
+            },
+            {
+              "name": "Fertigungsdatenbanken",
+              "required": false,
+              "evidence_de": "Stammdaten, Materialdaten, Normen und Fertigungsdatenbanken",
+              "evidence_en": "master data, material data, standards and manufacturing databases"
+            },
+            {
+              "name": "Stammdaten",
+              "required": false,
+              "evidence_de": "Stammdaten, Materialdaten, Normen und Fertigungsdatenbanken",
+              "evidence_en": "master data, material data, standards and manufacturing databases"
+            }
+          ],
+          "extraction_error": null
+        }
+      ],
+      "run_to_run_agreement": {
+        "category": false,
+        "skills": true,
+        "location_remote": true,
+        "seniority": false,
+        "language": true,
+        "employment_type": true
+      }
+    },
+    {
+      "referenznummer": "10001-1003935843-S",
+      "title": "Softwareentwickler C#/.NET (m/w/d)",
+      "employer": "Baader Bank AG",
+      "stratum": "no_skill_match",
+      "search_location": "München (radius 25 km, query \"Softwareentwickler\")",
+      "label": {
+        "referenznummer": "10001-1003935843-S",
+        "category": "poor",
+        "skills_verdict": "partly",
+        "location_remote_verdict": "met",
+        "seniority_verdict": "unknown",
+        "language_verdict": "partly",
+        "employment_type_verdict": "met",
+        "skills_note": "",
+        "location_remote_note": "15 km vom Suchort München; Homeoffice nach Vereinbarung (Regel aus WP-13)",
+        "seniority_note": "",
+        "language_note": "",
+        "employment_type_note": "",
+        "timestamp": "2026-11-16T17:20:12.148294+00:00"
+      },
+      "runs": [
+        {
+          "referenznummer": "10001-1003935843-S",
+          "run": 1,
+          "category": "partial",
+          "rubric": {
+            "skills": "partly",
+            "location_remote": "met",
+            "seniority": "unknown",
+            "language": "partly",
+            "employment_type": "met"
+          },
+          "exclusion_reasons": [],
+          "dropped_evidence": 2,
+          "low_evidence": false,
+          "extracted_skills": [
+            {
+              "name": "C#",
+              "required": false,
+              "evidence_de": "Sie sind für die Konzeption, Entwicklung und Weiterentwicklung von Anwendungen mit C# und .NET verantwortlich.",
+              "evidence_en": "You are responsible for the design, development and further development of applications with C# and .NET."
+            },
+            {
+              "name": ".NET",
+              "required": false,
+              "evidence_de": "Sie sind für die Konzeption, Entwicklung und Weiterentwicklung von Anwendungen mit C# und .NET verantwortlich.",
+              "evidence_en": "You are responsible for the design, development and further development of applications with C# and .NET."
+            },
+            {
+              "name": "Migration .NET Framework nach .NET Core",
+              "required": false,
+              "evidence_de": "Sie verfügen über sehr gute Kenntnisse in folgenden Bereichen: Migration .NET Framework nach .NET Core, ASP.NET Core, Microsoft SQL und Entity Framework sowie mit Package Repository Management, Software Package Distribution, REST-Services, Dependency Injection und Unit Tests.",
+              "evidence_en": "You have very good knowledge in the following areas: Migration .NET Framework to .NET Core, ASP.NET Core, Microsoft SQL and Entity Framework as well as Package Repository Management, Software Package Distribution, REST services, Dependency Injection and Unit Tests."
+            },
+            {
+              "name": "ASP.NET Core",
+              "required": false,
+              "evidence_de": "Sie entwickeln moderne Webanwendungen mit ASP.NET Core.",
+              "evidence_en": "You develop modern web applications with ASP.NET Core."
+            },
+            {
+              "name": "Microsoft SQL",
+              "required": false,
+              "evidence_de": "Sie verfügen über sehr gute Kenntnisse in folgenden Bereichen: Migration .NET Framework nach .NET Core, ASP.NET Core, Microsoft SQL und Entity Framework sowie mit Package Repository Management, Software Package Distribution, REST-Services, Dependency Injection und Unit Tests.",
+              "evidence_en": "You have very good knowledge in the following areas: Migration .NET Framework to .NET Core, ASP.NET Core, Microsoft SQL and Entity Framework as well as Package Repository Management, Software Package Distribution, REST services, Dependency Injection and Unit Tests."
+            },
+            {
+              "name": "SQL Server",
+              "required": false,
+              "evidence_de": "Die Entwicklung performanter Datenbanklösungen (SQL Server, Oracle, Postgress, Entity Framework) gehört ebenfalls zu Ihren Aufgaben.",
+              "evidence_en": "The development of performant database solutions (SQL Server, Oracle, Postgress, Entity Framework) is also part of your tasks."
+            },
+            {
+              "name": "Oracle",
+              "required": false,
+              "evidence_de": "Die Entwicklung performanter Datenbanklösungen (SQL Server, Oracle, Postgress, Entity Framework) gehört ebenfalls zu Ihren Aufgaben.",
+              "evidence_en": "The development of performant database solutions (SQL Server, Oracle, Postgress, Entity Framework) is also part of your tasks."
+            },
+            {
+              "name": "Postgress",
+              "required": false,
+              "evidence_de": "Die Entwicklung performanter Datenbanklösungen (SQL Server, Oracle, Postgress, Entity Framework) gehört ebenfalls zu Ihren Aufgaben.",
+              "evidence_en": "The development of performant database solutions (SQL Server, Oracle, Postgress, Entity Framework) is also part of your tasks."
+            },
+            {
+              "name": "Entity Framework",
+              "required": false,
+              "evidence_de": "Die Entwicklung performanter Datenbanklösungen (SQL Server, Oracle, Postgress, Entity Framework) gehört ebenfalls zu Ihren Aufgaben.",
+              "evidence_en": "The development of performant database solutions (SQL Server, Oracle, Postgress, Entity Framework) is also part of your tasks."
+            },
+            {
+              "name": "REST-APIs",
+              "required": false,
+              "evidence_de": "Sie implementieren REST-APIs und Microservices.",
+              "evidence_en": "You implement REST APIs and microservices."
+            },
+            {
+              "name": "REST-Services",
+              "required": false,
+              "evidence_de": "Sie verfügen über sehr gute Kenntnisse in folgenden Bereichen: Migration .NET Framework nach .NET Core, ASP.NET Core, Microsoft SQL und Entity Framework sowie mit Package Repository Management, Software Package Distribution, REST-Services, Dependency Injection und Unit Tests.",
+              "evidence_en": "You have very good knowledge in the following areas: Migration .NET Framework to .NET Core, ASP.NET Core, Microsoft SQL and Entity Framework as well as Package Repository Management, Software Package Distribution, REST services, Dependency Injection and Unit Tests."
+            },
+            {
+              "name": "Microservices",
+              "required": false,
+              "evidence_de": "Sie implementieren REST-APIs und Microservices.",
+              "evidence_en": "You implement REST APIs and microservices."
+            },
+            {
+              "name": "Package Repository Management",
+              "required": false,
+              "evidence_de": "Sie verfügen über sehr gute Kenntnisse in folgenden Bereichen: Migration .NET Framework nach .NET Core, ASP.NET Core, Microsoft SQL und Entity Framework sowie mit Package Repository Management, Software Package Distribution, REST-Services, Dependency Injection und Unit Tests.",
+              "evidence_en": "You have very good knowledge in the following areas: Migration .NET Framework to .NET Core, ASP.NET Core, Microsoft SQL and Entity Framework as well as Package Repository Management, Software Package Distribution, REST services, Dependency Injection and Unit Tests."
+            },
+            {
+              "name": "Software Package Distribution",
+              "required": false,
+              "evidence_de": "Sie verfügen über sehr gute Kenntnisse in folgenden Bereichen: Migration .NET Framework nach .NET Core, ASP.NET Core, Microsoft SQL und Entity Framework sowie mit Package Repository Management, Software Package Distribution, REST-Services, Dependency Injection und Unit Tests.",
+              "evidence_en": "You have very good knowledge in the following areas: Migration .NET Framework to .NET Core, ASP.NET Core, Microsoft SQL and Entity Framework as well as Package Repository Management, Software Package Distribution, REST services, Dependency Injection and Unit Tests."
+            },
+            {
+              "name": "Dependency Injection",
+              "required": false,
+              "evidence_de": "Sie verfügen über sehr gute Kenntnisse in folgenden Bereichen: Migration .NET Framework nach .NET Core, ASP.NET Core, Microsoft SQL und Entity Framework sowie mit Package Repository Management, Software Package Distribution, REST-Services, Dependency Injection und Unit Tests.",
+              "evidence_en": "You have very good knowledge in the following areas: Migration .NET Framework to .NET Core, ASP.NET Core, Microsoft SQL and Entity Framework as well as Package Repository Management, Software Package Distribution, REST services, Dependency Injection and Unit Tests."
+            },
+            {
+              "name": "Unit Tests",
+              "required": false,
+              "evidence_de": "Sie verfügen über sehr gute Kenntnisse in folgenden Bereichen: Migration .NET Framework nach .NET Core, ASP.NET Core, Microsoft SQL und Entity Framework sowie mit Package Repository Management, Software Package Distribution, REST-Services, Dependency Injection und Unit Tests.",
+              "evidence_en": "You have very good knowledge in the following areas: Migration .NET Framework to .NET Core, ASP.NET Core, Microsoft SQL and Entity Framework as well as Package Repository Management, Software Package Distribution, REST services, Dependency Injection and Unit Tests."
+            },
+            {
+              "name": "Azure Services",
+              "required": false,
+              "evidence_de": "Kenntnisse mit Azure Services (z. B. Graph API), Git, GitLab, CI/CD-Pipelines, Clean Architecture und Microservices sind von Vorteil.",
+              "evidence_en": "Knowledge of Azure Services (e.g. Graph API), Git, GitLab, CI/CD pipelines, Clean Architecture and microservices is an advantage."
+            },
+            {
+              "name": "Graph API",
+              "required": false,
+              "evidence_de": "Kenntnisse mit Azure Services (z. B. Graph API), Git, GitLab, CI/CD-Pipelines, Clean Architecture und Microservices sind von Vorteil.",
+              "evidence_en": "Knowledge of Azure Services (e.g. Graph API), Git, GitLab, CI/CD pipelines, Clean Architecture and microservices is an advantage."
+            },
+            {
+              "name": "Git",
+              "required": false,
+              "evidence_de": "Kenntnisse mit Azure Services (z. B. Graph API), Git, GitLab, CI/CD-Pipelines, Clean Architecture und Microservices sind von Vorteil.",
+              "evidence_en": "Knowledge of Azure Services (e.g. Graph API), Git, GitLab, CI/CD pipelines, Clean Architecture and microservices is an advantage."
+            },
+            {
+              "name": "GitLab",
+              "required": false,
+              "evidence_de": "Kenntnisse mit Azure Services (z. B. Graph API), Git, GitLab, CI/CD-Pipelines, Clean Architecture und Microservices sind von Vorteil.",
+              "evidence_en": "Knowledge of Azure Services (e.g. Graph API), Git, GitLab, CI/CD pipelines, Clean Architecture and microservices is an advantage."
+            },
+            {
+              "name": "CI/CD-Pipelines",
+              "required": false,
+              "evidence_de": "Kenntnisse mit Azure Services (z. B. Graph API), Git, GitLab, CI/CD-Pipelines, Clean Architecture und Microservices sind von Vorteil.",
+              "evidence_en": "Knowledge of Azure Services (e.g. Graph API), Git, GitLab, CI/CD pipelines, Clean Architecture and microservices is an advantage."
+            },
+            {
+              "name": "Clean Architecture",
+              "required": false,
+              "evidence_de": "Kenntnisse mit Azure Services (z. B. Graph API), Git, GitLab, CI/CD-Pipelines, Clean Architecture und Microservices sind von Vorteil.",
+              "evidence_en": "Knowledge of Azure Services (e.g. Graph API), Git, GitLab, CI/CD pipelines, Clean Architecture and microservices is an advantage."
+            },
+            {
+              "name": "Scrum",
+              "required": false,
+              "evidence_de": "Sie arbeiten in agilen Teams nach Scrum zusammen.",
+              "evidence_en": "You work together in agile teams according to Scrum."
+            }
+          ],
+          "extraction_error": null
+        },
+        {
+          "referenznummer": "10001-1003935843-S",
+          "run": 2,
+          "category": "partial",
+          "rubric": {
+            "skills": "partly",
+            "location_remote": "met",
+            "seniority": "unknown",
+            "language": "partly",
+            "employment_type": "met"
+          },
+          "exclusion_reasons": [],
+          "dropped_evidence": 2,
+          "low_evidence": false,
+          "extracted_skills": [
+            {
+              "name": "C#",
+              "required": false,
+              "evidence_de": "Sie sind für die Konzeption, Entwicklung und Weiterentwicklung von Anwendungen mit C# und .NET verantwortlich.",
+              "evidence_en": "You are responsible for the design, development and further development of applications with C# and .NET."
+            },
+            {
+              "name": ".NET",
+              "required": false,
+              "evidence_de": "Sie sind für die Konzeption, Entwicklung und Weiterentwicklung von Anwendungen mit C# und .NET verantwortlich.",
+              "evidence_en": "You are responsible for the design, development and further development of applications with C# and .NET."
+            },
+            {
+              "name": "SQL Server",
+              "required": false,
+              "evidence_de": "Die Entwicklung performanter Datenbanklösungen (SQL Server, Oracle, Postgress, Entity Framework) gehört ebenfalls zu Ihren Aufgaben.",
+              "evidence_en": "Developing performant database solutions (SQL Server, Oracle, Postgress, Entity Framework) is also part of your tasks."
+            },
+            {
+              "name": "Oracle",
+              "required": false,
+              "evidence_de": "Die Entwicklung performanter Datenbanklösungen (SQL Server, Oracle, Postgress, Entity Framework) gehört ebenfalls zu Ihren Aufgaben.",
+              "evidence_en": "Developing performant database solutions (SQL Server, Oracle, Postgress, Entity Framework) is also part of your tasks."
+            },
+            {
+              "name": "Postgress",
+              "required": false,
+              "evidence_de": "Die Entwicklung performanter Datenbanklösungen (SQL Server, Oracle, Postgress, Entity Framework) gehört ebenfalls zu Ihren Aufgaben.",
+              "evidence_en": "Developing performant database solutions (SQL Server, Oracle, Postgress, Entity Framework) is also part of your tasks."
+            },
+            {
+              "name": "Entity Framework",
+              "required": false,
+              "evidence_de": "Die Entwicklung performanter Datenbanklösungen (SQL Server, Oracle, Postgress, Entity Framework) gehört ebenfalls zu Ihren Aufgaben.",
+              "evidence_en": "Developing performant database solutions (SQL Server, Oracle, Postgress, Entity Framework) is also part of your tasks."
+            },
+            {
+              "name": "REST APIs",
+              "required": false,
+              "evidence_de": "Sie implementieren REST-APIs und Microservices.",
+              "evidence_en": "You implement REST APIs and microservices."
+            },
+            {
+              "name": "Microservices",
+              "required": false,
+              "evidence_de": "Sie implementieren REST-APIs und Microservices.",
+              "evidence_en": "You implement REST APIs and microservices."
+            },
+            {
+              "name": "ASP.NET Core",
+              "required": false,
+              "evidence_de": "Sie entwickeln moderne Webanwendungen mit ASP.NET Core.",
+              "evidence_en": "You develop modern web applications with ASP.NET Core."
+            },
+            {
+              "name": "Software architecture",
+              "required": false,
+              "evidence_de": "Sie konzeptionieren Softwarearchitekturen und setzen diese um.",
+              "evidence_en": "You design software architectures and implement them."
+            },
+            {
+              "name": "Code review",
+              "required": false,
+              "evidence_de": "Sie führen Code-Reviews und Qualitätssicherungen durch und unterstützen im Test- und Release-Prozess.",
+              "evidence_en": "You conduct code reviews and quality assurance and support the test and release process."
+            },
+            {
+              "name": "Scrum",
+              "required": false,
+              "evidence_de": "Sie arbeiten in agilen Teams nach Scrum zusammen.",
+              "evidence_en": "You collaborate in agile teams according to Scrum."
+            },
+            {
+              "name": "Performance optimization",
+              "required": false,
+              "evidence_de": "Die Analyse und Behebung von Fehlern sowie die Performance-Optimierung runden Ihr Aufgabengebiet ab.",
+              "evidence_en": "Analysis and correction of errors as well as performance optimization round off your area of responsibility."
+            },
+            {
+              "name": "Dependency Injection",
+              "required": false,
+              "evidence_de": "Sie verfügen über sehr gute Kenntnisse in folgenden Bereichen: Migration .NET Framework nach .NET Core, ASP.NET Core, Microsoft SQL und Entity Framework sowie mit Package Repository Management, Software Package Distribution, REST-Services, Dependency Injection und Unit Tests.",
+              "evidence_en": "You have very good knowledge in the following areas: migration .NET Framework to .NET Core, ASP.NET Core, Microsoft SQL and Entity Framework as well as package repository management, software package distribution, REST services, dependency injection and unit tests."
+            },
+            {
+              "name": "Unit Tests",
+              "required": false,
+              "evidence_de": "Sie verfügen über sehr gute Kenntnisse in folgenden Bereichen: Migration .NET Framework nach .NET Core, ASP.NET Core, Microsoft SQL und Entity Framework sowie mit Package Repository Management, Software Package Distribution, REST-Services, Dependency Injection und Unit Tests.",
+              "evidence_en": "You have very good knowledge in the following areas: migration .NET Framework to .NET Core, ASP.NET Core, Microsoft SQL and Entity Framework as well as package repository management, software package distribution, REST services, dependency injection and unit tests."
+            },
+            {
+              "name": "Package Repository Management",
+              "required": false,
+              "evidence_de": "Sie verfügen über sehr gute Kenntnisse in folgenden Bereichen: Migration .NET Framework nach .NET Core, ASP.NET Core, Microsoft SQL und Entity Framework sowie mit Package Repository Management, Software Package Distribution, REST-Services, Dependency Injection und Unit Tests.",
+              "evidence_en": "You have very good knowledge in the following areas: migration .NET Framework to .NET Core, ASP.NET Core, Microsoft SQL and Entity Framework as well as package repository management, software package distribution, REST services, dependency injection and unit tests."
+            },
+            {
+              "name": "Software Package Distribution",
+              "required": false,
+              "evidence_de": "Sie verfügen über sehr gute Kenntnisse in folgenden Bereichen: Migration .NET Framework nach .NET Core, ASP.NET Core, Microsoft SQL und Entity Framework sowie mit Package Repository Management, Software Package Distribution, REST-Services, Dependency Injection und Unit Tests.",
+              "evidence_en": "You have very good knowledge in the following areas: migration .NET Framework to .NET Core, ASP.NET Core, Microsoft SQL and Entity Framework as well as package repository management, software package distribution, REST services, dependency injection and unit tests."
+            },
+            {
+              "name": "REST-Services",
+              "required": false,
+              "evidence_de": "Sie verfügen über sehr gute Kenntnisse in folgenden Bereichen: Migration .NET Framework nach .NET Core, ASP.NET Core, Microsoft SQL und Entity Framework sowie mit Package Repository Management, Software Package Distribution, REST-Services, Dependency Injection und Unit Tests.",
+              "evidence_en": "You have very good knowledge in the following areas: migration .NET Framework to .NET Core, ASP.NET Core, Microsoft SQL and Entity Framework as well as package repository management, software package distribution, REST services, dependency injection and unit tests."
+            },
+            {
+              "name": "Azure Services",
+              "required": false,
+              "evidence_de": "Kenntnisse mit Azure Services (z. B. Graph API), Git, GitLab, CI/CD-Pipelines, Clean Architecture und Microservices sind von Vorteil.",
+              "evidence_en": "Knowledge of Azure Services (e.g. Graph API), Git, GitLab, CI/CD pipelines, Clean Architecture and microservices is an advantage."
+            },
+            {
+              "name": "Graph API",
+              "required": false,
+              "evidence_de": "Kenntnisse mit Azure Services (z. B. Graph API), Git, GitLab, CI/CD-Pipelines, Clean Architecture und Microservices sind von Vorteil.",
+              "evidence_en": "Knowledge of Azure Services (e.g. Graph API), Git, GitLab, CI/CD pipelines, Clean Architecture and microservices is an advantage."
+            },
+            {
+              "name": "Git",
+              "required": false,
+              "evidence_de": "Kenntnisse mit Azure Services (z. B. Graph API), Git, GitLab, CI/CD-Pipelines, Clean Architecture und Microservices sind von Vorteil.",
+              "evidence_en": "Knowledge of Azure Services (e.g. Graph API), Git, GitLab, CI/CD pipelines, Clean Architecture and microservices is an advantage."
+            },
+            {
+              "name": "GitLab",
+              "required": false,
+              "evidence_de": "Kenntnisse mit Azure Services (z. B. Graph API), Git, GitLab, CI/CD-Pipelines, Clean Architecture und Microservices sind von Vorteil.",
+              "evidence_en": "Knowledge of Azure Services (e.g. Graph API), Git, GitLab, CI/CD pipelines, Clean Architecture and microservices is an advantage."
+            },
+            {
+              "name": "CI/CD pipelines",
+              "required": false,
+              "evidence_de": "Kenntnisse mit Azure Services (z. B. Graph API), Git, GitLab, CI/CD-Pipelines, Clean Architecture und Microservices sind von Vorteil.",
+              "evidence_en": "Knowledge of Azure Services (e.g. Graph API), Git, GitLab, CI/CD pipelines, Clean Architecture and microservices is an advantage."
+            },
+            {
+              "name": "Clean Architecture",
+              "required": false,
+              "evidence_de": "Kenntnisse mit Azure Services (z. B. Graph API), Git, GitLab, CI/CD-Pipelines, Clean Architecture und Microservices sind von Vorteil.",
+              "evidence_en": "Knowledge of Azure Services (e.g. Graph API), Git, GitLab, CI/CD pipelines, Clean Architecture and microservices is an advantage."
+            }
+          ],
+          "extraction_error": null
+        }
+      ],
+      "run_to_run_agreement": {
+        "category": true,
+        "skills": true,
+        "location_remote": true,
+        "seniority": true,
+        "language": true,
+        "employment_type": true
+      }
+    }
+  ],
+  "cause_summary": {
+    "data_issue": 14,
+    "extraction_error": 3,
+    "label_ambiguity": 2,
+    "rubric_rule_or_threshold": 8
+  }
+}
