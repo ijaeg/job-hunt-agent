@@ -1752,3 +1752,78 @@ pre-existing, unrelated `scripts/wp12_should_check.py` error.
 
 **Manual check:** `uv run streamlit run scripts/label_fit.py` serves
 (HTTP 200) without a stack trace.
+
+## 2026-11-16 — WP-14 Stage 1: fit evaluation, development set (spec §9.3)
+
+**Done (spec §7, §9.1, §9.3, FR-05 AC2, FR-06, NFR-09, invariant 6, D-9, D-20):**
+
+- **Code check against spec §7** (independent of any label):
+  `rubric._employment_type_verdict` reads `befristungInMonaten` correctly
+  via `contract_months`, but `JobDetails` has no `contract_duration` field
+  at all, so "confirmed permanent" (`UNBEFRISTET`) and "not stated"
+  (`KEINE_ANGABE`) both collapse to `contract_months is None` - caused zero
+  dev-set disagreements (employment_type agreement 1.0 both runs), no
+  decision file opened, flagged to re-check on the test set. A stated
+  remote type without a percentage (`NACH_VEREINBARUNG`) has no path to
+  `met`/`partly` in `_location_remote_verdict` and falls through to
+  `not_met` for a `hybrid`/`remote`-preference profile - contradicts
+  Ingo's own WP-13 addendum-3 labelling rule and caused a real dev-set
+  disagreement (D-23).
+- **`eval/run_fit_eval.py`** (spec §11): runs `tools.assess`'s extraction
+  helpers and `rubric.assess` directly (reused, not copied) against the
+  fixture set for one `--set dev|test` split of `eval/fit_set.yaml`, two
+  independent runs per listing, and compares against `eval/fit_labels.csv`.
+  Pure comparison helpers (`compare_run`, `category_accuracy`,
+  `confusion_matrix`, `dimension_agreement`, `run_to_run_agreement`,
+  `attach_cause`/`summarize_causes`) unit-tested with fixed fake data in
+  `tests/test_run_fit_eval.py` (15 tests, no model call, NFR-05).
+- **Dev-set run** (`openai/gpt-5-mini`, reasoning effort `low`, 8 listings x
+  2 runs, `eval/results/fit_eval_dev.json`): category accuracy 25.0 %/
+  37.5 % (run 1/run 2); dimension agreement skills 37.5–50.0 %,
+  location/remote 75.0 %, seniority 50.0 %, language 75.0 %, employment
+  type 100 %; run-to-run agreement 87.5 % category, 95.8 % per-dimension;
+  `dropped_evidence` 58 across 16 runs. 36 disagreements classified by
+  cause (reading the ad text and rubric by hand, then recorded via
+  `attach_cause`): `extraction_error` 16, `label_ambiguity` 8, `data_issue`
+  4, `code_deviation` 4, `rubric_rule_or_threshold` 4. Full breakdown and
+  per-listing detail: `docs/fit_evaluation.md` "Development set".
+- **Five decision files** opened from the dev-set evidence, each with
+  numbers, options and a recommendation:
+  [D-21](decisions/D-21-skill-extraction-granularity.md) (the model
+  frequently extracts full requirement sentences as `Requirement.name`
+  instead of atomic skills - dominant cause of the low skills agreement
+  and the 58 `dropped_evidence`; also the "all evidence dropped -> unknown"
+  failure mode on `12288-4971252625-S`),
+  [D-22](decisions/D-22-extraction-prompt-title.md) (the extraction prompt
+  never sees the listing title, missing a title-only seniority statement
+  on `19913-3074751792188001-S`),
+  [D-23](decisions/D-23-remote-type-without-percent.md) (the
+  `NACH_VEREINBARUNG` code-check finding above, confirmed on
+  `13509-000021113EF002-S`),
+  [D-24](decisions/D-24-location-remote-reads-structured-fields-only.md)
+  (open question, no recommendation: should `location_remote` also read ad
+  text when the structured fields are empty, matching how Ingo's
+  addendum-3 rule actually labelled `17338-c2de5ff0cd55000215-S`),
+  [D-25](decisions/D-25-category-threshold-skills-not-met.md) (two
+  listings with identical, correct dimension verdicts to the label still
+  disagree on category because `skills: not_met` is outvoted by three
+  `met`/`partly` dimensions in the weighted share - recommends capping the
+  category at `poor` when skills is `not_met`, mirroring the existing
+  unknown-dimensions cap).
+
+**Tests:** 15 new (460 total, up from 445 at the end of WP-13). `ruff
+check .`/`ruff format --check .` clean (147 files). `mypy src app.py pages
+scripts eval` clean except the same pre-existing, unrelated
+`scripts/wp12_should_check.py` error. **460 tests, 0 skipped, 99%
+coverage.**
+
+**Real-model run:** `uv run python eval/run_fit_eval.py --set dev`
+(16 real extraction calls against `openai/gpt-5-mini`).
+
+**Stop rule reached (WP-14 Stage 1 complete).** Per spec §9.1/invariant 6,
+the 12-listing test set is not run until Ingo's answers on D-21–D-25 are
+recorded and implemented. **Next:** Ingo decides D-21–D-25; Stage 2
+implements the decided changes with tests, re-runs the dev set to record
+the new numbers, then runs the test set once (`eval/run_fit_eval.py
+--set test`) and writes `docs/fit_evaluation.md`'s "Test set" and
+"Limitations" sections.
