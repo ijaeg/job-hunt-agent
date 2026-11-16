@@ -22,6 +22,32 @@ while labelling (D-20) - this guide is the only thing you check against.
    does not reach a hard exclusion). Don't compute a score - use judgement,
    the same way you would skim a job ad yourself.
 
+## Which location the distance refers to
+
+The `distance_km` shown for a listing is not always relative to the Alex
+profile's own location (Hamburg, 25 km radius). The fixture listings were
+collected from 5 real searches run at different locations - Hamburg,
+Berlin and München (spec D-1) - and the BA API reports distance from
+whichever location a search actually asked for, not from the profile: a
+location named in the chat request overrides the profile for that search
+("in Berlin this time", FR-01 AC4). A München-origin listing's distance is
+relative to München, not Hamburg, even though the demo profile lives in
+Hamburg.
+
+This does not change how you score the location/remote dimension below -
+you still compare the number against the profile's 25 km radius exactly
+as the rubric does, regardless of which city it came from. The labelling
+tool shows the originating search's location and radius right next to the
+distance purely so a small number doesn't mislead you into thinking a
+listing is near Hamburg when it is really near München or Berlin.
+
+**For WP-14:** when the app's own assessment is computed for comparison,
+it must use this same `distance_km` value (and therefore implicitly the
+same originating search) for each listing - not a freshly looked-up
+distance from a different search location - so the comparison is
+apples-to-apples with what was labelled here (also recorded in
+`eval/fit_set.yaml`).
+
 ## The five dimensions, in plain words
 
 ### Skills (the most important dimension)
@@ -50,8 +76,11 @@ location, search radius and remote preference.
 - **partly**: within the radius, but the ad says nothing about remote work
   one way or the other.
 - **not met**: outside the radius and not fully remote.
-- **unknown**: you cannot tell at all (e.g. no location and no distance
-  given).
+
+There is no **unknown** for this dimension: spec §7 does not define one,
+and a missing distance always counts as *within* the radius (the same
+rule `rubric.py` uses) rather than as "can't tell" - so a listing with no
+distance and no remote information at all is **partly**, not unknown.
 
 ### Seniority
 
@@ -79,12 +108,13 @@ Compare full-time/part-time and permanent/fixed-term against the
 profile's preference.
 - **met**: both match (or the ad does not state one of them, but the one
   it does state matches).
-- **partly**: not used for this dimension in practice, but available if
-  you genuinely see a middle ground (e.g. only one of the two sub-fields
-  is stated and it is ambiguous whether that overrides the other).
 - **not met**: a stated value conflicts with the profile's preference.
 - **unknown**: the ad states neither full-time/part-time nor contract
   length.
+
+There is no **partly** for this dimension: spec §7 does not define one -
+either both stated sub-fields agree with the profile (met), one of them
+conflicts (not met), or neither is stated (unknown).
 
 ## "unknown" vs. "not met" - the one distinction that matters most
 

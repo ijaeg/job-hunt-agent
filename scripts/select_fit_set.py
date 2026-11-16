@@ -217,6 +217,19 @@ def main() -> int:
         "counts_in_pool": dict(stratum_sizes),
         "allocation": {"total": total_alloc, "dev": dev_alloc, "test": test_alloc},
         "employer_cap": EMPLOYER_CAP,
+        "evaluation_note": (
+            "A listing's distance_km in the committed fixture set is relative to "
+            "whichever of the 5 recorded D-1 searches it came from (Hamburg, Berlin "
+            "or München), not necessarily the Alex profile's own location - a "
+            "location named in the request overrides the profile for that search "
+            "(FR-01 AC4). scripts/label_fit.py shows this search location/radius "
+            "next to the distance while labelling (Addendum 2 to WP-13's prompt, "
+            'docs/labelling_guide.md § "Which location the distance refers to"). '
+            "WP-14 must build each test listing's JobSummary from this same stored "
+            "distance_km when it computes the app's own assessment for comparison - "
+            "not a freshly looked-up distance from a different search location - so "
+            "the agreement check (§9.3) is apples-to-apples with what was labelled."
+        ),
         "listings": rows,
     }
 

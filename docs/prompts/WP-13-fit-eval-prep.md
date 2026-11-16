@@ -33,3 +33,24 @@ Save this prompt verbatim as docs/prompts/WP-13-fit-eval-prep.md. We are on bran
 
 ## Commits
 Propose small commits and wait for Ingo's approval each time. Suggested split: prompt + D-20; fit_set.yaml (after approval); labelling guide; labelling tool + tests + session log.
+
+---
+
+## Addendum 1 (2026-11-16, selection review)
+
+Selection approved by Ingo (2026-11-16) with two changes; record the approval and the final rule in eval/fit_set.yaml:
+1. Fixed allocation instead of proportional: temp_agency 3 (1 dev / 2 test), skill_match 9 (3 dev / 6 test), no_skill_match 8 (4 dev / 4 test). Reason: temp-agency listings are excluded by code from a structured field alone and would inflate agreement without testing the extraction.
+2. At most 2 listings per employer across the whole set.
+Keep seed 1300 and the shuffle-then-take procedure; redraw within the strata where the employer cap removes a listing. Show me the new list once more, then continue with Part B without waiting for another approval if the list follows these rules.
+
+---
+
+## Addendum 2 (2026-11-16, coach review of the labelling guide)
+
+Fix before Ingo starts labelling:
+1. docs/labelling_guide.md, location/remote: remove "unknown". Spec §7 has no "unknown" for this dimension; a missing distance counts as within the radius (as rubric.py does).
+2. docs/labelling_guide.md, employment type: remove "partly". Spec §7 has no "partly" for this dimension.
+3. Add a short section "Which location the distance refers to": the distance shown is the distance from the location of the search the listing came from (e.g. München for the München listings), not from the profile's location; a location named in the request overrides the profile (FR-01 AC4). Show the search location next to the distance in scripts/label_fit.py, so Ingo sees it while labelling.
+4. The labelling tool's verdict choices must match: location/remote without "unknown", employment type without "partly".
+5. Record in eval/fit_set.yaml (or docs/labelling_guide.md) that WP-14 must compute the app's assessment with the same distance and search location that the tool shows.
+Update tests, run all checks, propose the commit.

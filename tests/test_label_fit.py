@@ -81,6 +81,42 @@ def test_load_listings_by_ref_indexes_every_fit_set_reference() -> None:
 
 
 # ---------------------------------------------------------------------------
+# resolve_search_location: which search a listing's distance_km is relative to
+# (Addendum 2: FR-01 AC4 - a search location can differ from the profile's own)
+# ---------------------------------------------------------------------------
+
+
+def test_resolve_search_location_single_match() -> None:
+    recorded_searches = label_fit.load_recorded_searches(label_fit.RECORDED_SEARCHES_PATH)
+
+    # 11119-4964515256-S matched only the München "Softwareentwickler" query.
+    location = label_fit.resolve_search_location("11119-4964515256-S", recorded_searches)
+
+    assert location == 'München (radius 25 km, query "Softwareentwickler")'
+
+
+def test_resolve_search_location_picks_the_same_query_build_fixtures_used_for_distance() -> None:
+    """19913-3074751792188001-S matches both the Hamburg "AI Engineer" (entfernung 4)
+    and Berlin "Machine Learning" (entfernung 3) searches; listings.json's own
+    distance_km is 3.0 (confirmed against the raw D-1 responses), i.e. Berlin won -
+    this must resolve to the same query, not an arbitrary one of the two.
+    """
+    recorded_searches = label_fit.load_recorded_searches(label_fit.RECORDED_SEARCHES_PATH)
+    listings_by_ref = label_fit.load_listings_by_ref(label_fit.LISTINGS_PATH)
+    ref = "19913-3074751792188001-S"
+
+    assert listings_by_ref[ref]["distance_km"] == 3.0
+    location = label_fit.resolve_search_location(ref, recorded_searches)
+    assert location == 'Berlin (radius 25 km, query "Machine Learning")'
+
+
+def test_resolve_search_location_returns_none_for_an_unknown_reference() -> None:
+    recorded_searches = label_fit.load_recorded_searches(label_fit.RECORDED_SEARCHES_PATH)
+
+    assert label_fit.resolve_search_location("NOT-A-REAL-REF-S", recorded_searches) is None
+
+
+# ---------------------------------------------------------------------------
 # load_labelled_refs: resumable read, empty when the file doesn't exist yet
 # ---------------------------------------------------------------------------
 
@@ -176,6 +212,32 @@ def test_renders_the_first_pending_listing_without_an_assessment(labels_path: Pa
 
     category_box = next(sb for sb in at.selectbox if sb.label == "Overall category")
     assert category_box.value == "— select —"
+
+    # Addendum 2: distance is shown next to the search location it is
+    # relative to, not silently assumed to be the Alex profile's Hamburg.
+    distance_cell = str(at.table[0].value["distance"].iloc[0])
+    assert "km from" in distance_cell
+    assert "München" in distance_cell or "Hamburg" in distance_cell or "Berlin" in distance_cell
+
+
+def test_location_remote_has_no_unknown_option_and_employment_type_has_no_partly(
+    labels_path: Path,
+) -> None:
+    at = AppTest.from_file(str(SCRIPT_PATH), default_timeout=30)
+    at.run()
+
+    location_remote_box = at.selectbox(key="location_remote_verdict")
+    employment_type_box = at.selectbox(key="employment_type_verdict")
+
+    assert "unknown" not in location_remote_box.options
+    assert set(location_remote_box.options) == {"— select —", "met", "partly", "not_met"}
+    assert "partly" not in employment_type_box.options
+    assert set(employment_type_box.options) == {"— select —", "met", "not_met", "unknown"}
+
+    # The other three dimensions keep all four verdicts.
+    for dim in ("skills", "seniority", "language"):
+        options = set(at.selectbox(key=f"{dim}_verdict").options)
+        assert options == {"— select —", "met", "partly", "not_met", "unknown"}
 
 
 def test_submitting_without_a_choice_shows_a_friendly_error_and_saves_nothing(
