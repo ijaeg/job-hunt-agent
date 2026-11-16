@@ -54,3 +54,11 @@ Fix before Ingo starts labelling:
 4. The labelling tool's verdict choices must match: location/remote without "unknown", employment type without "partly".
 5. Record in eval/fit_set.yaml (or docs/labelling_guide.md) that WP-14 must compute the app's assessment with the same distance and search location that the tool shows.
 Update tests, run all checks, propose the commit.
+
+---
+
+## Addendum 3 (2026-11-16, data check after labelling)
+
+Data check for the labelled fit set (no app run, no rubric, no model call - keep the labelling blind): for every listing in eval/fit_set.yaml whose location_remote_verdict in eval/fit_labels.csv is "partly" or "not_met", list: referenznummer, title, location, distance_km and the search location it refers to (as scripts/label_fit.py shows it), remote_type, remote_percent, and any sentence in the description with remote-work wording (Homeoffice, Home-Office, mobiles Arbeiten, mobile Arbeit, remote, hybrid, Telearbeit, ortsunabhängig), or "none found". Change nothing.
+
+Outcome (Ingo, 2026-11-16, entered by the coach): 9 location/remote verdicts corrected in eval/fit_labels.csv under the rule "within radius or no distance + any remote wording (incl. 'nach Vereinbarung') -> met; fully remote -> met; no remote wording -> partly", each with a note; overall categories unchanged. 19522-0068291613-S: location met (Homeoffice nach Vereinbarung). 15548-1650634-1-S stays excluded by Ingo's decision, with a note on the contradicting location field and distance.
