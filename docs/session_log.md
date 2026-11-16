@@ -1639,3 +1639,116 @@ conversation memory) but `list_tracker` no longer appears in that turn's
 steps panel.
 
 **Next:** evaluation (§9.2, §9.3), the remaining Must item per spec §13.
+
+## 2026-11-16 — WP-13: preparing the fit evaluation (labelled set)
+
+**Done (spec §7, §9.1, §9.3, invariant 6, D-9, D-20):**
+
+- **D-20** (coach, approved 2026-11-16): Ingo labels blind - the app's
+  category/verdicts are never shown before he labels - giving an overall
+  category plus one verdict per rubric dimension, each with an optional
+  note, against `data/samples/profile_alex.yaml`.
+- **Part A, selection** (`scripts/select_fit_set.py` -> `eval/fit_set.yaml`):
+  data check on the 62 real fixture listings (the 3 crafted `FIKTIV-*`
+  demo listings excluded, D-8) found 22 `is_temp_agency=True`, 18 with
+  Python/Java as a whole word in the text, 22 neither; no listing's known
+  `distance_km` exceeds the Alex profile's 25 km radius (max 19 km), so
+  the distance half of FR-06 AC2 can't be demonstrated from distance
+  alone in this fixture set - only the temp-agency flag reaches
+  `excluded`. First draft used a proportional 7/6/7 stratum allocation
+  with no employer cap; Ingo's approval (recorded in `eval/fit_set.yaml`'s
+  `approval` field) changed this to a **fixed** 3/9/8 allocation (temp
+  agency kept small since it is excluded by one structured field alone
+  and would inflate agreement without testing the LLM extraction) and an
+  **employer cap of 2** across the whole set (NTT DATA Deutschland SE
+  alone would otherwise have contributed 4 of 20). Seed (`1300`) and the
+  shuffle-then-take procedure were kept; the script redraws within a
+  stratum when the cap removes a candidate. Final set: 20 listings, 8 dev
+  / 12 test, all `referenznummer` validated against `listings.json` (no
+  `[` corruption).
+- **Part B, labelling tool:** `scripts/label_fit.py`
+  (`uv run streamlit run scripts/label_fit.py`, not under `pages/`) shows
+  one `eval/fit_set.yaml` listing at a time - cleaned ad text, the
+  structured fields the rubric uses (distance, remote, contract,
+  full-time, temp agency), the Alex profile, and a plain-words rubric
+  summary in an expander - and saves an overall category plus five
+  dimension verdicts (with optional notes) to `eval/fit_labels.csv` after
+  every listing, resumable by `referenznummer`. It does not import
+  `job_hunt_agent.rubric` at all, so it has nothing to compute or show the
+  app's own assessment with (D-20); it also never shows a listing's
+  stratum, since that would leak the hard-exclusion/skill-match heuristic
+  used to select it. `docs/labelling_guide.md`: the §7 rules in plain
+  words with worked examples, and the "unknown" vs. "not met" distinction
+  §9.3 depends on for classifying disagreements later.
+
+**Tests:** 11 new (430 -> 441). `tests/test_label_fit.py`: pure-helper
+tests for `load_fit_set`/`load_listings_by_ref` against the real committed
+files, `load_labelled_refs`/`append_label_row`/`build_label_row`
+(resumable CSV read/write, header written once), a static check that the
+script's source never imports `job_hunt_agent.rubric`, and four AppTest
+cases (renders the first pending listing with its title/reference but
+never its stratum; a category selectbox still unselected; submitting
+with a missing choice shows a friendly error and saves nothing; a full
+submission appends exactly one row and advances the "N of 20 labelled"
+counter; all 20 pre-labelled shows the done message). **441 tests, 0
+skipped, 99% coverage.** `ruff check .`/`ruff format --check .` clean
+(138 files). `mypy src app.py pages scripts` clean except one
+pre-existing, unrelated error in `scripts/wp12_should_check.py` (confirmed
+present before this branch via `git stash`, not introduced here).
+
+**Manual check:** `uv run streamlit run scripts/label_fit.py` serves
+(HTTP 200) without a stack trace.
+
+**Next:** Ingo labels all 20 listings with
+`uv run streamlit run scripts/label_fit.py` (resumable); WP-14 then
+computes agreement/the confusion matrix on the 12 test listings (§9.3) and
+classifies every disagreement per dimension, plus the tool-trajectory
+evaluation (§9.2), the remaining Must items per spec §13.
+
+### Addendum 2 (2026-11-16, coach review of the labelling guide)
+
+**Done, before Ingo started labelling:**
+
+- `docs/labelling_guide.md`: removed "unknown" from location/remote and
+  "partly" from employment type - spec §7 has no cell for either, and a
+  missing distance already counts as within the radius per `rubric.py`,
+  so there is nothing left to call "unknown" for that dimension. Added a
+  "Which location the distance refers to" section: a listing's
+  `distance_km` is relative to whichever of the 5 recorded D-1 searches
+  it came from (Hamburg, Berlin or München), not necessarily the Alex
+  profile's own Hamburg location, since a location named in the request
+  overrides the profile for that search (FR-01 AC4) - this doesn't change
+  how the dimension is scored, only explains why a small number doesn't
+  mean "near Hamburg".
+- `scripts/label_fit.py`: `DIMENSION_VERDICT_OPTIONS` now restricts
+  location_remote's selectbox to met/partly/not_met and employment_type's
+  to met/not_met/unknown, matching the guide exactly. New
+  `resolve_search_location()` shows the originating search's
+  location/radius next to the distance; it mirrors
+  `build_fixtures.py`'s `build_distance_lookup()` last-file-wins rule for
+  the 8 real listings that matched more than one of the 5 recorded
+  queries (verified against the raw D-1 responses for the 3 such
+  listings in the fit set: stored `distance_km=3.0` for
+  `19913-3074751792188001-S` etc. matches the Berlin/"Machine Learning"
+  query's `entfernung=3`, not the Hamburg/"AI Engineer" query's
+  `entfernung=4` - confirming the resolution picks the same query
+  `distance_km` itself came from, not an arbitrary one of the two).
+- `eval/fit_set.yaml` (regenerated by `scripts/select_fit_set.py`, same
+  seed/selection): added an `evaluation_note` field recording that WP-14
+  must build each test listing's `JobSummary` from this same stored
+  `distance_km` when it computes the app's own assessment for comparison,
+  so the agreement check (§9.3) is apples-to-apples with what was
+  labelled.
+
+**Tests:** 4 new (441 -> 445). `tests/test_label_fit.py`:
+`resolve_search_location` (single-match, the verified multi-match
+Berlin-wins case, no-match), an AppTest assertion that the distance cell
+reads "... km from ..." with a city name, and an AppTest assertion that
+location_remote's options exclude "unknown" and employment_type's exclude
+"partly" while the other three dimensions keep all four. **445 tests, 0
+skipped, 99% coverage.** `ruff check .`/`ruff format --check .` clean
+(138 files). `mypy src app.py pages scripts` clean except the same
+pre-existing, unrelated `scripts/wp12_should_check.py` error.
+
+**Manual check:** `uv run streamlit run scripts/label_fit.py` serves
+(HTTP 200) without a stack trace.

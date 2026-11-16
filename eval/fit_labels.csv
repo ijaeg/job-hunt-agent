@@ -1,0 +1,21 @@
+referenznummer,category,skills_verdict,location_remote_verdict,seniority_verdict,language_verdict,employment_type_verdict,skills_note,location_remote_note,seniority_note,language_note,employment_type_note,timestamp
+11119-4964515256-S,excluded,not_met,partly,partly,partly,not_met,,1 km im Umkreis; keine Angabe zu Remote,,,,2026-11-16T10:19:08.931064+00:00
+13319-897207/1_625569LS-S,excluded,partly,partly,unknown,unknown,not_met,,,,,,2026-11-16T10:27:12.165725+00:00
+13319-898750/1_5315CS-S,excluded,partly,partly,not_met,partly,not_met,,17 km im Umkreis; keine Angabe zu Remote,,,,2026-11-16T10:45:25.242246+00:00
+17338-c2de5ff0cd55000215-S,partial,partly,met,not_met,not_met,met,,,,,,2026-11-16T10:49:06.088367+00:00
+19913-3074751792188001-S,partial,partly,met,met,unknown,met,,100 % remote,,,,2026-11-16T11:04:56.227711+00:00
+13509-000021113EF002-S,partial,partly,met,not_met,partly,met,,mobiles Arbeiten nach Vereinbarung,,,,2026-11-16T12:09:28.915402+00:00
+10001-1003863378-S,partial,partly,met,not_met,partly,met,,bis zu 80 % Homeoffice,,,,2026-11-16T12:12:20.556665+00:00
+13755-44520300-1020-S,partial,partly,partly,not_met,partly,not_met,,,,,,2026-11-16T12:17:10.321218+00:00
+19913-3056331792188001-S,partial,partly,met,met,partly,met,,100 % remote,,,,2026-11-16T12:19:53.231891+00:00
+10001-1003893191-S,partial,partly,partly,met,met,met,,,,,,2026-11-16T12:23:11.289124+00:00
+10001-1003964383-S,partial,partly,partly,unknown,met,not_met,,,,,,2026-11-16T12:25:26.982133+00:00
+12336-a26f539j0436667-S,partial,met,met,unknown,met,not_met,,mobiles Arbeiten,,,,2026-11-16T12:31:04.270927+00:00
+12336-a26f1128j0452080-S,poor,not_met,partly,met,unknown,met,,,,,,2026-11-16T12:37:14.102974+00:00
+12336-a26f1192j0456061-S,partial,partly,partly,unknown,unknown,met,,,,,,2026-11-16T12:38:57.867769+00:00
+13635-d780e451_JB5286154-S,poor,not_met,partly,met,partly,met,,,,,,2026-11-16T12:43:36.870141+00:00
+12288-4971252625-S,poor,not_met,partly,unknown,unknown,met,,,,,,2026-11-16T13:10:29.979004+00:00
+15548-1650634-1-S,excluded,not_met,not_met,partly,partly,met,,Text nennt keinen Ort; Feld location: Stuttgart; distance 3 km zum Suchort widerspricht,,,,2026-11-16T13:12:41.865783+00:00
+19522-0068291613-S,poor,not_met,met,unknown,partly,met,,Homeoffice nach Vereinbarung,,,,2026-11-16T13:15:17.062326+00:00
+12117-YF-48852-YF-S,partial,partly,met,unknown,partly,met,,hybrid; 2 Tage flexibel,,,,2026-11-16T13:18:20.101835+00:00
+13635-9c49789f_JB5290290-S,poor,not_met,met,unknown,partly,met,,hybrid/remote; Homeoffice,,,,2026-11-16T13:19:56.120556+00:00

@@ -1,0 +1,142 @@
+seed: 1300
+rule: Stratify the 62 real fixture listings (FIKTIV-* crafted demo listings excluded) into temp_agency
+  (is_temp_agency is True), skill_match (Python or Java as a whole word in title+description, and not
+  temp_agency), no_skill_match (neither). Allocate a fixed 3/9/8 of the 20 to temp_agency/skill_match/no_skill_match
+  (1/3/4 dev, 2/6/4 test) - not proportional to pool size, so the code-only temp_agency exclusion does
+  not dominate the set (Ingo, 2026-11-16). Within each stratum, shuffle with a single random.Random(1300)
+  continued across strata and take dev first, then test, from that shuffled order, skipping (and so redrawing
+  further down that stratum's order) any listing that would put its employer over a cap of 2 across the
+  whole set (Ingo, 2026-11-16). No app run, no model call, no rubric computation.
+approval:
+  date: '2026-11-16'
+  by: Ingo
+  note: First draft used proportional allocation (7/6/7) and no employer cap - NTT DATA Deutschland SE
+    alone would have contributed 4 of 20. Approved with the fixed 3/9/8 allocation and the employer cap
+    above; seed and shuffle-then-take procedure unchanged.
+counts_in_pool:
+  temp_agency: 22
+  skill_match: 18
+  no_skill_match: 22
+allocation:
+  total:
+    temp_agency: 3
+    skill_match: 9
+    no_skill_match: 8
+  dev:
+    temp_agency: 1
+    skill_match: 3
+    no_skill_match: 4
+  test:
+    temp_agency: 2
+    skill_match: 6
+    no_skill_match: 4
+employer_cap: 2
+evaluation_note: A listing's distance_km in the committed fixture set is relative to whichever of the
+  5 recorded D-1 searches it came from (Hamburg, Berlin or München), not necessarily the Alex profile's
+  own location - a location named in the request overrides the profile for that search (FR-01 AC4). scripts/label_fit.py
+  shows this search location/radius next to the distance while labelling (Addendum 2 to WP-13's prompt,
+  docs/labelling_guide.md § "Which location the distance refers to"). WP-14 must build each test listing's
+  JobSummary from this same stored distance_km when it computes the app's own assessment for comparison
+  - not a freshly looked-up distance from a different search location - so the agreement check (§9.3)
+  is apples-to-apples with what was labelled.
+listings:
+- referenznummer: 11119-4964515256-S
+  title: Softwareentwickler für Integration und Netzwerke (m/w/d)
+  employer: DEKRA Arbeit GmbH
+  stratum: temp_agency
+  set: dev
+- referenznummer: 13319-897207/1_625569LS-S
+  title: SAP Entwickler Customer Engagement (m/w/d)
+  employer: Hays Professional Solutions GmbH
+  stratum: temp_agency
+  set: test
+- referenznummer: 13319-898750/1_5315CS-S
+  title: Softwareentwickler (m/w/d)
+  employer: Hays Professional Solutions GmbH
+  stratum: temp_agency
+  set: test
+- referenznummer: 17338-c2de5ff0cd55000215-S
+  title: Python-Entwickler (w/m/d) - Hybrid
+  employer: Vertec AG
+  stratum: skill_match
+  set: dev
+- referenznummer: 19913-3074751792188001-S
+  title: 'NTT DATA Deutschland SE: Senior AI Engineer (w/m/x)'
+  employer: NTT DATA Deutschland SE
+  stratum: skill_match
+  set: dev
+- referenznummer: 13509-000021113EF002-S
+  title: Consultant Data Management & Machine Learning (m/w/d)
+  employer: BWI GmbH
+  stratum: skill_match
+  set: dev
+- referenznummer: 10001-1003863378-S
+  title: Softwareentwickler (w/m/d) Landesvermessung
+  employer: Landesamt für Digitalisierung, Breitband und Vermessung
+  stratum: skill_match
+  set: test
+- referenznummer: 13755-44520300-1020-S
+  title: IT-Innovation Developerin Fullstack (a*) - befristet bis Mitte 2028
+  employer: Hamburger Energienetze GmbH
+  stratum: skill_match
+  set: test
+- referenznummer: 19913-3056331792188001-S
+  title: 'NTT DATA Deutschland SE: Senior AI & GenAI Architect (w/m/x)'
+  employer: NTT DATA Deutschland SE
+  stratum: skill_match
+  set: test
+- referenznummer: 10001-1003893191-S
+  title: Agentic AI Principal (m/f/d)
+  employer: ThoughtWorks Deutschland GmbH Standort Hamburg
+  stratum: skill_match
+  set: test
+- referenznummer: 10001-1003964383-S
+  title: Public Cloud Engineer (m/w/d) Generative AI befristet bis 31.01.2028
+  employer: SIGNAL IDUNA Krankenversicherung a. G.
+  stratum: skill_match
+  set: test
+- referenznummer: 12336-a26f539j0436667-S
+  title: Senior AI Engineer (w/m/d)
+  employer: BWI GmbH
+  stratum: skill_match
+  set: test
+- referenznummer: 12336-a26f1128j0452080-S
+  title: Senior Softwareentwickler - .NET MAUI, Blazor & Cloud (m/w/d)
+  employer: TÜV SÜD AG
+  stratum: no_skill_match
+  set: dev
+- referenznummer: 12336-a26f1192j0456061-S
+  title: AI Engineer - Integration Architecture (all genders)
+  employer: EXXETA AG
+  stratum: no_skill_match
+  set: dev
+- referenznummer: 13635-d780e451_JB5286154-S
+  title: Senior AI Data Engineer (all genders)
+  employer: DYMATRIX GmbH
+  stratum: no_skill_match
+  set: dev
+- referenznummer: 12288-4971252625-S
+  title: Azure DevOps Engineer mit Fokus Azure AI (a*)
+  employer: Hamburger Energienetze GmbH
+  stratum: no_skill_match
+  set: dev
+- referenznummer: 15548-1650634-1-S
+  title: Manager Digital Risk - Consulting (Financial Services) (w/m/d)
+  employer: EY Consulting GmbH
+  stratum: no_skill_match
+  set: test
+- referenznummer: 19522-0068291613-S
+  title: AI Engineer – KI-Enablement & Solutions (m/w/d)
+  employer: Löwenstein Med.Techn.GmbH+Co.KG
+  stratum: no_skill_match
+  set: test
+- referenznummer: 12117-YF-48852-YF-S
+  title: Softwareentwickler (m/w/d)
+  employer: bayoonet AG
+  stratum: no_skill_match
+  set: test
+- referenznummer: 13635-9c49789f_JB5290290-S
+  title: Software-Entwickler .NET/C# XAgent (m/w/d)
+  employer: blackned GmbH
+  stratum: no_skill_match
+  set: test
