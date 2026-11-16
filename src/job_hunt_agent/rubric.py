@@ -10,7 +10,7 @@ Weights and thresholds are **start values** confirmed/adjusted in
 editing this module ad hoc, so the decision record stays the source of
 truth for *why* a number is what it is.
 
-Related: FR-06 AC1-AC4, spec §7, D-9, D-23, D-25
+Related: FR-06 AC1-AC4, spec §7, D-9, D-21, D-23, D-25, D-26, D-27
 """
 
 from __future__ import annotations
@@ -53,10 +53,10 @@ VERDICT_POINTS: dict[RubricVerdict, int] = {"met": 2, "partly": 1, "not_met": 0}
 STRONG_THRESHOLD = 0.75
 PARTIAL_THRESHOLD = 0.45
 
-#: Skills-dimension thresholds: share of required skills found in the
-#: profile (spec §7 "Skills" row).
-SKILLS_STRONG_THRESHOLD = 0.70
-SKILLS_PARTIAL_THRESHOLD = 0.40
+#: Skills-dimension threshold: number of distinct profile skills the ad
+#: names (WP-14b, D-26, D-27 - replaces D-9's "share of all extracted
+#: skills" metric; see ``_skills_verdict``'s docstring).
+SKILLS_MATCHED_THRESHOLD = 3
 
 #: More than this many "unknown" dimensions caps the category at "partial"
 #: and sets ``low_evidence`` (spec §7, last sentence).
@@ -171,28 +171,44 @@ def hard_exclusions(
     return reasons
 
 
+def _matched_profile_skills(requirements: JobRequirements, profile: Profile) -> set[str]:
+    """Distinct profile skills found (whole-word, D-9) among the ad's extracted skills."""
+    return {
+        skill
+        for skill in profile.skills
+        if any(
+            skill_matches_profile(requirement.name, [skill]) for requirement in requirements.skills
+        )
+    }
+
+
 def _skills_verdict(requirements: JobRequirements, profile: Profile) -> RubricVerdict:
-    """Share of the ad's extracted skills found in the profile.
+    """Number of distinct profile skills the ad names (WP-14b, D-26, D-27).
 
-    **D-9 (2026-11-06):** counts every extracted skill, not only ones the
-    model flagged ``required: true``. The literal spec §7 reading ("no
-    required skills extracted" -> unknown) made this dimension - the
-    heaviest-weighted one - drop out as unknown on 4 of 5 real D-4 listings,
-    because gpt-5-mini rarely sets that flag; D-9 confirmed scoring all
-    extracted skills instead, since the ad still states skills either way.
+    **D-27 (2026-11-16):** replaces D-9's "share of all extracted skills"
+    metric. That metric made ``skills: not_met`` fire on all 12 WP-14 round-1
+    test listings - real ads name 10-60 technologies, so even 2-3 genuine
+    matches to Alex's 6-skill profile rarely reached the 40% share floor
+    (``docs/fit_evaluation.md`` "Limitations"). This metric instead counts
+    how many *distinct profile skills* the ad names, independent of how many
+    unrelated skills it also lists: ``unknown`` if no skill was extracted at
+    all (D-21 unchanged - a missing evidence must never count against a
+    listing); ``not_met`` if none of the profile's skills are found;
+    ``partly`` if 1 or 2 are found; ``met`` if 3 or more are found
+    (``SKILLS_MATCHED_THRESHOLD``). N=3 was chosen over N=2 on the 20
+    development listings (D-27): N=3 reached 14/20 and 15/20 category
+    accuracy across two runs vs. N=2's 10/20 in both runs.
 
-    Related: FR-05 AC1, spec §7 "Skills", D-9
+    Related: FR-05 AC1, spec §7 "Skills", D-9, D-21, D-26, D-27
     """
-    skills = requirements.skills
-    if not skills:
+    if not requirements.skills:
         return "unknown"
-    matched = sum(1 for r in skills if skill_matches_profile(r.name, profile.skills))
-    share = matched / len(skills)
-    if share >= SKILLS_STRONG_THRESHOLD:
-        return "met"
-    if share >= SKILLS_PARTIAL_THRESHOLD:
+    matched = len(_matched_profile_skills(requirements, profile))
+    if matched == 0:
+        return "not_met"
+    if matched < SKILLS_MATCHED_THRESHOLD:
         return "partly"
-    return "not_met"
+    return "met"
 
 
 def _location_remote_verdict(
@@ -267,6 +283,76 @@ def _employment_type_verdict(details: JobDetails, profile: Profile) -> RubricVer
     return "met" if full_time_ok and permanent_ok else "not_met"
 
 
+def category_from_rubric(
+    rubric: dict[str, RubricVerdict],
+    exclusion_reasons: list[str],
+    low_evidence: bool,
+    *,
+    apply_skills_not_met_cap: bool = True,
+) -> tuple[FitCategory, bool]:
+    """Computes the fit category from rubric verdicts alone (spec §7, D-25).
+
+    Pulled out of :func:`assess` (WP-14b, D-26) so a re-scoring script can
+    recompute the category from *stored* verdicts (e.g. with a different
+    skills metric) without re-running extraction or rubric dimension logic.
+
+    Args:
+        rubric: One verdict per dimension (``skills``, ``location_remote``,
+            ``seniority``, ``language``, ``employment_type``).
+        exclusion_reasons: Hard-exclusion reasons (FR-06); non-empty forces
+            ``excluded`` regardless of the score (FR-06 AC4).
+        low_evidence: Whether the extraction itself was low-evidence (short
+            ad text, FR-04 AC5) - combined here with the unknown-dimensions
+            cap into the final flag.
+        apply_skills_not_met_cap: Whether D-25's cap applies. Defaults to
+            ``True`` (production behaviour, unchanged); ``assess`` never
+            passes ``False`` - the flag exists only so WP-14b's dev-set
+            re-scoring can compare the "with cap" / "without cap" variants
+            D-26 asks for, without a second, duplicated function.
+
+    Returns:
+        A tuple of the category and the final ``low_evidence`` flag (input
+        OR-ed with the unknown-dimensions cap).
+
+    Related: FR-06 AC4, spec §7, D-25
+    """
+    known_dimensions = {dim: verdict for dim, verdict in rubric.items() if verdict != "unknown"}
+    unknown_dimensions = [dim for dim, verdict in rubric.items() if verdict == "unknown"]
+
+    numerator = sum(
+        VERDICT_POINTS[verdict] * DIMENSION_WEIGHTS[dim]
+        for dim, verdict in known_dimensions.items()
+    )
+    denominator = sum(DIMENSION_WEIGHTS[dim] for dim in known_dimensions) * max(
+        VERDICT_POINTS.values()
+    )
+    share = numerator / denominator if denominator else 0.0
+
+    category: FitCategory
+    if share >= STRONG_THRESHOLD:
+        category = "strong"
+    elif share >= PARTIAL_THRESHOLD:
+        category = "partial"
+    else:
+        category = "poor"
+
+    too_many_unknowns = len(unknown_dimensions) > MAX_UNKNOWN_DIMENSIONS_BEFORE_CAP
+    low_evidence = low_evidence or too_many_unknowns
+    if too_many_unknowns and category == "strong":
+        category = "partial"
+
+    # D-25 (2026-11-16): a clear skill mismatch caps the category at "poor"
+    # regardless of the weighted share - mirrors the unknown-dimensions cap
+    # above (a specific dimension outcome overriding the weighted average).
+    if apply_skills_not_met_cap and rubric["skills"] == "not_met" and category != "poor":
+        category = "poor"
+
+    if exclusion_reasons:
+        category = "excluded"
+
+    return category, low_evidence
+
+
 def assess(
     summary: JobSummary,
     details: JobDetails,
@@ -305,39 +391,8 @@ def assess(
         "employment_type": _employment_type_verdict(details, profile),
     }
 
-    known_dimensions = {dim: verdict for dim, verdict in rubric.items() if verdict != "unknown"}
+    category, low_evidence = category_from_rubric(rubric, exclusion_reasons, details.low_evidence)
     unknown_dimensions = [dim for dim, verdict in rubric.items() if verdict == "unknown"]
-
-    numerator = sum(
-        VERDICT_POINTS[verdict] * DIMENSION_WEIGHTS[dim]
-        for dim, verdict in known_dimensions.items()
-    )
-    denominator = sum(DIMENSION_WEIGHTS[dim] for dim in known_dimensions) * max(
-        VERDICT_POINTS.values()
-    )
-    share = numerator / denominator if denominator else 0.0
-
-    category: FitCategory
-    if share >= STRONG_THRESHOLD:
-        category = "strong"
-    elif share >= PARTIAL_THRESHOLD:
-        category = "partial"
-    else:
-        category = "poor"
-
-    too_many_unknowns = len(unknown_dimensions) > MAX_UNKNOWN_DIMENSIONS_BEFORE_CAP
-    low_evidence = details.low_evidence or too_many_unknowns
-    if too_many_unknowns and category == "strong":
-        category = "partial"
-
-    # D-25 (2026-11-16): a clear skill mismatch caps the category at "poor"
-    # regardless of the weighted share - mirrors the unknown-dimensions cap
-    # above (a specific dimension outcome overriding the weighted average).
-    if rubric["skills"] == "not_met" and category != "poor":
-        category = "poor"
-
-    if exclusion_reasons:
-        category = "excluded"
 
     matches = [
         MatchEvidence(name=r.name, evidence_de=r.evidence_de, evidence_en=r.evidence_en)

@@ -1,0 +1,302 @@
+{
+  "n_listings": 20,
+  "n_runs": 40,
+  "sanity_check": {
+    "mismatches": [],
+    "passed": true
+  },
+  "variants": [
+    {
+      "n": 2,
+      "apply_cap": true,
+      "n_listings": 20,
+      "category_accuracy_by_run": {
+        "1": 0.5,
+        "2": 0.5
+      },
+      "n_correct_category_by_run": {
+        "1": 10,
+        "2": 10
+      },
+      "skills_dimension_agreement_by_run": {
+        "1": 0.6,
+        "2": 0.55
+      },
+      "n_different_category_between_runs": 0,
+      "confusion_matrix_by_run": {
+        "1": {
+          "strong": {
+            "strong": 0,
+            "partial": 0,
+            "poor": 0,
+            "excluded": 0
+          },
+          "partial": {
+            "strong": 7,
+            "partial": 4,
+            "poor": 0,
+            "excluded": 0
+          },
+          "poor": {
+            "strong": 0,
+            "partial": 2,
+            "poor": 3,
+            "excluded": 0
+          },
+          "excluded": {
+            "strong": 0,
+            "partial": 0,
+            "poor": 1,
+            "excluded": 3
+          }
+        },
+        "2": {
+          "strong": {
+            "strong": 0,
+            "partial": 0,
+            "poor": 0,
+            "excluded": 0
+          },
+          "partial": {
+            "strong": 7,
+            "partial": 4,
+            "poor": 0,
+            "excluded": 0
+          },
+          "poor": {
+            "strong": 0,
+            "partial": 2,
+            "poor": 3,
+            "excluded": 0
+          },
+          "excluded": {
+            "strong": 0,
+            "partial": 0,
+            "poor": 1,
+            "excluded": 3
+          }
+        }
+      },
+      "meets_rule_5": false
+    },
+    {
+      "n": 2,
+      "apply_cap": false,
+      "n_listings": 20,
+      "category_accuracy_by_run": {
+        "1": 0.4,
+        "2": 0.4
+      },
+      "n_correct_category_by_run": {
+        "1": 8,
+        "2": 8
+      },
+      "skills_dimension_agreement_by_run": {
+        "1": 0.6,
+        "2": 0.55
+      },
+      "n_different_category_between_runs": 0,
+      "confusion_matrix_by_run": {
+        "1": {
+          "strong": {
+            "strong": 0,
+            "partial": 0,
+            "poor": 0,
+            "excluded": 0
+          },
+          "partial": {
+            "strong": 7,
+            "partial": 4,
+            "poor": 0,
+            "excluded": 0
+          },
+          "poor": {
+            "strong": 0,
+            "partial": 4,
+            "poor": 1,
+            "excluded": 0
+          },
+          "excluded": {
+            "strong": 0,
+            "partial": 1,
+            "poor": 0,
+            "excluded": 3
+          }
+        },
+        "2": {
+          "strong": {
+            "strong": 0,
+            "partial": 0,
+            "poor": 0,
+            "excluded": 0
+          },
+          "partial": {
+            "strong": 7,
+            "partial": 4,
+            "poor": 0,
+            "excluded": 0
+          },
+          "poor": {
+            "strong": 0,
+            "partial": 4,
+            "poor": 1,
+            "excluded": 0
+          },
+          "excluded": {
+            "strong": 0,
+            "partial": 1,
+            "poor": 0,
+            "excluded": 3
+          }
+        }
+      },
+      "meets_rule_5": false
+    },
+    {
+      "n": 3,
+      "apply_cap": true,
+      "n_listings": 20,
+      "category_accuracy_by_run": {
+        "1": 0.7,
+        "2": 0.75
+      },
+      "n_correct_category_by_run": {
+        "1": 14,
+        "2": 15
+      },
+      "skills_dimension_agreement_by_run": {
+        "1": 0.75,
+        "2": 0.7
+      },
+      "n_different_category_between_runs": 1,
+      "confusion_matrix_by_run": {
+        "1": {
+          "strong": {
+            "strong": 0,
+            "partial": 0,
+            "poor": 0,
+            "excluded": 0
+          },
+          "partial": {
+            "strong": 3,
+            "partial": 8,
+            "poor": 0,
+            "excluded": 0
+          },
+          "poor": {
+            "strong": 0,
+            "partial": 2,
+            "poor": 3,
+            "excluded": 0
+          },
+          "excluded": {
+            "strong": 0,
+            "partial": 0,
+            "poor": 1,
+            "excluded": 3
+          }
+        },
+        "2": {
+          "strong": {
+            "strong": 0,
+            "partial": 0,
+            "poor": 0,
+            "excluded": 0
+          },
+          "partial": {
+            "strong": 2,
+            "partial": 9,
+            "poor": 0,
+            "excluded": 0
+          },
+          "poor": {
+            "strong": 0,
+            "partial": 2,
+            "poor": 3,
+            "excluded": 0
+          },
+          "excluded": {
+            "strong": 0,
+            "partial": 0,
+            "poor": 1,
+            "excluded": 3
+          }
+        }
+      },
+      "meets_rule_5": true
+    },
+    {
+      "n": 3,
+      "apply_cap": false,
+      "n_listings": 20,
+      "category_accuracy_by_run": {
+        "1": 0.6,
+        "2": 0.65
+      },
+      "n_correct_category_by_run": {
+        "1": 12,
+        "2": 13
+      },
+      "skills_dimension_agreement_by_run": {
+        "1": 0.75,
+        "2": 0.7
+      },
+      "n_different_category_between_runs": 1,
+      "confusion_matrix_by_run": {
+        "1": {
+          "strong": {
+            "strong": 0,
+            "partial": 0,
+            "poor": 0,
+            "excluded": 0
+          },
+          "partial": {
+            "strong": 3,
+            "partial": 8,
+            "poor": 0,
+            "excluded": 0
+          },
+          "poor": {
+            "strong": 0,
+            "partial": 4,
+            "poor": 1,
+            "excluded": 0
+          },
+          "excluded": {
+            "strong": 0,
+            "partial": 1,
+            "poor": 0,
+            "excluded": 3
+          }
+        },
+        "2": {
+          "strong": {
+            "strong": 0,
+            "partial": 0,
+            "poor": 0,
+            "excluded": 0
+          },
+          "partial": {
+            "strong": 2,
+            "partial": 9,
+            "poor": 0,
+            "excluded": 0
+          },
+          "poor": {
+            "strong": 0,
+            "partial": 4,
+            "poor": 1,
+            "excluded": 0
+          },
+          "excluded": {
+            "strong": 0,
+            "partial": 1,
+            "poor": 0,
+            "excluded": 3
+          }
+        }
+      },
+      "meets_rule_5": true
+    }
+  ]
+}
