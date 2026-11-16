@@ -1752,3 +1752,238 @@ pre-existing, unrelated `scripts/wp12_should_check.py` error.
 
 **Manual check:** `uv run streamlit run scripts/label_fit.py` serves
 (HTTP 200) without a stack trace.
+
+## 2026-11-16 — WP-14 Stage 1: fit evaluation, development set (spec §9.3)
+
+**Done (spec §7, §9.1, §9.3, FR-05 AC2, FR-06, NFR-09, invariant 6, D-9, D-20):**
+
+- **Code check against spec §7** (independent of any label):
+  `rubric._employment_type_verdict` reads `befristungInMonaten` correctly
+  via `contract_months`, but `JobDetails` has no `contract_duration` field
+  at all, so "confirmed permanent" (`UNBEFRISTET`) and "not stated"
+  (`KEINE_ANGABE`) both collapse to `contract_months is None` - caused zero
+  dev-set disagreements (employment_type agreement 1.0 both runs), no
+  decision file opened, flagged to re-check on the test set. A stated
+  remote type without a percentage (`NACH_VEREINBARUNG`) has no path to
+  `met`/`partly` in `_location_remote_verdict` and falls through to
+  `not_met` for a `hybrid`/`remote`-preference profile - contradicts
+  Ingo's own WP-13 addendum-3 labelling rule and caused a real dev-set
+  disagreement (D-23).
+- **`eval/run_fit_eval.py`** (spec §11): runs `tools.assess`'s extraction
+  helpers and `rubric.assess` directly (reused, not copied) against the
+  fixture set for one `--set dev|test` split of `eval/fit_set.yaml`, two
+  independent runs per listing, and compares against `eval/fit_labels.csv`.
+  Pure comparison helpers (`compare_run`, `category_accuracy`,
+  `confusion_matrix`, `dimension_agreement`, `run_to_run_agreement`,
+  `attach_cause`/`summarize_causes`) unit-tested with fixed fake data in
+  `tests/test_run_fit_eval.py` (15 tests, no model call, NFR-05).
+- **Dev-set run** (`openai/gpt-5-mini`, reasoning effort `low`, 8 listings x
+  2 runs, `eval/results/fit_eval_dev.json`): category accuracy 25.0 %/
+  37.5 % (run 1/run 2); dimension agreement skills 37.5–50.0 %,
+  location/remote 75.0 %, seniority 50.0 %, language 75.0 %, employment
+  type 100 %; run-to-run agreement 87.5 % category, 95.8 % per-dimension;
+  `dropped_evidence` 58 across 16 runs. 36 disagreements classified by
+  cause (reading the ad text and rubric by hand, then recorded via
+  `attach_cause`): `extraction_error` 16, `label_ambiguity` 8, `data_issue`
+  4, `code_deviation` 4, `rubric_rule_or_threshold` 4. Full breakdown and
+  per-listing detail: `docs/fit_evaluation.md` "Development set".
+- **Five decision files** opened from the dev-set evidence, each with
+  numbers, options and a recommendation:
+  [D-21](decisions/D-21-skill-extraction-granularity.md) (the model
+  frequently extracts full requirement sentences as `Requirement.name`
+  instead of atomic skills - dominant cause of the low skills agreement
+  and the 58 `dropped_evidence`; also the "all evidence dropped -> unknown"
+  failure mode on `12288-4971252625-S`),
+  [D-22](decisions/D-22-extraction-prompt-title.md) (the extraction prompt
+  never sees the listing title, missing a title-only seniority statement
+  on `19913-3074751792188001-S`),
+  [D-23](decisions/D-23-remote-type-without-percent.md) (the
+  `NACH_VEREINBARUNG` code-check finding above, confirmed on
+  `13509-000021113EF002-S`),
+  [D-24](decisions/D-24-location-remote-reads-structured-fields-only.md)
+  (open question, no recommendation: should `location_remote` also read ad
+  text when the structured fields are empty, matching how Ingo's
+  addendum-3 rule actually labelled `17338-c2de5ff0cd55000215-S`),
+  [D-25](decisions/D-25-category-threshold-skills-not-met.md) (two
+  listings with identical, correct dimension verdicts to the label still
+  disagree on category because `skills: not_met` is outvoted by three
+  `met`/`partly` dimensions in the weighted share - recommends capping the
+  category at `poor` when skills is `not_met`, mirroring the existing
+  unknown-dimensions cap).
+
+**Tests:** 15 new (460 total, up from 445 at the end of WP-13). `ruff
+check .`/`ruff format --check .` clean (147 files). `mypy src app.py pages
+scripts eval` clean except the same pre-existing, unrelated
+`scripts/wp12_should_check.py` error. **460 tests, 0 skipped, 99%
+coverage.**
+
+**Real-model run:** `uv run python eval/run_fit_eval.py --set dev`
+(16 real extraction calls against `openai/gpt-5-mini`).
+
+**Stop rule reached (WP-14 Stage 1 complete).** Per spec §9.1/invariant 6,
+the 12-listing test set is not run until Ingo's answers on D-21–D-25 are
+recorded and implemented. **Next:** Ingo decides D-21–D-25; Stage 2
+implements the decided changes with tests, re-runs the dev set to record
+the new numbers, then runs the test set once (`eval/run_fit_eval.py
+--set test`) and writes `docs/fit_evaluation.md`'s "Test set" and
+"Limitations" sections.
+
+## 2026-11-16 — WP-14 Stage 2: fit evaluation, decided changes and test set (spec §9.3)
+
+**Decisions recorded** (2026-11-16, Ingo; see each file's **Decision**
+line): D-21 Option 2 only (deviates from its own Option-3 recommendation -
+field description/worked example for skill granularity; the all-dropped
+skills case keeps scoring `unknown`, not `not_met`); D-22 Option 2 (pass
+the listing title to the extraction prompt); D-23 Option 2 for the
+`hybrid` preference only (a stated-but-unquantified remote type satisfies
+`hybrid`, not `remote`); D-24 Option 1 (no code change, document the
+limitation); D-25 Option 3 (`skills: not_met` caps the category at
+`poor`).
+
+**Implemented, with tests:**
+
+- `src/job_hunt_agent/models.py`: `Requirement.name` gets a
+  `Field(description=...)` (D-21).
+- `prompts/extract_requirements.md`: a worked example for atomic skill
+  names (D-21) and a `title: {title}` placeholder plus guidance that a
+  title-only seniority claim needs no ad-text evidence quote (D-22).
+- `src/job_hunt_agent/tools/assess.py`: `_extract_one` gains a `title`
+  parameter, passed from `details.title` at the one call site (D-22).
+- `src/job_hunt_agent/rubric.py`: `_location_remote_verdict`'s `hybrid`
+  branch now credits a stated `remote_type` even without a percentage
+  (D-23, `remote` preference unchanged); `assess` caps the category at
+  `poor` whenever `rubric["skills"] == "not_met"`, composing correctly
+  with the unknown-dimensions cap and exclusions (D-25).
+- `eval/run_fit_eval.py`: `run_listing` passes the title through the same
+  way, so the eval script and the tool stay on the same code path.
+- 5 new tests (460 -> 465): `tests/test_rubric.py` (hybrid-vs-remote
+  stated-type-without-percent, skills-not_met cap and its
+  non-interference with `partly`/`met`), `tests/test_tools_assess.py`
+  (the title appears in the formatted extraction prompt).
+
+**Dev-set re-run** (`eval/run_fit_eval.py --set dev`, real model, numbers
+recorded next to the Stage 1 numbers in `docs/fit_evaluation.md`,
+`eval/results/fit_eval_dev.json`; the Stage 1 file kept as
+`eval/results/fit_eval_dev_stage1.json`): category accuracy 25.0 %/37.5 %
+-> 50.0 %/50.0 %; `dropped_evidence` 58 -> 40; the two D-25 target listings
+(`12336-a26f1128j0452080-S`, `13635-d780e451_JB5286154-S`) now correctly
+`poor`; `13509-000021113EF002-S`'s `location_remote` now correctly `met`
+(D-23). The all-evidence-dropped case (D-21) recurred once
+(`12288-4971252625-S`, run 2) - reported per the decision, scoring left
+as `unknown`, not changed.
+
+**Test set run once** (`eval/run_fit_eval.py --set test`, real model, no
+code change after this run, spec §9.1/invariant 6):
+`eval/results/fit_eval_test.json`. **Category accuracy 33.3 % (4/12) both
+runs**; 4x4 confusion matrix: `partial`->`poor` 7, `poor`->`poor` 2,
+`excluded`->`excluded` 2, `excluded`->`poor` 1, everything else 0.
+Run-to-run agreement: category 12/12 (100 %), per-dimension 59/60
+(98.3 %). 61 disagreements classified by cause: `rubric_rule_or_threshold`
+32, `label_ambiguity` 12, `data_issue` 10, `extraction_error` 5,
+`code_deviation` 2. Headline finding: D-25's `skills: not_met` cap, built
+from 2 dev-set listings with genuinely zero skill overlap, fires on
+**all 12** test listings (agreeing with the label on only 3) because the
+40 % share-of-all-extracted-skills threshold (D-9) is strict against
+Alex's narrow 6-skill profile whenever a real ad names more than a
+handful of technologies (10-60 skills extracted per test listing) - this
+is the main reason test accuracy (33.3 %) is lower than the post-fix dev
+set (50.0 %), and is **not** an extraction-quality problem
+(`dropped_evidence` only 9 across 24 runs). One new BA-data contradiction
+found: `10001-1003964383-S`'s title states "befristet bis 31.01.2028"
+but its `contract_duration` field says `"UNBEFRISTET"`. Full writeup,
+every disagreement's cause, and the proposed spec §7 wording for D-23/
+D-25 (for the coach to apply): `docs/fit_evaluation.md` "Test set",
+"Limitations", "Proposed spec §7 wording".
+
+**No rubric, prompt or code change after the test-set run** (per the stop
+rule); the skills-threshold finding above is recorded as a limitation/
+idea for a future iteration, not implemented here.
+
+**Checks:** 465 tests, 0 skipped, 99% coverage. `ruff check .`/`ruff
+format --check .` clean (147 files). `mypy src app.py pages scripts eval`
+clean except the same pre-existing, unrelated
+`scripts/wp12_should_check.py` error. Real-model run: both the dev-set
+re-run and the test-set run (40 real extraction calls total) - required
+since `tools/assess.py`, `rubric.py` and the extraction prompt all
+changed. PII check (`pii.EMAIL_PATTERN`/`PHONE_NUMBER_PATTERN`) and
+`referenznummer` validity confirmed clean on all three new result files.
+
+**WP-14 complete.** Remaining Must items per spec §13: the tool-trajectory
+evaluation (§9.2) is next.
+
+## 2026-11-16 — WP-14b: fit evaluation, second round - new skills metric (spec §9.3)
+
+D-26 opened a second, rule-bound round to replace the skills metric that
+drove WP-14's 33.3 % test-set accuracy: a fresh test set drawn and
+approved before any code change, the new metric measured on the 20
+now-development listings only, a stop criterion fixed in advance, and -
+only if met - one new test run.
+
+**Step 1 (test-set draw):** the 20 `eval/fit_set.yaml` listings became all
+development; 10 new test listings drawn from the real fixture listings not
+already in that file (same strata, `random.Random(1400)`, employer cap 2
+across all 30), written to `eval/fit_set_round2.yaml`. Coach review caught
+two issues before approval - a YAML parse error (an unquoted colon inside
+a plain scalar; fixed with a folded block scalar) and one listing's
+title/employer copied wrong from an ad-hoc print statement - both fixed
+and re-verified against the fixture file byte-for-byte before Ingo
+approved.
+
+**Step 2 (new metric, dev-set only):** `rubric.assess`'s category
+computation (weighted share, thresholds, the unknown-dimensions cap,
+D-25's cap, exclusions) pulled out into a new pure function,
+`category_from_rubric` (no behaviour change; existing tests stayed
+green). `eval/rescore_fit_round2.py` re-scored the 40 stored WP-14 round-1
+runs (no model call): a sanity check first confirmed the harness
+reproduces the current metric's stored skills verdicts and categories
+exactly, **40/40**, then four variants were computed - `matched` =
+number of distinct profile skills found; N = 2 or 3, each with/without
+D-25's cap. [D-27](decisions/D-27-skills-metric-variant.md) recorded the
+numbers and Ingo's decision: **N = 3, with D-25's cap** (14/20, 15/20
+correct, vs. D-26's ≥ 12/20 floor); known cost, a false `skills: met` on
+one dev listing pushing it to `strong` where the label is `partial`.
+
+**Step 3 (implementation + blind labelling):** `rubric._skills_verdict`
+rewritten for N = 3 (`SKILLS_MATCHED_THRESHOLD`), with new tests for
+matched 0/1/2/3, duplicate-skill dedup, and a fix to a test that had
+stopped exercising the unknown-dimensions cap after the metric change
+(coverage would otherwise have silently dropped from the branch).
+`scripts/label_fit.py` extended to continue from `fit_set.yaml`'s 20 into
+`fit_set_round2.yaml`'s 10 automatically, same tool, same CSV columns,
+stratum never shown. Ingo labelled the 10 new listings; a coach review
+against `docs/labelling_guide.md` corrected 5 of 10 rows, each with a
+note in `eval/fit_labels.csv`.
+
+**Step 4 (one test run):** `eval/run_fit_eval.py --set round2`
+(`openai/gpt-5-mini`, reasoning effort `low`, 10 listings, 2 runs each, no
+code or threshold change after the run): `eval/results/fit_eval_round2_test.json`.
+**Category accuracy 60.0 % (6/10) both runs** - nearly double round 1's
+33.3 %. Dimension agreement: skills 90 %/90 %, location/remote 60 %/60 %,
+seniority 100 %/70 %, language 90 %/90 %, employment type 80 %/80 %.
+Run-to-run: category 9/10. 27 disagreements classified by cause
+(`attach_cause`/`summarize_causes`, recorded in the result file):
+`data_issue` 14 (dominant - D-24's remote-free-text gap on 3 listings, a
+BA location/distance contradiction on one, a shared `full_time`-field
+anomaly on the two listings from fixture source prefix `13644`),
+`rubric_rule_or_threshold` 8 (the false-`strong` risk D-27 flagged
+recurred once, plus two listings where a small known-dimension set
+rounds a middling skills result up past the label), `extraction_error` 3
+(seniority run-to-run only), `label_ambiguity` 2, `code_deviation` 0.
+Full writeup, confusion matrices, every disagreement's cause, limitations
+and the proposed spec §7 wording for the new metric (for the coach to
+apply): `docs/fit_evaluation.md` "Second round (D-26)". Round-1 result
+files and numbers untouched.
+
+**Checks:** 468 tests, 0 skipped, 99% coverage. `ruff check .`/
+`ruff format --check .` clean (151 files). `mypy src app.py pages
+scripts/label_fit.py eval/run_fit_eval.py eval/rescore_fit_round2.py`
+clean. PII check clean on the new result file's evidence quotes.
+
+**Decision files:** [D-26](decisions/D-26-fit-eval-second-round.md)
+(round rules, closed), [D-27](decisions/D-27-skills-metric-variant.md)
+(metric variant, closed). No open decision files from this package.
+
+**WP-14b complete.** Next: the coach applies the proposed §7 wording
+(D-23, D-25, and this round's skills-metric paragraph) to
+`PRODUCT_SPEC.md`; the tool-trajectory evaluation (§9.2) remains the next
+Must item per spec §13.

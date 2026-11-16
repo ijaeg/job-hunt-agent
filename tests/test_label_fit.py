@@ -258,6 +258,7 @@ def test_submitting_a_full_label_saves_a_row_and_advances(labels_path: Path) -> 
     at.run()
 
     fit_set = label_fit.load_fit_set(label_fit.FIT_SET_PATH)
+    combined = fit_set + label_fit.load_fit_set(label_fit.FIT_SET_ROUND2_PATH)
     first_ref = fit_set[0]["referenznummer"]
 
     at.selectbox(key="category").set_value("partial")
@@ -267,11 +268,32 @@ def test_submitting_a_full_label_saves_a_row_and_advances(labels_path: Path) -> 
 
     assert not at.exception
     assert label_fit.load_labelled_refs(labels_path) == {first_ref}
-    assert f"1 of {len(fit_set)} listings labelled." in "\n".join(c.value for c in at.caption)
+    assert f"1 of {len(combined)} listings labelled." in "\n".join(c.value for c in at.caption)
 
 
 def test_all_labelled_shows_a_done_message(labels_path: Path) -> None:
+    combined = label_fit.load_fit_set(label_fit.FIT_SET_PATH) + label_fit.load_fit_set(
+        label_fit.FIT_SET_ROUND2_PATH
+    )
+    verdicts = dict.fromkeys(label_fit.DIMENSIONS, "met")
+    for row in combined:
+        label_fit.append_label_row(
+            labels_path, label_fit.build_label_row(row["referenznummer"], "strong", verdicts, {})
+        )
+
+    at = AppTest.from_file(str(SCRIPT_PATH), default_timeout=30)
+    at.run()
+
+    assert not at.exception
+    assert any("All listings are labelled" in s.value for s in at.success)
+
+
+def test_continues_into_round2_set_once_fit_set_is_fully_labelled(labels_path: Path) -> None:
+    """WP-14b/D-26: once the 20 ``fit_set.yaml`` listings are labelled, the tool
+    moves on to ``fit_set_round2.yaml``'s 10 - same tool, same columns, no
+    assessment and no stratum shown for these either."""
     fit_set = label_fit.load_fit_set(label_fit.FIT_SET_PATH)
+    round2 = label_fit.load_fit_set(label_fit.FIT_SET_ROUND2_PATH)
     verdicts = dict.fromkeys(label_fit.DIMENSIONS, "met")
     for row in fit_set:
         label_fit.append_label_row(
@@ -282,4 +304,13 @@ def test_all_labelled_shows_a_done_message(labels_path: Path) -> None:
     at.run()
 
     assert not at.exception
-    assert any("All listings are labelled" in s.value for s in at.success)
+    assert not at.success  # not done yet - 10 round-2 listings still pending
+
+    first_round2 = round2[0]
+    rendered = "\n".join(el.value for el in [*at.markdown, *at.caption, *at.subheader])
+    assert first_round2["title"] in rendered
+    assert first_round2["referenznummer"] in rendered
+    assert first_round2["stratum"] not in rendered
+    assert f"{len(fit_set)} of {len(fit_set) + len(round2)} listings labelled." in "\n".join(
+        c.value for c in at.caption
+    )

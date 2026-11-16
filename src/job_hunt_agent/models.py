@@ -99,10 +99,15 @@ class Requirement(BaseModel):
     callers (``assess_fit``) drop requirements whose evidence fails that
     check (FR-05 AC2) before constructing this model.
 
-    Related: FR-05 AC2, spec §6.2
+    Related: FR-05 AC2, spec §6.2, D-21
     """
 
-    name: str
+    name: str = Field(
+        description=(
+            "A short, specific skill or technology name, such as 'Python' or "
+            "'Kubernetes' - never a full sentence or requirement description."
+        )
+    )
     required: bool
     evidence_de: str
     evidence_en: str

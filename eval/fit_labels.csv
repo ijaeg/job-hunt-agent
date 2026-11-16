@@ -19,3 +19,13 @@ referenznummer,category,skills_verdict,location_remote_verdict,seniority_verdict
 19522-0068291613-S,poor,not_met,met,unknown,partly,met,,Homeoffice nach Vereinbarung,,,,2026-11-16T13:15:17.062326+00:00
 12117-YF-48852-YF-S,partial,partly,met,unknown,partly,met,,hybrid; 2 Tage flexibel,,,,2026-11-16T13:18:20.101835+00:00
 13635-9c49789f_JB5290290-S,poor,not_met,met,unknown,partly,met,,hybrid/remote; Homeoffice,,,,2026-11-16T13:19:56.120556+00:00
+12265-485605_JB5289418-S,excluded,partly,met,unknown,partly,met,,5 km vom Suchort München; Text nennt mobiles Arbeiten (Korrektur nach Leitfaden),,,,2026-11-16T17:02:15.448921+00:00
+13644-313096-S,partial,partly,met,unknown,not_met,met,,,,,,2026-11-16T17:04:46.032516+00:00
+10001-1003964360-S,partial,partly,partly,unknown,partly,met,,,,,,2026-11-16T17:06:42.283728+00:00
+12336-a26f1192j0455715-S,excluded,partly,not_met,met,partly,met,Text nennt Java und Kafka; Java im Profil (Korrektur nach Leitfaden),Ort München aus Suche Hamburg 25 km; Entfernung fehlt in den Daten (Datenwiderspruch); außerhalb Radius -> harter Ausschluss,,,,2026-11-16T17:08:29.746059+00:00
+17338-61cf767722ad450056-S,strong,met,met,unknown,partly,met,,,,,,2026-11-16T17:13:04.786452+00:00
+13644-313865-S,partial,partly,met,unknown,partly,met,,,,,,2026-11-16T17:14:14.549108+00:00
+10001-1003900679-S,partial,partly,met,unknown,partly,met,,,,,,2026-11-16T17:15:27.146155+00:00
+19121-44499216-1011-S,poor,not_met,met,unknown,partly,met,,14 km vom Suchort München; Text nennt mobiles Arbeiten (Korrektur nach Leitfaden),,,,2026-11-16T17:16:55.923409+00:00
+14225-d10be3b2dd249dcf-S,poor,partly,met,unknown,unknown,met,,Homeoffice nach Vereinbarung; Entfernung fehlt (zählt als im Radius) (Regel aus WP-13),,,,2026-11-16T17:19:15.215566+00:00
+10001-1003935843-S,poor,partly,met,unknown,partly,met,,15 km vom Suchort München; Homeoffice nach Vereinbarung (Regel aus WP-13),,,,2026-11-16T17:20:12.148294+00:00

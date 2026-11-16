@@ -1,23 +1,25 @@
-"""Labelling tool for the fit evaluation set (spec §7, §9.3, D-20, WP-13).
+"""Labelling tool for the fit evaluation set (spec §7, §9.3, D-20, WP-13, WP-14b).
 
 A small Streamlit app, run on its own (**not** part of the product app, not
 under ``pages/``): ``uv run streamlit run scripts/label_fit.py``. Shows one
-listing of ``eval/fit_set.yaml`` at a time - its cleaned ad text, the
-structured fields the rubric (spec §7) actually uses (distance shown next
-to the search location/radius it is relative to - see
-``resolve_search_location``, FR-01 AC4, Addendum 2 to WP-13's prompt), the
-Alex demo profile, and a plain-words summary of the rubric itself - and
-asks for an overall category and one verdict per rubric dimension, each
-with an optional note. Per-dimension verdict choices match spec §7 exactly
-(``DIMENSION_VERDICT_OPTIONS``): no "unknown" for location/remote, no
-"partly" for employment type. Saves to ``eval/fit_labels.csv`` after every
-listing (one row per ``referenznummer``), so labelling can stop and resume
-at any time.
+listing at a time - the 20 of ``eval/fit_set.yaml`` (WP-13), then the 10 of
+``eval/fit_set_round2.yaml`` (WP-14b/D-26, the fresh test set for the new
+skills metric) - its cleaned ad text, the structured fields the rubric
+(spec §7) actually uses (distance shown next to the search location/radius
+it is relative to - see ``resolve_search_location``, FR-01 AC4, Addendum 2
+to WP-13's prompt), the Alex demo profile, and a plain-words summary of the
+rubric itself - and asks for an overall category and one verdict per rubric
+dimension, each with an optional note. Per-dimension verdict choices match
+spec §7 exactly (``DIMENSION_VERDICT_OPTIONS``): no "unknown" for
+location/remote, no "partly" for employment type. Saves to
+``eval/fit_labels.csv`` after every listing (one row per
+``referenznummer``, same columns for both sets), so labelling can stop and
+resume at any time.
 
 **Blind by design (D-20):** this tool does not import the product's rubric
 module at all, so it has nothing to compute or show the app's own category
 or verdicts with - Ingo's label must not be influenced by the app's own
-answer. It also never shows a listing's ``eval/fit_set.yaml`` stratum,
+answer. It also never shows a listing's stratum (from either fit-set file),
 since that would leak the hard-exclusion/skill-match heuristic the
 selection script used.
 
@@ -25,13 +27,13 @@ Usage (from the project root):
     uv run streamlit run scripts/label_fit.py
 
 Reads:
-    eval/fit_set.yaml, data/samples/fixtures/listings.json,
-    data/samples/profile_alex.yaml
+    eval/fit_set.yaml, eval/fit_set_round2.yaml,
+    data/samples/fixtures/listings.json, data/samples/profile_alex.yaml
 
 Writes:
     eval/fit_labels.csv
 
-Related: spec §7, §9.1, §9.3, invariant 6, D-9, D-20, WP-13
+Related: spec §7, §9.1, §9.3, invariant 6, D-9, D-20, D-26, WP-13, WP-14b
 """
 
 from __future__ import annotations
@@ -48,6 +50,9 @@ import yaml
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 FIT_SET_PATH = PROJECT_ROOT / "eval" / "fit_set.yaml"
+#: WP-14b/D-26's fresh test set (10 listings) for the new skills metric;
+#: labelled with the same tool, same columns, right after fit_set.yaml.
+FIT_SET_ROUND2_PATH = PROJECT_ROOT / "eval" / "fit_set_round2.yaml"
 LISTINGS_PATH = PROJECT_ROOT / "data" / "samples" / "fixtures" / "listings.json"
 RECORDED_SEARCHES_PATH = PROJECT_ROOT / "data" / "samples" / "fixtures" / "recorded_searches.json"
 PROFILE_PATH = PROJECT_ROOT / "data" / "samples" / "profile_alex.yaml"
@@ -293,14 +298,14 @@ def render_listing_form(
 
 
 def main() -> None:
-    st.set_page_config(page_title="Fit labelling - WP-13", layout="wide")
-    st.title("Fit labelling (WP-13)")
+    st.set_page_config(page_title="Fit labelling - WP-13/WP-14b", layout="wide")
+    st.title("Fit labelling (WP-13/WP-14b)")
     st.caption(
         "Label each listing against the §7 rubric and the Alex profile. "
         "You never see the app's own assessment here (D-20)."
     )
 
-    fit_set = load_fit_set(FIT_SET_PATH)
+    fit_set = load_fit_set(FIT_SET_PATH) + load_fit_set(FIT_SET_ROUND2_PATH)
     listings_by_ref = load_listings_by_ref(LISTINGS_PATH)
     recorded_searches = load_recorded_searches(RECORDED_SEARCHES_PATH)
     profile = yaml.safe_load(PROFILE_PATH.read_text(encoding="utf-8"))

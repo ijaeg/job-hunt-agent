@@ -1,6 +1,6 @@
 """Tests for :mod:`job_hunt_agent.rubric` (spec §7, FR-06).
 
-Related: FR-05, FR-06 AC1-AC4, spec §7, D-9
+Related: FR-05, FR-06 AC1-AC4, spec §7, D-9, D-21, D-23, D-25, D-26, D-27
 """
 
 from __future__ import annotations
@@ -217,47 +217,56 @@ def _skill(name: str, required: bool = True) -> Requirement:
     return Requirement(name=name, required=required, evidence_de=name, evidence_en=name)
 
 
-def test_skills_met_when_at_least_70_percent_match() -> None:
-    """met: >= 70% of required skills found in the profile."""
+def test_skills_not_met_when_zero_profile_skills_matched() -> None:
+    """D-27: not_met when none of the profile's skills are found in the ad."""
+    reqs = _requirements(skills=[_skill("Rust"), _skill("Go"), _skill("Scala")])
+    result = assess(_summary(), _details(), reqs, _profile())
+    assert result.rubric["skills"] == "not_met"
+
+
+def test_skills_partly_when_one_profile_skill_matched() -> None:
+    """D-27: partly when exactly 1 distinct profile skill is matched."""
+    reqs = _requirements(skills=[_skill("Python"), _skill("Rust"), _skill("Go")])
+    result = assess(_summary(), _details(), reqs, _profile())
+    assert result.rubric["skills"] == "partly"
+
+
+def test_skills_partly_when_n_minus_one_profile_skills_matched() -> None:
+    """D-27: partly when 2 (N-1, N=3) distinct profile skills are matched."""
+    reqs = _requirements(skills=[_skill("Python"), _skill("Java"), _skill("Rust")])
+    result = assess(_summary(), _details(), reqs, _profile())
+    assert result.rubric["skills"] == "partly"
+
+
+def test_skills_met_when_n_profile_skills_matched() -> None:
+    """D-27: met when 3 (N) or more distinct profile skills are matched."""
     reqs = _requirements(skills=[_skill("Python"), _skill("Java"), _skill("FastAPI")])
     result = assess(_summary(), _details(), reqs, _profile())
     assert result.rubric["skills"] == "met"
 
 
-def test_skills_partly_between_40_and_69_percent() -> None:
-    """partly: 40-69% of required skills found."""
+def test_skills_duplicate_mentions_of_one_profile_skill_count_once() -> None:
+    """D-27: the same profile skill named by two extracted entries counts once,
+    not twice - "matched" is the count of distinct profile skills, not of
+    extracted requirement entries."""
     reqs = _requirements(
-        skills=[_skill("Python"), _skill("Java"), _skill("Rust"), _skill("Go"), _skill("Scala")]
+        skills=[_skill("Python"), _skill("Python-Kenntnisse von Vorteil"), _skill("Rust")]
     )
     result = assess(_summary(), _details(), reqs, _profile())
+    # Both entries name "Python" - still 1 distinct profile skill matched, so
+    # "partly" (< N=3), not "met".
     assert result.rubric["skills"] == "partly"
 
 
-def test_skills_not_met_below_40_percent() -> None:
-    """not_met: < 40% of required skills found."""
-    reqs = _requirements(
-        skills=[
-            _skill("Rust"),
-            _skill("Go"),
-            _skill("Scala"),
-            _skill("Elixir"),
-            _skill("Haskell"),
-            _skill("Erlang"),
-        ]
-    )
-    result = assess(_summary(), _details(), reqs, _profile())
-    assert result.rubric["skills"] == "not_met"
-
-
 def test_skills_unknown_when_none_extracted_at_all() -> None:
-    """unknown: no skills extracted at all (spec §7, as revised by D-9)."""
+    """unknown: no skills extracted at all (D-21, unchanged by D-27)."""
     reqs = _requirements(skills=[])
     result = assess(_summary(), _details(), reqs, _profile())
     assert result.rubric["skills"] == "unknown"
 
 
 def test_skills_counts_non_required_skills_too() -> None:
-    """D-9: a skill not flagged ``required`` still counts (gpt-5-mini rarely sets it)."""
+    """D-9 (unchanged by D-27): a skill not flagged ``required`` still counts."""
     reqs = _requirements(
         skills=[
             _skill("Python", required=False),
@@ -336,6 +345,32 @@ def test_location_onsite_preference_never_needs_remote() -> None:
         _profile(remote_preference="onsite"),
     )
     assert result.rubric["location_remote"] == "met"
+
+
+def test_location_met_hybrid_with_stated_remote_type_but_no_percent() -> None:
+    """D-23: a stated remote type without a percentage (e.g. "NACH_VEREINBARUNG")
+    satisfies a hybrid preference within radius."""
+    summary = _summary(distance_km=10.0, remote_type="NACH_VEREINBARUNG", remote_percent=None)
+    result = assess(
+        summary,
+        _details(remote_type="NACH_VEREINBARUNG", remote_percent=None),
+        _requirements(),
+        _profile(remote_preference="hybrid"),
+    )
+    assert result.rubric["location_remote"] == "met"
+
+
+def test_location_not_met_remote_preference_with_stated_type_but_no_percent() -> None:
+    """D-23: the same stated-but-unquantified remote type does NOT satisfy a
+    "remote" preference - it does not guarantee fully remote work."""
+    summary = _summary(distance_km=10.0, remote_type="NACH_VEREINBARUNG", remote_percent=None)
+    result = assess(
+        summary,
+        _details(remote_type="NACH_VEREINBARUNG", remote_percent=None),
+        _requirements(),
+        _profile(remote_preference="remote"),
+    )
+    assert result.rubric["location_remote"] == "not_met"
 
 
 # ---------------------------------------------------------------------------
@@ -484,6 +519,44 @@ def test_category_poor_below_45_percent() -> None:
     assert result.exclusion_reasons == []
 
 
+def test_skills_not_met_caps_category_at_poor() -> None:
+    """D-25: a clear skill mismatch caps the category at "poor", even when
+    the weighted share of the other dimensions alone would reach "partial"."""
+    reqs = _requirements(
+        skills=[_skill("Rust"), _skill("Go")],
+        seniority="senior",
+        german_level="not_mentioned",
+    )
+    result = assess(
+        _summary(distance_km=10.0, remote_percent=None, remote_type=None),
+        _details(remote_percent=None, remote_type=None, full_time=True, contract_months=None),
+        reqs,
+        _profile(),
+    )
+    # skills=not_met(0,w2), location_remote=partly(1,w1), seniority=met(2,w1),
+    # language=unknown(excluded), employment_type=met(2,w1) -> share = 5/10 = 0.50
+    # (>= PARTIAL_THRESHOLD), but the skills:not_met cap brings it to "poor".
+    assert result.rubric["skills"] == "not_met"
+    assert result.category == "poor"
+
+
+def test_skills_partly_is_not_capped() -> None:
+    """D-25's cap only fires on "not_met", not "partly"/"met"."""
+    reqs = _requirements(
+        skills=[_skill("Python"), _skill("Java"), _skill("Rust")],
+        seniority="senior",
+        german_level="not_mentioned",
+    )
+    result = assess(
+        _summary(distance_km=10.0, remote_percent=None, remote_type=None),
+        _details(remote_percent=None, remote_type=None, full_time=True, contract_months=None),
+        reqs,
+        _profile(),
+    )
+    assert result.rubric["skills"] == "partly"
+    assert result.category != "poor"
+
+
 def test_hard_exclusion_overrides_a_high_score() -> None:
     """Any hard exclusion forces "excluded", even with an otherwise strong score."""
     reqs = _requirements(skills=[_skill("Python"), _skill("Java")])
@@ -500,7 +573,7 @@ def test_hard_exclusion_overrides_a_high_score() -> None:
 def test_more_than_two_unknown_dimensions_caps_category_at_partial() -> None:
     """More than 2 unknown dimensions caps the category at "partial" (spec §7)."""
     reqs = _requirements(
-        skills=[_skill("Python", required=False)],
+        skills=[_skill("Python"), _skill("Java"), _skill("FastAPI")],
         seniority="not_mentioned",
         german_level="not_mentioned",
     )
@@ -510,7 +583,13 @@ def test_more_than_two_unknown_dimensions_caps_category_at_partial() -> None:
         reqs,
         _profile(),
     )
-    # skills, seniority, language, employment_type are all unknown here (4 > 2)
+    # skills: met (3 >= N=3) and location_remote: met -> share 1.0 ("strong")
+    # before the cap. seniority, language, employment_type are unknown (3 > 2),
+    # so the cap brings "strong" down to "partial" - this must stay a "strong"
+    # case pre-cap so the cap branch is actually exercised (D-27: the old
+    # share-of-all-skills metric also reached "strong" here with a single
+    # matched skill; the new metric needs 3 distinct profile skills instead).
+    assert result.rubric["skills"] == "met"
     assert result.category == "partial"
     assert result.low_evidence is True
 

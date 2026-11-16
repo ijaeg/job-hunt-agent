@@ -1,0 +1,86 @@
+seed: 1400
+rule: >-
+  WP-14b (D-26, step 1). The 20 listings of eval/fit_set.yaml are now all development
+  listings. Draw 10 new test listings from the real fixture listings (FIKTIV-* crafted demo
+  listings excluded) that are not already in eval/fit_set.yaml, using the same strata
+  definitions as fit_set.yaml - temp_agency (is_temp_agency is True), skill_match (Python
+  or Java as a whole word in title+description, and not temp_agency), no_skill_match
+  (neither) - with a fixed allocation of 1 temp_agency / 6 skill_match / 3 no_skill_match
+  (not proportional to pool size, for the same reason as fit_set.yaml's allocation - the
+  code-only temp_agency exclusion must not dominate the set). Within each stratum (file
+  order), shuffle with a single random.Random(1400) continued across strata (temp_agency,
+  then skill_match, then no_skill_match) and take from the shuffled order, skipping (and so
+  redrawing further down that stratum's order) any listing that would put its employer over
+  a cap of 2 across the whole set of 30 (the original 20 + these 10, exact employer-string
+  match, same rule as fit_set.yaml). No app run, no model call, no rubric computation.
+approval:
+  date: '2026-11-16'
+  by: Ingo
+  note: Approved after coach review; YAML and employer field fixed.
+pool_after_excluding_fit_set_and_fiktiv:
+  temp_agency: 19
+  skill_match: 9
+  no_skill_match: 14
+allocation:
+  temp_agency: 1
+  skill_match: 6
+  no_skill_match: 3
+employer_cap: 2
+employer_cap_note: >-
+  Checked against the combined 30 (original 20 + these 10) - no employer exceeds 2 under
+  exact-string matching. One near-duplicate noted for Ingo's awareness: 10001-1003900679-S's
+  employer field is "PTA GmbH" and 13644-313865-S's is "PTA" (likely the same real company,
+  inconsistent BA API formatting between the two source listings); even if treated as one
+  employer, the combined count is exactly 2, still within the cap, so no listing was skipped
+  for this reason.
+listings:
+- referenznummer: 12265-485605_JB5289418-S
+  title: Embedded-Software-Entwickler (m/w/d)
+  employer: FERCHAU GmbH Niederlassung München Mobility
+  stratum: temp_agency
+  set: test
+- referenznummer: 13644-313096-S
+  title: "Java-Fullstack-Entwickler - Sparkassen (w|m|d) | findic"
+  employer: zeb
+  stratum: skill_match
+  set: test
+- referenznummer: 10001-1003964360-S
+  title: Public Cloud Engineer (m/w/d) Schwerpunkt Generative AI
+  employer: SIGNAL IDUNA Krankenversicherung a. G.
+  stratum: skill_match
+  set: test
+- referenznummer: 12336-a26f1192j0455715-S
+  title: Senior / Lead Java Developer – Kafka / Financial Services (all genders)
+  employer: EXXETA AG
+  stratum: skill_match
+  set: test
+- referenznummer: 17338-61cf767722ad450056-S
+  title: Java / Angular Fullstack Developer (m/w/d) - Hybrid
+  employer: Neptune IT
+  stratum: skill_match
+  set: test
+- referenznummer: 13644-313865-S
+  title: AI Engineer / KI-Entwickler – LLM & RAG (m/w/d)
+  employer: PTA
+  stratum: skill_match
+  set: test
+- referenznummer: 10001-1003900679-S
+  title: Software Engineer AI-driven Development / Agentic Coding (m/w/d)
+  employer: PTA GmbH
+  stratum: skill_match
+  set: test
+- referenznummer: 19121-44499216-1011-S
+  title: Systemnaher Softwareentwickler (d/m/w)
+  employer: genua GmbH
+  stratum: no_skill_match
+  set: test
+- referenznummer: 14225-d10be3b2dd249dcf-S
+  title: Softwareentwickler - IT (m/w/d)
+  employer: PartSpace GmbH
+  stratum: no_skill_match
+  set: test
+- referenznummer: 10001-1003935843-S
+  title: Softwareentwickler C#/.NET (m/w/d)
+  employer: Baader Bank AG
+  stratum: no_skill_match
+  set: test
