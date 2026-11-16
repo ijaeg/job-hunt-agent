@@ -4,7 +4,7 @@
 |---|---|
 | **Project** | Turing College – AI Engineering, Sprint 3 project ("Building with AI Agents") |
 | **Author** | Ingo Jäger |
-| **Status** | v0.1.12 – first draft, 2026-11-11 (changes: see §15) |
+| **Status** | v0.1.13 – first draft, 2026-11-16 (changes: see §15) |
 | **Audience** | Developer (implementation guide) and Turing College tutor (review guide) |
 | **Stack** | Python 3.13 (uv), Streamlit, LangChain `create_agent` (LangGraph runtime) against the OpenRouter API (OpenAI-compatible), SQLite (`SqliteSaver` checkpointer, `SqliteStore` for long-term memory, own tables for tracker and profile), `httpx`, Pydantic, LangSmith |
 | **Time budget** | ≈ 50 hours over two weeks (Mon 2026-11-09 to Fri 2026-11-20), including tests, documentation and review preparation; submission by Mon 2026-11-23 |
@@ -379,17 +379,19 @@ Defined before any listing is labelled for evaluation (§9.3).
 
 | Dimension | Source | met | partly | not met | unknown |
 |---|---|---|---|---|---|
-| **Skills** (weight 2) | LLM extraction vs. profile | ≥ 70 % of extracted skills in profile | 40–69 % | < 40 % | no skills extracted |
+| **Skills** (weight 2) | LLM extraction vs. profile | 3 or more profile skills named in the ad | 1–2 profile skills | no profile skill | no skills extracted |
 | **Location / remote** (weight 1) | API: `entfernung`, `homeofficetyp`, `homeofficeprozent` vs. profile | within radius and remote preference satisfied | within radius, remote not stated | outside radius without full remote | – |
 | **Seniority** (weight 1) | LLM extraction vs. profile | same level | one level apart | two or more levels apart | not mentioned |
 | **Language** (weight 1) | LLM extraction vs. profile | requirement ≤ user's level | one level above | two or more above | not mentioned |
 | **Employment type** (weight 1) | API: `arbeitszeitVollzeit`, `befristungInMonaten` vs. profile | matches | – | does not match | not stated |
 
-**Skills:** every extracted skill counts, whether marked `required` or not (D-9: the model rarely sets `required`). A profile skill matches when it occurs in the extracted skill name as a **whole word**, case-insensitive: "Java" matches "Java" and "Java, Python", but not "JavaScript"; "C" does not match "CI/CD".
+**Skills:** every extracted skill counts, whether marked `required` or not (D-9: the model rarely sets `required`). A profile skill matches when it occurs in the extracted skill name as a **whole word**, case-insensitive: "Java" matches "Java" and "Java, Python", but not "JavaScript"; "C" does not match "CI/CD". The verdict counts how many **distinct profile skills** the ad names, not the share of all skills the ad names: real ads name 10–60 technologies, so a share-based rule scored almost every listing `not met` against a profile with few skills (D-26, D-27). A skill whose evidence quote is not found verbatim in the ad text is dropped before counting (FR-05 AC2); if no skill is left, the dimension is `unknown` (D-21).
 
-**Scoring:** met = 2, partly = 1, not met = 0 points, multiplied by the weight; `unknown` dimensions are left out of both numerator and denominator. Share of reached points: ≥ 75 % → `strong`, 45–74 % → `partial`, < 45 % → `poor`. Any hard exclusion (FR-06) → `excluded`. If more than two dimensions are `unknown`, the category is at most `partial` and `low_evidence` is set.
+**Location / remote:** for a `hybrid` remote preference, a listing within the radius whose remote type is stated but whose remote share is not (the BA API's `homeofficetyp = NACH_VEREINBARUNG`, "by arrangement") counts as remote preference satisfied; a `remote` preference still requires a confirmed 100 % remote share (D-23). Only the structured API fields are read; remote work mentioned only in the free text is not counted (D-24, a documented limitation).
 
-The thresholds are tuned on the development listings only (§9.3) and documented with their values in `spikes/NOTES.md`. Start values confirmed in D-9.
+**Scoring:** met = 2, partly = 1, not met = 0 points, multiplied by the weight; `unknown` dimensions are left out of both numerator and denominator. Share of reached points: ≥ 75 % → `strong`, 45–74 % → `partial`, < 45 % → `poor`. A `not met` skills verdict caps the category at `poor`, regardless of the weighted share of the other dimensions (D-25). If more than two dimensions are `unknown`, the category is at most `partial` and `low_evidence` is set. Any hard exclusion (FR-06) → `excluded`; exclusions win over every other rule.
+
+The thresholds are tuned on the development listings only (§9.3). Start values confirmed in D-9; the skills thresholds were replaced in D-27, chosen on the development listings and then checked once on a fresh test set (D-26).
 
 ---
 
@@ -413,9 +415,9 @@ No stack trace ever reaches the UI.
 
 ### 9.1 Datasets
 
-- **Cleaned fixture set** (`data/samples/fixtures/listings.json`): 40 listings from the spike responses, contact data removed (FR-22), plus 3 crafted listings (prompt injection, teaser only, temporary agency) – 43 in total, built by `scripts/build_fixtures.py`, committed (D-8). Used for demo mode, tests and evaluation.
+- **Cleaned fixture set** (`data/samples/fixtures/listings.json`): 62 real listings from the recorded searches (D-1, D-10), contact data removed (FR-22), plus 3 crafted listings (prompt injection, teaser only, temporary agency) – 65 in total, built by `scripts/build_fixtures.py`, committed (D-8). Used for demo mode, tests and evaluation.
 - **Scenario set** for tool-trajectory evaluation: 10 development scenarios, 10 test scenarios; the test scenarios are written after tuning and never used for tuning.
-- **Labelled fit set:** 20 listings labelled by hand with the rubric (§7): 8 development, 12 test.
+- **Labelled fit set:** 30 listings labelled by hand with the rubric (§7), drawn by a fixed rule with a fixed seed (D-20). Round 1 (`eval/fit_set.yaml`): 8 development, 12 test. Round 2 (D-26, `eval/fit_set_round2.yaml`): the 20 round-1 listings serve as development set, 10 fresh listings as test set.
 
 ### 9.2 Tool-trajectory evaluation (Must)
 
@@ -425,7 +427,7 @@ Metrics, reported separately: tool-selection accuracy, argument accuracy, refine
 
 ### 9.3 Fit evaluation (Must)
 
-- Agreement between the code-computed category and the hand label on the 12 test listings (accuracy and confusion matrix), plus a list of every disagreement with its cause (extraction error vs. rubric threshold).
+- Agreement between the code-computed category and the hand label on the test listings of each round (accuracy and confusion matrix), plus a list of every disagreement with its cause (extraction error, rubric rule or threshold, code deviation, data issue, label ambiguity). Both rounds are reported in `docs/fit_evaluation.md`; round-1 results are kept unchanged.
 - `dropped_evidence` count (FR-05 AC2).
 - Limitation stated openly: one labeller, who also designed the rubric; small sample.
 
@@ -586,6 +588,14 @@ Nothing is cut in advance: if time runs short, items further down this order mov
 | D-17 | Price source for the cost display | **Decided (2026-11-10):** prices follow the Sprint 2 pattern: reported cost from OpenRouter when present, otherwise an estimate from token counts and the OpenRouter models endpoint (fetched once per session, failures not cached). In the WP-09 real-model check all 32 calls had their cost reported. Details: `docs/decisions/D-17-price-source.md` |
 | D-18 | Data sent to LangSmith | **Decided (2026-11-11):** tracing is off by default and switched on only on the developer settings page; README traces are made in demo mode with the fictional user "alex"; the README names what is sent to LangSmith when tracing is on (FR-22 AC4). Details: `docs/decisions/D-18-langsmith-data.md` |
 | D-19 | Parallel tool calls | **Decided (2026-11-11):** state fields written by tools get reducers, and the search limit is enforced after the model step from the message history, so several tool calls in one step are safe (§5.3, §5.4). Found while recording the WP-10 traces (`InvalidUpdateError` on `seen_refs`); after the fix 5 of 5 demo runs with parallel steps completed without error. Details: `docs/decisions/D-19-parallel-tool-calls.md` |
+| D-20 | Labelling design | **Decided (2026-11-16):** the fit set is drawn by a written rule with a fixed seed (strata: temporary agency, Python/Java match, no match; at most 2 listings per employer) and labelled blind with `scripts/label_fit.py`, which never shows the app's assessment; labels are checked against `docs/labelling_guide.md` before they are committed. Details: `docs/decisions/D-20-labelling-design.md` |
+| D-21 | Skill extraction granularity | **Decided (2026-11-16):** the extraction prompt asks for atomic skill names (field description and worked example); if every skill's evidence is dropped, the skills dimension stays `unknown` – missing evidence never counts against a listing. Details: `docs/decisions/D-21-skill-extraction-granularity.md` |
+| D-22 | Listing title in the extraction prompt | **Decided (2026-11-16):** the title is passed to the extraction prompt; evidence quotes still come from the ad text only. Details: `docs/decisions/D-22-extraction-prompt-title.md` |
+| D-23 | Remote type without a percentage | **Decided (2026-11-16):** satisfies a `hybrid` preference within the radius, not a `remote` preference (§7). Details: `docs/decisions/D-23-remote-type-without-percent.md` |
+| D-24 | Remote work mentioned only in free text | **Decided (2026-11-16):** no code change; location/remote reads the structured API fields only. Measured limitation: about a third of the test listings state remote work only in the text. Details: `docs/decisions/D-24-location-remote-reads-structured-fields-only.md` |
+| D-25 | Clear skill mismatch | **Decided (2026-11-16):** a `not met` skills verdict caps the category at `poor` (§7). Details: `docs/decisions/D-25-category-threshold-skills-not-met.md` |
+| D-26 | Second fit-evaluation round | **Decided (2026-11-16):** round 1 gave 33.3 % category accuracy on 12 test listings, mainly because the share-based skills rule scored almost every listing `not met`. Second round with rules fixed in advance: fresh test set drawn and approved before any code change, new skills rule measured on the 20 development listings by re-scoring the stored round-1 extractions, stop criterion (≥ 12 of 20 correct in both runs, ≤ 2 listings differing between runs), one test run reported as it is. Details: `docs/decisions/D-26-fit-eval-second-round.md` |
+| D-27 | Skills rule variant | **Decided (2026-11-16):** `met` from 3 distinct profile skills, `partly` for 1–2, `not met` for none; D-25's cap stays. Development set: 14 and 15 of 20 correct (before: 8 of 20). Fresh test set: 6 of 10 correct in both runs (round 1: 4 of 12). Known cost: a listing with many matching skills can be scored `strong` where the label says `partial`. Details: `docs/decisions/D-27-skills-metric-variant.md`, `docs/fit_evaluation.md` |
 | R-1 | API changes or becomes unavailable | Demo mode (FR-19), fixture-based evaluation |
 | R-2 | Agent loop not visible enough in the review | Demo script with refinement (S1), agent steps panel, LangSmith traces |
 | R-3 | Extraction errors lead to wrong categories | Evidence check (FR-05 AC2), "unknown" instead of guessing, fit evaluation with error analysis |
@@ -613,3 +623,4 @@ Nothing is cut in advance: if time runs short, items further down this order mov
 | v0.1.10 | 2026-11-09 | Decisions D-15 and D-16 recorded (§14); §11 adds the profile page (`3_Profile.py`), developer settings move to page 4 |
 | v0.1.11 | 2026-11-10 | FR-18 AC2 reworded for the price source; decision D-17 recorded (§14) |
 | v0.1.12 | 2026-11-11 | §5.3 reducers and `summaries`, `search_calls_this_turn` removed; §5.4 row 3 search limit after the model step; decisions D-18 and D-19 recorded (§14) |
+| v0.1.13 | 2026-11-16 | §7 Skills row and explanation replaced by the count of distinct profile skills (D-27); §7 location/remote rule for a remote type without percentage (D-23) and structured fields only (D-24); §7 scoring adds the skills cap (D-25); §9.1 fixture set count (65) and the two-round fit set (D-26); §9.3 both rounds and the five cause classes; decisions D-20 to D-27 recorded (§14) |
