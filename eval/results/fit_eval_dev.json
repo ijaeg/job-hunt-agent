@@ -3,11 +3,11 @@
   "model": "openai/gpt-5-mini",
   "reasoning_effort": "low",
   "run_date": "2026-11-16",
-  "run_datetime_utc": "2026-11-16T14:08:34.831284+00:00",
+  "run_datetime_utc": "2026-11-16T15:03:29.950835+00:00",
   "n_listings": 8,
   "category_accuracy_by_run": {
-    "1": 0.25,
-    "2": 0.375
+    "1": 0.5,
+    "2": 0.5
   },
   "confusion_matrix_by_run": {
     "1": {
@@ -19,14 +19,14 @@
       },
       "partial": {
         "strong": 0,
-        "partial": 1,
-        "poor": 3,
+        "partial": 0,
+        "poor": 4,
         "excluded": 0
       },
       "poor": {
         "strong": 0,
-        "partial": 3,
-        "poor": 0,
+        "partial": 0,
+        "poor": 3,
         "excluded": 0
       },
       "excluded": {
@@ -51,8 +51,8 @@
       },
       "poor": {
         "strong": 0,
-        "partial": 2,
-        "poor": 1,
+        "partial": 1,
+        "poor": 2,
         "excluded": 0
       },
       "excluded": {
@@ -65,21 +65,21 @@
   },
   "dimension_agreement_by_run": {
     "1": {
-      "skills": 0.375,
-      "location_remote": 0.75,
-      "seniority": 0.5,
+      "skills": 0.5,
+      "location_remote": 0.875,
+      "seniority": 0.625,
       "language": 0.75,
       "employment_type": 1.0
     },
     "2": {
       "skills": 0.5,
-      "location_remote": 0.75,
-      "seniority": 0.5,
+      "location_remote": 0.875,
+      "seniority": 0.625,
       "language": 0.75,
       "employment_type": 1.0
     }
   },
-  "total_dropped_evidence": 58,
+  "total_dropped_evidence": 40,
   "disagreements": [
     {
       "referenznummer": "11119-4964515256-S",
@@ -106,7 +106,7 @@
       "app_value": "poor",
       "label_value": "partial",
       "label_note": "",
-      "cause": "data_issue"
+      "cause": "rubric_rule_or_threshold"
     },
     {
       "referenznummer": "17338-c2de5ff0cd55000215-S",
@@ -115,7 +115,7 @@
       "app_value": "not_met",
       "label_value": "partly",
       "label_note": "",
-      "cause": "extraction_error"
+      "cause": "rubric_rule_or_threshold"
     },
     {
       "referenznummer": "17338-c2de5ff0cd55000215-S",
@@ -151,7 +151,7 @@
       "app_value": "poor",
       "label_value": "partial",
       "label_note": "",
-      "cause": "data_issue"
+      "cause": "rubric_rule_or_threshold"
     },
     {
       "referenznummer": "17338-c2de5ff0cd55000215-S",
@@ -160,7 +160,7 @@
       "app_value": "not_met",
       "label_value": "partly",
       "label_note": "",
-      "cause": "extraction_error"
+      "cause": "rubric_rule_or_threshold"
     },
     {
       "referenznummer": "17338-c2de5ff0cd55000215-S",
@@ -192,20 +192,20 @@
     {
       "referenznummer": "19913-3074751792188001-S",
       "run": 1,
-      "field": "skills",
-      "app_value": "not_met",
-      "label_value": "partly",
+      "field": "category",
+      "app_value": "poor",
+      "label_value": "partial",
       "label_note": "",
-      "cause": "extraction_error"
+      "cause": "rubric_rule_or_threshold"
     },
     {
       "referenznummer": "19913-3074751792188001-S",
       "run": 1,
-      "field": "seniority",
-      "app_value": "unknown",
-      "label_value": "met",
+      "field": "skills",
+      "app_value": "not_met",
+      "label_value": "partly",
       "label_note": "",
-      "cause": "extraction_error"
+      "cause": "rubric_rule_or_threshold"
     },
     {
       "referenznummer": "19913-3074751792188001-S",
@@ -214,7 +214,16 @@
       "app_value": "partly",
       "label_value": "unknown",
       "label_note": "",
-      "cause": "label_ambiguity"
+      "cause": "extraction_error"
+    },
+    {
+      "referenznummer": "19913-3074751792188001-S",
+      "run": 2,
+      "field": "category",
+      "app_value": "poor",
+      "label_value": "partial",
+      "label_note": "",
+      "cause": "rubric_rule_or_threshold"
     },
     {
       "referenznummer": "19913-3074751792188001-S",
@@ -223,16 +232,7 @@
       "app_value": "not_met",
       "label_value": "partly",
       "label_note": "",
-      "cause": "extraction_error"
-    },
-    {
-      "referenznummer": "19913-3074751792188001-S",
-      "run": 2,
-      "field": "seniority",
-      "app_value": "unknown",
-      "label_value": "met",
-      "label_note": "",
-      "cause": "extraction_error"
+      "cause": "rubric_rule_or_threshold"
     },
     {
       "referenznummer": "19913-3074751792188001-S",
@@ -241,7 +241,7 @@
       "app_value": "partly",
       "label_value": "unknown",
       "label_note": "",
-      "cause": "label_ambiguity"
+      "cause": "extraction_error"
     },
     {
       "referenznummer": "13509-000021113EF002-S",
@@ -250,7 +250,7 @@
       "app_value": "poor",
       "label_value": "partial",
       "label_note": "",
-      "cause": "code_deviation"
+      "cause": "rubric_rule_or_threshold"
     },
     {
       "referenznummer": "13509-000021113EF002-S",
@@ -259,22 +259,13 @@
       "app_value": "not_met",
       "label_value": "partly",
       "label_note": "",
-      "cause": "extraction_error"
-    },
-    {
-      "referenznummer": "13509-000021113EF002-S",
-      "run": 1,
-      "field": "location_remote",
-      "app_value": "not_met",
-      "label_value": "met",
-      "label_note": "mobiles Arbeiten nach Vereinbarung",
-      "cause": "code_deviation"
+      "cause": "rubric_rule_or_threshold"
     },
     {
       "referenznummer": "13509-000021113EF002-S",
       "run": 1,
       "field": "seniority",
-      "app_value": "partly",
+      "app_value": "unknown",
       "label_value": "not_met",
       "label_note": "",
       "cause": "label_ambiguity"
@@ -286,7 +277,7 @@
       "app_value": "poor",
       "label_value": "partial",
       "label_note": "",
-      "cause": "code_deviation"
+      "cause": "rubric_rule_or_threshold"
     },
     {
       "referenznummer": "13509-000021113EF002-S",
@@ -295,16 +286,7 @@
       "app_value": "not_met",
       "label_value": "partly",
       "label_note": "",
-      "cause": "extraction_error"
-    },
-    {
-      "referenznummer": "13509-000021113EF002-S",
-      "run": 2,
-      "field": "location_remote",
-      "app_value": "not_met",
-      "label_value": "met",
-      "label_note": "mobiles Arbeiten nach Vereinbarung",
-      "cause": "code_deviation"
+      "cause": "rubric_rule_or_threshold"
     },
     {
       "referenznummer": "13509-000021113EF002-S",
@@ -316,31 +298,13 @@
       "cause": "label_ambiguity"
     },
     {
-      "referenznummer": "12336-a26f1128j0452080-S",
-      "run": 1,
-      "field": "category",
-      "app_value": "partial",
-      "label_value": "poor",
-      "label_note": "",
-      "cause": "rubric_rule_or_threshold"
-    },
-    {
-      "referenznummer": "12336-a26f1128j0452080-S",
-      "run": 2,
-      "field": "category",
-      "app_value": "partial",
-      "label_value": "poor",
-      "label_note": "",
-      "cause": "rubric_rule_or_threshold"
-    },
-    {
       "referenznummer": "12336-a26f1192j0456061-S",
       "run": 1,
       "field": "category",
       "app_value": "poor",
       "label_value": "partial",
       "label_note": "",
-      "cause": "extraction_error"
+      "cause": "rubric_rule_or_threshold"
     },
     {
       "referenznummer": "12336-a26f1192j0456061-S",
@@ -348,48 +312,12 @@
       "field": "skills",
       "app_value": "not_met",
       "label_value": "partly",
-      "label_note": "",
-      "cause": "extraction_error"
-    },
-    {
-      "referenznummer": "12336-a26f1192j0456061-S",
-      "run": 2,
-      "field": "category",
-      "app_value": "poor",
-      "label_value": "partial",
-      "label_note": "",
-      "cause": "extraction_error"
-    },
-    {
-      "referenznummer": "12336-a26f1192j0456061-S",
-      "run": 2,
-      "field": "skills",
-      "app_value": "not_met",
-      "label_value": "partly",
-      "label_note": "",
-      "cause": "extraction_error"
-    },
-    {
-      "referenznummer": "13635-d780e451_JB5286154-S",
-      "run": 1,
-      "field": "category",
-      "app_value": "partial",
-      "label_value": "poor",
-      "label_note": "",
-      "cause": "rubric_rule_or_threshold"
-    },
-    {
-      "referenznummer": "13635-d780e451_JB5286154-S",
-      "run": 2,
-      "field": "category",
-      "app_value": "partial",
-      "label_value": "poor",
       "label_note": "",
       "cause": "rubric_rule_or_threshold"
     },
     {
       "referenznummer": "12288-4971252625-S",
-      "run": 1,
+      "run": 2,
       "field": "category",
       "app_value": "partial",
       "label_value": "poor",
@@ -398,7 +326,7 @@
     },
     {
       "referenznummer": "12288-4971252625-S",
-      "run": 1,
+      "run": 2,
       "field": "skills",
       "app_value": "unknown",
       "label_value": "not_met",
@@ -443,116 +371,26 @@
           "exclusion_reasons": [
             "temporary agency work (Arbeitnehmerüberlassung)"
           ],
-          "dropped_evidence": 0,
+          "dropped_evidence": 16,
           "low_evidence": false,
           "extracted_skills": [
             {
-              "name": "Planung, Entwicklung und Konfiguration von Simulationsnetzwerken und deren Komponenten (HW und SW)",
+              "name": "C++",
               "required": false,
-              "evidence_de": "Verantwortung für die Planung, Entwicklung und Konfiguration von\nSimulationsnetzwerken und deren Komponenten (HW und SW)",
-              "evidence_en": "Responsibility for planning, development and configuration of\nsimulation networks and their components (HW and SW)"
+              "evidence_de": "Anpassung- und Neuentwicklung von Simulationssoftware in C++ und Qt",
+              "evidence_en": "Adaptation and new development of simulation software in C++ and Qt"
             },
             {
-              "name": "Durchführung von Integrationsarbeiten für die Entwicklung von Ausbildungssimulatoren und Simulationsanlagen",
+              "name": "Qt",
               "required": false,
-              "evidence_de": "Durchführung von Integrationsarbeiten für die Entwicklung von\nAusbildungssimulatoren und Simulationsanlagen",
-              "evidence_en": "Carrying out integration work for the development of training simulators and simulation systems"
+              "evidence_de": "Anpassung- und Neuentwicklung von Simulationssoftware in C++ und Qt",
+              "evidence_en": "Adaptation and new development of simulation software in C++ and Qt"
             },
             {
-              "name": "Anpassung- und Neuentwicklung von Simulationssoftware in C++ und Qt unter Linux und Windows",
-              "required": false,
-              "evidence_de": "Anpassung- und Neuentwicklung von Simulationssoftware in C++ und Qt\nunter Linux und Windows",
-              "evidence_en": "Adaptation and new development of simulation software in C++ and Qt\non Linux and Windows"
-            },
-            {
-              "name": "Entwicklung und Pflege von Software im Netzwerk-Layer von Echtzeit-Simulationssoftware",
-              "required": false,
-              "evidence_de": "Entwicklung und Pflege von Software im Netzwerk-Layer von\nEchtzeit-Simulationssoftware",
-              "evidence_en": "Development and maintenance of software in the network layer of\nreal-time simulation software"
-            },
-            {
-              "name": "Anbindung und Integration von Hardware-Schnittstellen in die Simulationssoftware",
-              "required": false,
-              "evidence_de": "Anbindung und Integration von Hardware-Schnittstellen in die\nSimulationssoftware",
-              "evidence_en": "Connection and integration of hardware interfaces into the simulation software"
-            },
-            {
-              "name": "Installation, Inbetriebnahme und Test der Simulations-Software in-House und vor Ort beim Kunden",
-              "required": false,
-              "evidence_de": "Installation, Inbetriebnahme und Test der Simulations-Software\nin-House und vor Ort beim Kunden",
-              "evidence_en": "Installation, commissioning and testing of the simulation software\nin-house and on site at the customer"
-            },
-            {
-              "name": "Analyse von Anforderungen und Detailabstimmungen mit den Systemingenieuren",
-              "required": false,
-              "evidence_de": "Analyse von Anforderungen und Detailabstimmungen mit den\nSystemingenieuren",
-              "evidence_en": "Analysis of requirements and detailed coordination with the systems engineers"
-            },
-            {
-              "name": "Erstellen der Anforderungs-, Architektur- und Design Dokumentationen",
-              "required": false,
-              "evidence_de": "Erstellen der Anforderungs-, Architektur- und Design Dokumentationen",
-              "evidence_en": "Creating requirements, architecture and design documentation"
-            },
-            {
-              "name": "Implementierung und Auswertung von Unit- und Subsystemtests, Durchführung von Tests und Anpassungen der Erhöhung der Systemstabilität",
-              "required": false,
-              "evidence_de": "Implementierung und Auswertung von Unit- und Subsystemtests,\nDurchführung von Tests und Anpassungen der Erhöhung der\nSystemstabilität",
-              "evidence_en": "Implementation and evaluation of unit and subsystem tests,\ncarrying out tests and adjustments to increase system stability"
-            },
-            {
-              "name": "Abgeschlossenes Hochschulstudium der Informatik, Fachinformatik oder vergleichbare Qualifikation",
-              "required": false,
-              "evidence_de": "Sie haben ein erfolgreich abgeschlossenes Hochschulstudium der\nInformatik, Fachinformatik oder eine vergleichbare Qualifikation",
-              "evidence_en": "You have a successfully completed university degree in computer science, applied computer science or a comparable qualification"
-            },
-            {
-              "name": "Erfahrung in der Entwicklung von kommerziellen Softwareprodukten mit C++, Qt, STL sowie in der Entwicklung von verteilten Systemen",
-              "required": false,
-              "evidence_de": "Erfahrung in der Entwicklung von kommerziellen Softwareprodukten mit\nC++, Qt, STL sowie in der Entwicklung von verteilten Systemen",
-              "evidence_en": "Experience in developing commercial software products with\nC++, Qt, STL as well as in developing distributed systems"
-            },
-            {
-              "name": "Kenntnisse von Netzwerkservices unter Windows und Linux",
-              "required": false,
-              "evidence_de": "Sie verfügen über Kenntnisse von Netzwerkservices unter Windows\nund Linux",
-              "evidence_en": "You have knowledge of network services under Windows\nand Linux"
-            },
-            {
-              "name": "Softwaretechnologie: Objektorientierung, Modellierung und Test",
-              "required": false,
-              "evidence_de": "Idealerweise bringen Sie gute Kenntnisse im Bereich\nSoftwaretechnologie (Objektorientierung, Modellierung und Test) mit",
-              "evidence_en": "Ideally you bring good knowledge in the area of\nsoftware technology (object orientation, modeling and testing)"
-            },
-            {
-              "name": "Low-Level-Programmierungen von Netzwerken (speziell IP v4, IP v6, UDP, TCP, PostgreSQL und Protobuf)",
-              "required": false,
-              "evidence_de": "idealerweise Erfahrung in Low-Level-Programmierungen von Netzwerken\n(speziell IP v4, IP v6, UDP, TCP, PostgreSQL und Protobuf)",
-              "evidence_en": "Ideally experience in low-level programming of networks\n(specifically IP v4, IP v6, UDP, TCP, PostgreSQL and Protobuf)"
-            },
-            {
-              "name": "Kenntnisse mit Cisco Switchen",
+              "name": "Cisco Switchen",
               "required": false,
               "evidence_de": "Kentnisse mit Cisco Switchen von Vorteil",
               "evidence_en": "Knowledge of Cisco switches is an advantage"
-            },
-            {
-              "name": "Teamfähigkeit, Selbstständigkeit und hohe Kommunikationsfähigkeit",
-              "required": false,
-              "evidence_de": "Eine ausgeprägte Teamfähigkeit, Selbstständigkeit sowie eine hohe\nKommunikationsfähigkeit sind für Sie selbstverständlich.",
-              "evidence_en": "A pronounced ability to work in a team, independence as well as high\ncommunication skills are natural for you."
-            },
-            {
-              "name": "Gute Englischkenntnisse",
-              "required": false,
-              "evidence_de": "Gute Englischkenntnisse und sehr gute Deutschkenntnisse runden Ihr\nProfil ab",
-              "evidence_en": "Good English skills and very good German skills complete your\nprofile"
-            },
-            {
-              "name": "Sehr gute Deutschkenntnisse",
-              "required": false,
-              "evidence_de": "Gute Englischkenntnisse und sehr gute Deutschkenntnisse runden Ihr\nProfil ab",
-              "evidence_en": "Good English skills and very good German skills complete your\nprofile"
             }
           ],
           "extraction_error": null
@@ -571,9 +409,105 @@
           "exclusion_reasons": [
             "temporary agency work (Arbeitnehmerüberlassung)"
           ],
-          "dropped_evidence": 20,
+          "dropped_evidence": 0,
           "low_evidence": false,
           "extracted_skills": [
+            {
+              "name": "C++",
+              "required": false,
+              "evidence_de": "Anpassung- und Neuentwicklung von Simulationssoftware in C++ und Qt\nunter Linux und Windows",
+              "evidence_en": "Adaptation and new development of simulation software in C++ and Qt\non Linux and Windows"
+            },
+            {
+              "name": "Qt",
+              "required": false,
+              "evidence_de": "Anpassung- und Neuentwicklung von Simulationssoftware in C++ und Qt\nunter Linux und Windows",
+              "evidence_en": "Adaptation and new development of simulation software in C++ and Qt\non Linux and Windows"
+            },
+            {
+              "name": "STL",
+              "required": false,
+              "evidence_de": "Erfahrung in der Entwicklung von kommerziellen Softwareprodukten mit\nC++, Qt, STL sowie in der Entwicklung von verteilten Systemen",
+              "evidence_en": "Experience in the development of commercial software products with\nC++, Qt, STL as well as in the development of distributed systems"
+            },
+            {
+              "name": "verteilte Systeme",
+              "required": false,
+              "evidence_de": "Erfahrung in der Entwicklung von kommerziellen Softwareprodukten mit\nC++, Qt, STL sowie in der Entwicklung von verteilten Systemen",
+              "evidence_en": "Experience in the development of commercial software products with\nC++, Qt, STL as well as in the development of distributed systems"
+            },
+            {
+              "name": "Netzwerkservices (Windows)",
+              "required": false,
+              "evidence_de": "Sie verfügen über Kenntnisse von Netzwerkservices unter Windows\nund Linux",
+              "evidence_en": "You have knowledge of network services on Windows\nand Linux"
+            },
+            {
+              "name": "Netzwerkservices (Linux)",
+              "required": false,
+              "evidence_de": "Sie verfügen über Kenntnisse von Netzwerkservices unter Windows\nund Linux",
+              "evidence_en": "You have knowledge of network services on Windows\nand Linux"
+            },
+            {
+              "name": "Objektorientierung",
+              "required": false,
+              "evidence_de": "Idealerweise bringen Sie gute Kenntnisse im Bereich\nSoftwaretechnologie (Objektorientierung, Modellierung und Test) mit",
+              "evidence_en": "Ideally you bring good knowledge in the area of\nsoftware technology (object orientation, modeling and testing)"
+            },
+            {
+              "name": "Modellierung",
+              "required": false,
+              "evidence_de": "Idealerweise bringen Sie gute Kenntnisse im Bereich\nSoftwaretechnologie (Objektorientierung, Modellierung und Test) mit",
+              "evidence_en": "Ideally you bring good knowledge in the area of\nsoftware technology (object orientation, modeling and testing)"
+            },
+            {
+              "name": "Test",
+              "required": false,
+              "evidence_de": "Idealerweise bringen Sie gute Kenntnisse im Bereich\nSoftwaretechnologie (Objektorientierung, Modellierung und Test) mit",
+              "evidence_en": "Ideally you bring good knowledge in the area of\nsoftware technology (object orientation, modeling and testing)"
+            },
+            {
+              "name": "Low-Level network programming",
+              "required": false,
+              "evidence_de": "idealerweise Erfahrung in Low-Level-Programmierungen von Netzwerken\n(speziell IP v4, IP v6, UDP, TCP, PostgreSQL und Protobuf)",
+              "evidence_en": "ideally experience in low-level programming of networks\n(specifically IP v4, IP v6, UDP, TCP, PostgreSQL and Protobuf)"
+            },
+            {
+              "name": "IP v4",
+              "required": false,
+              "evidence_de": "idealerweise Erfahrung in Low-Level-Programmierungen von Netzwerken\n(speziell IP v4, IP v6, UDP, TCP, PostgreSQL und Protobuf)",
+              "evidence_en": "ideally experience in low-level programming of networks\n(specifically IP v4, IP v6, UDP, TCP, PostgreSQL and Protobuf)"
+            },
+            {
+              "name": "IP v6",
+              "required": false,
+              "evidence_de": "idealerweise Erfahrung in Low-Level-Programmierungen von Netzwerken\n(speziell IP v4, IP v6, UDP, TCP, PostgreSQL und Protobuf)",
+              "evidence_en": "ideally experience in low-level programming of networks\n(specifically IP v4, IP v6, UDP, TCP, PostgreSQL and Protobuf)"
+            },
+            {
+              "name": "UDP",
+              "required": false,
+              "evidence_de": "idealerweise Erfahrung in Low-Level-Programmierungen von Netzwerken\n(speziell IP v4, IP v6, UDP, TCP, PostgreSQL und Protobuf)",
+              "evidence_en": "ideally experience in low-level programming of networks\n(specifically IP v4, IP v6, UDP, TCP, PostgreSQL and Protobuf)"
+            },
+            {
+              "name": "TCP",
+              "required": false,
+              "evidence_de": "idealerweise Erfahrung in Low-Level-Programmierungen von Netzwerken\n(speziell IP v4, IP v6, UDP, TCP, PostgreSQL und Protobuf)",
+              "evidence_en": "ideally experience in low-level programming of networks\n(specifically IP v4, IP v6, UDP, TCP, PostgreSQL and Protobuf)"
+            },
+            {
+              "name": "PostgreSQL",
+              "required": false,
+              "evidence_de": "idealerweise Erfahrung in Low-Level-Programmierungen von Netzwerken\n(speziell IP v4, IP v6, UDP, TCP, PostgreSQL und Protobuf)",
+              "evidence_en": "ideally experience in low-level programming of networks\n(specifically IP v4, IP v6, UDP, TCP, PostgreSQL and Protobuf)"
+            },
+            {
+              "name": "Protobuf",
+              "required": false,
+              "evidence_de": "idealerweise Erfahrung in Low-Level-Programmierungen von Netzwerken\n(speziell IP v4, IP v6, UDP, TCP, PostgreSQL und Protobuf)",
+              "evidence_en": "ideally experience in low-level programming of networks\n(specifically IP v4, IP v6, UDP, TCP, PostgreSQL and Protobuf)"
+            },
             {
               "name": "Cisco Switches",
               "required": false,
@@ -581,10 +515,40 @@
               "evidence_en": "Knowledge of Cisco switches is an advantage"
             },
             {
-              "name": "Erstellen von Anforderungs-, Architektur- und Designdokumentationen",
-              "required": true,
-              "evidence_de": "Erstellen der Anforderungs-, Architektur- und Design Dokumentationen",
-              "evidence_en": "Creating requirements, architecture and design documentation"
+              "name": "Hardware-Schnittstellen",
+              "required": false,
+              "evidence_de": "Anbindung und Integration von Hardware-Schnittstellen in die\nSimulationssoftware",
+              "evidence_en": "Connection and integration of hardware interfaces into the\nsimulation software"
+            },
+            {
+              "name": "Netzwerk-Layer Entwicklung",
+              "required": false,
+              "evidence_de": "Entwicklung und Pflege von Software im Netzwerk-Layer von\nEchtzeit-Simulationssoftware",
+              "evidence_en": "Development and maintenance of software in the network layer of\nreal-time simulation software"
+            },
+            {
+              "name": "Unit- und Subsystemtests",
+              "required": false,
+              "evidence_de": "Implementierung und Auswertung von Unit- und Subsystemtests,\nDurchführung von Tests und Anpassungen der Erhöhung der\nSystemstabilität",
+              "evidence_en": "Implementation and evaluation of unit and subsystem tests,\nexecution of tests and adjustments to increase system stability"
+            },
+            {
+              "name": "Integrationsarbeiten",
+              "required": false,
+              "evidence_de": "Durchführung von Integrationsarbeiten für die Entwicklung von\nAusbildungssimulatoren und Simulationsanlagen",
+              "evidence_en": "Carrying out integration work for the development of\ntraining simulators and simulation systems"
+            },
+            {
+              "name": "Linux",
+              "required": false,
+              "evidence_de": "Anpassung- und Neuentwicklung von Simulationssoftware in C++ und Qt\nunter Linux und Windows",
+              "evidence_en": "Adaptation and new development of simulation software in C++ and Qt\non Linux and Windows"
+            },
+            {
+              "name": "Windows",
+              "required": false,
+              "evidence_de": "Anpassung- und Neuentwicklung von Simulationssoftware in C++ und Qt\nunter Linux und Windows",
+              "evidence_en": "Adaptation and new development of simulation software in C++ and Qt\non Linux and Windows"
             }
           ],
           "extraction_error": null
@@ -633,56 +597,68 @@
             "employment_type": "met"
           },
           "exclusion_reasons": [],
-          "dropped_evidence": 0,
+          "dropped_evidence": 2,
           "low_evidence": false,
           "extracted_skills": [
             {
+              "name": "CRM",
+              "required": false,
+              "evidence_de": "Verwendete Technologien:CRM, ERP, Python, SQL.",
+              "evidence_en": "Technologies used: CRM, ERP, Python, SQL."
+            },
+            {
+              "name": "ERP",
+              "required": false,
+              "evidence_de": "Verwendete Technologien:CRM, ERP, Python, SQL.",
+              "evidence_en": "Technologies used: CRM, ERP, Python, SQL."
+            },
+            {
               "name": "Python",
-              "required": true,
-              "evidence_de": "gute Kenntnisse in Python.",
-              "evidence_en": "good knowledge in Python."
+              "required": false,
+              "evidence_de": "Du verfügst über gute Kenntnisse in Python.",
+              "evidence_en": "You have good knowledge of Python."
             },
             {
               "name": "SQL",
-              "required": true,
-              "evidence_de": "CRM, ERP, Python, SQL.",
-              "evidence_en": "CRM, ERP, Python, SQL."
+              "required": false,
+              "evidence_de": "Verwendete Technologien:CRM, ERP, Python, SQL.",
+              "evidence_en": "Technologies used: CRM, ERP, Python, SQL."
             },
             {
-              "name": "CRM / ERP",
+              "name": "Microsoft Office",
+              "required": false,
+              "evidence_de": "Idealerweise besitzt Du Kenntnisse in den Microsoft Office-Programmen (Word, Excel, Access) und SQL.",
+              "evidence_en": "Ideally you have knowledge of the Microsoft Office programs (Word, Excel, Access) and SQL."
+            },
+            {
+              "name": "Word",
+              "required": false,
+              "evidence_de": "Idealerweise besitzt Du Kenntnisse in den Microsoft Office-Programmen (Word, Excel, Access) und SQL.",
+              "evidence_en": "Ideally you have knowledge of the Microsoft Office programs (Word, Excel, Access) and SQL."
+            },
+            {
+              "name": "Excel",
+              "required": false,
+              "evidence_de": "Idealerweise besitzt Du Kenntnisse in den Microsoft Office-Programmen (Word, Excel, Access) und SQL.",
+              "evidence_en": "Ideally you have knowledge of the Microsoft Office programs (Word, Excel, Access) and SQL."
+            },
+            {
+              "name": "Access",
+              "required": false,
+              "evidence_de": "Idealerweise besitzt Du Kenntnisse in den Microsoft Office-Programmen (Word, Excel, Access) und SQL.",
+              "evidence_en": "Ideally you have knowledge of the Microsoft Office programs (Word, Excel, Access) and SQL."
+            },
+            {
+              "name": "Vertec",
+              "required": false,
+              "evidence_de": "Als Python‑Developer bzw. technischer Projektleiter verantwortest Du die Einführung der Vertec Business Software bei Dienstleistungsunternehmen.",
+              "evidence_en": "As a Python developer / technical project lead you are responsible for the implementation of the Vertec Business Software at service companies."
+            },
+            {
+              "name": "ERP-/CRM‑Software",
               "required": false,
               "evidence_de": "Erfahrung in der Implementierung und Anpassung von ERP-/CRM‑Software ist von Vorteil, aber kein Muss.",
-              "evidence_en": "Experience in the implementation and customization of ERP/CRM software is an advantage, but not a must."
-            },
-            {
-              "name": "Microsoft Office (Word, Excel, Access)",
-              "required": false,
-              "evidence_de": "Kenntnisse in den Microsoft Office-Programmen (Word, Excel, Access) und SQL.",
-              "evidence_en": "Knowledge of Microsoft Office programs (Word, Excel, Access) and SQL."
-            },
-            {
-              "name": "Concept development and technical implementation",
-              "required": false,
-              "evidence_de": "Du hast Freude daran, Konzepte zu entwickeln und diese technisch umzusetzen – einschließlich Termine vor Ort beim Kunden in der DACH‑Region (Reisetätigkeit ca. 30%, typischerweise Tageseinsätze).",
-              "evidence_en": "You enjoy developing concepts and implementing them technically – including on-site appointments with customers in the DACH region (travel approx. 30%, typically day assignments)."
-            },
-            {
-              "name": "Willingness to travel",
-              "required": false,
-              "evidence_de": "Reisetätigkeit ca. 30%, typischerweise Tageseinsätze",
-              "evidence_en": "Business travel approx. 30%, typically day assignments"
-            },
-            {
-              "name": "Presentation and communication skills",
-              "required": false,
-              "evidence_de": "Dein sicheres Auftreten und Deine Kommunikationsfähigkeiten ermöglichen es Dir, Deine Lösungsvorschläge überzeugend zu präsentieren.",
-              "evidence_en": "Your confident manner and communication skills enable you to convincingly present your solution proposals."
-            },
-            {
-              "name": "Scripting and automation development",
-              "required": false,
-              "evidence_de": "entwickelst Scripte und Automatismen",
-              "evidence_en": "develop scripts and automations"
+              "evidence_en": "Experience in the implementation and customization of ERP/CRM software is an advantage but not a must."
             }
           ],
           "extraction_error": null
@@ -699,56 +675,62 @@
             "employment_type": "met"
           },
           "exclusion_reasons": [],
-          "dropped_evidence": 0,
+          "dropped_evidence": 1,
           "low_evidence": false,
           "extracted_skills": [
             {
-              "name": "Python",
-              "required": true,
-              "evidence_de": "Du verfügst über gute Kenntnisse in Python.",
-              "evidence_en": "You have good knowledge of Python."
-            },
-            {
-              "name": "SQL",
-              "required": true,
-              "evidence_de": "Verwendete Technologien:CRM, ERP, Python, SQL.",
-              "evidence_en": "Technologies used: CRM, ERP, Python, SQL."
-            },
-            {
               "name": "CRM",
-              "required": true,
+              "required": false,
               "evidence_de": "Verwendete Technologien:CRM, ERP, Python, SQL.",
-              "evidence_en": "Technologies used: CRM, ERP, Python, SQL."
+              "evidence_en": "Used technologies: CRM, ERP, Python, SQL."
             },
             {
               "name": "ERP",
-              "required": true,
+              "required": false,
               "evidence_de": "Verwendete Technologien:CRM, ERP, Python, SQL.",
-              "evidence_en": "Technologies used: CRM, ERP, Python, SQL."
+              "evidence_en": "Used technologies: CRM, ERP, Python, SQL."
             },
             {
-              "name": "Microsoft Office (Word, Excel, Access)",
+              "name": "Python",
+              "required": false,
+              "evidence_de": "Du verfügst über gute Kenntnisse in Python.",
+              "evidence_en": "You have good knowledge in Python."
+            },
+            {
+              "name": "SQL",
+              "required": false,
+              "evidence_de": "Verwendete Technologien:CRM, ERP, Python, SQL.",
+              "evidence_en": "Used technologies: CRM, ERP, Python, SQL."
+            },
+            {
+              "name": "Microsoft Office",
               "required": false,
               "evidence_de": "Idealerweise besitzt Du Kenntnisse in den Microsoft Office-Programmen (Word, Excel, Access) und SQL.",
               "evidence_en": "Ideally you have knowledge of the Microsoft Office programs (Word, Excel, Access) and SQL."
             },
             {
-              "name": "Implementierung und Anpassung von ERP-/CRM-Software",
+              "name": "Word",
               "required": false,
-              "evidence_de": "Erfahrung in der Implementierung und Anpassung von ERP-/CRM‑Software ist von Vorteil, aber kein Muss.",
-              "evidence_en": "Experience in implementing and customizing ERP/CRM software is an advantage but not a must."
+              "evidence_de": "Idealerweise besitzt Du Kenntnisse in den Microsoft Office-Programmen (Word, Excel, Access) und SQL.",
+              "evidence_en": "Ideally you have knowledge of the Microsoft Office programs (Word, Excel, Access) and SQL."
             },
             {
-              "name": "Kommunikations- und Präsentationsfähigkeiten",
-              "required": true,
-              "evidence_de": "Dein sicheres Auftreten und Deine Kommunikationsfähigkeiten ermöglichen es Dir, Deine Lösungsvorschläge überzeugend zu präsentieren.",
-              "evidence_en": "Your confident manner and communication skills enable you to present your solution proposals convincingly."
+              "name": "Excel",
+              "required": false,
+              "evidence_de": "Idealerweise besitzt Du Kenntnisse in den Microsoft Office-Programmen (Word, Excel, Access) und SQL.",
+              "evidence_en": "Ideally you have knowledge of the Microsoft Office programs (Word, Excel, Access) and SQL."
             },
             {
-              "name": "Scripting / Automatisierung",
-              "required": true,
-              "evidence_de": "Du implementierst Vertec in den Unternehmen, nimmst individuelle technische Konfigurationen vor, entwickelst Scripte und Automatismen, erstellst Vorlagen in Microsoft Office und passt Benutzeroberflächen an.",
-              "evidence_en": "You implement Vertec in companies, make individual technical configurations, develop scripts and automations, create templates in Microsoft Office and adapt user interfaces."
+              "name": "Access",
+              "required": false,
+              "evidence_de": "Idealerweise besitzt Du Kenntnisse in den Microsoft Office-Programmen (Word, Excel, Access) und SQL.",
+              "evidence_en": "Ideally you have knowledge of the Microsoft Office programs (Word, Excel, Access) and SQL."
+            },
+            {
+              "name": "Vertec",
+              "required": false,
+              "evidence_de": "Als Python‑Developer bzw. technischer Projektleiter verantwortest Du die Einführung der Vertec Business Software bei Dienstleistungsunternehmen.",
+              "evidence_en": "As a Python developer or technical project manager you are responsible for the implementation of the Vertec Business Software at service companies."
             }
           ],
           "extraction_error": null
@@ -788,107 +770,11 @@
         {
           "referenznummer": "19913-3074751792188001-S",
           "run": 1,
-          "category": "partial",
+          "category": "poor",
           "rubric": {
             "skills": "not_met",
             "location_remote": "met",
-            "seniority": "unknown",
-            "language": "partly",
-            "employment_type": "met"
-          },
-          "exclusion_reasons": [],
-          "dropped_evidence": 0,
-          "low_evidence": false,
-          "extracted_skills": [
-            {
-              "name": "Very good knowledge of Python and modern software engineering (Clean Code, Testing, Debugging, Git, Code Reviews)",
-              "required": false,
-              "evidence_de": "Du verfügst über sehr gute Kenntnisse in Python und modernem Software Engineering, einschließlich Clean Code, Testing, Debugging, Git und Code Reviews.",
-              "evidence_en": "You have very good knowledge in Python and modern software engineering, including Clean Code, Testing, Debugging, Git and Code Reviews."
-            },
-            {
-              "name": "Practical experience with ML frameworks (PyTorch, TensorFlow, scikit-learn) and model training, evaluation, optimization and production deployment",
-              "required": false,
-              "evidence_de": "Du bringst praktische Erfahrung mit Machine-Learning-Frameworks wie PyTorch, TensorFlow oder scikit-learn sowie mit Modelltraining, Evaluation, Optimierung und produktiver Bereitstellung mit.",
-              "evidence_en": "You bring practical experience with machine learning frameworks such as PyTorch, TensorFlow or scikit-learn as well as model training, evaluation, optimization and production deployment."
-            },
-            {
-              "name": "Experience in developing data pipelines and feature engineering (pandas, Spark, Beam or comparable toolchains) and understanding of data quality",
-              "required": false,
-              "evidence_de": "Du hast Erfahrung in der Entwicklung von Datenpipelines und Feature-Engineering-Prozessen mit Technologien wie pandas, Spark, Beam oder vergleichbaren Toolchains und verstehst die Bedeutung von Data Quality.",
-              "evidence_en": "You have experience in developing data pipelines and feature engineering processes with technologies such as pandas, Spark, Beam or comparable toolchains and understand the importance of data quality."
-            },
-            {
-              "name": "Developing APIs and services (REST, FastAPI, Flask) and integrating AI solutions into enterprise environments",
-              "required": false,
-              "evidence_de": "Du entwickelst APIs und Services (z. B. REST, FastAPI oder Flask) und kennst die Integration von AI-Lösungen in Enterprise-Umgebungen sowie moderne Cloud- und Cloud-Native-Architekturen auf Azure, GCP oder AWS.",
-              "evidence_en": "You develop APIs and services (e.g. REST, FastAPI or Flask) and know how to integrate AI solutions into enterprise environments as well as modern cloud and cloud-native architectures on Azure, GCP or AWS."
-            },
-            {
-              "name": "Knowledge of cloud and cloud-native architectures (Azure, GCP, AWS)",
-              "required": false,
-              "evidence_de": "Du entwickelst APIs und Services (z. B. REST, FastAPI oder Flask) und kennst die Integration von AI-Lösungen in Enterprise-Umgebungen sowie moderne Cloud- und Cloud-Native-Architekturen auf Azure, GCP oder AWS.",
-              "evidence_en": "You develop APIs and services (e.g. REST, FastAPI or Flask) and know how to integrate AI solutions into enterprise environments as well as modern cloud and cloud-native architectures on Azure, GCP or AWS."
-            },
-            {
-              "name": "Containerization and deployment with Docker; ideally Kubernetes",
-              "required": false,
-              "evidence_de": "Du verfügst über Kenntnisse in Containerisierung und Deployment mit Docker sowie idealerweise Kubernetes und bringst Erfahrung oder ein solides Verständnis von MLOps/LLMOps, Monitoring, Versionierung, Retraining und produktiven AI-Betriebsmodellen mit.",
-              "evidence_en": "You have knowledge in containerization and deployment with Docker and ideally Kubernetes and bring experience or a solid understanding of MLOps/LLMOps, monitoring, versioning, retraining and production AI operating models."
-            },
-            {
-              "name": "Experience or solid understanding of MLOps/LLMOps, monitoring, versioning, retraining and production AI operations",
-              "required": false,
-              "evidence_de": "Du verfügst über Kenntnisse in Containerisierung und Deployment mit Docker sowie idealerweise Kubernetes und bringst Erfahrung oder ein solides Verständnis von MLOps/LLMOps, Monitoring, Versionierung, Retraining und produktiven AI-Betriebsmodellen mit.",
-              "evidence_en": "You have knowledge in containerization and deployment with Docker and ideally Kubernetes and bring experience or a solid understanding of MLOps/LLMOps, monitoring, versioning, retraining and production AI operating models."
-            },
-            {
-              "name": "Experience or strong interest in Generative AI and Large Language Models (RAG, Embeddings, Vector Stores, Prompt Engineering, Guardrails)",
-              "required": false,
-              "evidence_de": "Du hast Erfahrung oder großes Interesse an Generative AI und Large Language Models, beispielsweise in den Bereichen RAG, Embeddings, Vector Stores, Prompt Engineering und Guardrails, kommunizierst verhandlungssicher auf Deutsch und sehr gut auf Englisch und kannst technische Themen verständlich gegenüber Kunden und Stakeholdern vermitteln.",
-              "evidence_en": "You have experience or great interest in Generative AI and Large Language Models, for example in the areas of RAG, embeddings, vector stores, prompt engineering and guardrails, you communicate fluently in German and very well in English and can explain technical topics clearly to customers and stakeholders."
-            },
-            {
-              "name": "Develop, train and evaluate machine learning and generative AI models for enterprise applications",
-              "required": false,
-              "evidence_de": "Du entwickelst, trainierst und evaluierst Machine-Learning- und GenAI-Modelle für produktive Enterprise-Anwendungen in Branchen wie Insurance, Finance sowie Manufacturing & Automotive und begleitest deren Weg von der Idee bis zum produktiven Einsatz.",
-              "evidence_en": "You develop, train and evaluate machine learning and generative AI models for productive enterprise applications in industries such as insurance, finance as well as manufacturing & automotive and accompany their path from idea to productive deployment."
-            },
-            {
-              "name": "Design and implement data preparation, feature engineering, training and inference pipelines; ensure stable transition from PoCs to production",
-              "required": false,
-              "evidence_de": "Du konzipierst und implementierst Datenaufbereitungs-, Feature-Engineering-, Trainings- und Inferenz-Pipelines und stellst einen stabilen Übergang von PoCs über MVPs bis hin zu produktiven AI-Lösungen sicher.",
-              "evidence_en": "You design and implement data preparation, feature engineering, training and inference pipelines and ensure a stable transition from PoCs via MVPs to productive AI solutions."
-            },
-            {
-              "name": "Integrate AI components, APIs and services into existing applications and platforms; optimize performance, scalability and fault tolerance",
-              "required": false,
-              "evidence_de": "Du integrierst AI-Komponenten, APIs und Services in bestehende Anwendungen und Plattformen, optimierst Performance, Skalierbarkeit und Fehlertoleranz und sorgst für einen zuverlässigen Betrieb.",
-              "evidence_en": "You integrate AI components, APIs and services into existing applications and platforms, optimize performance, scalability and fault tolerance and ensure reliable operation."
-            },
-            {
-              "name": "Quality engineering: testing, reproducibility, versioning of code/models/data, documentation, monitoring, observability and drift detection for AI systems",
-              "required": false,
-              "evidence_de": "Du verantwortest Quality Engineering durch Testing, Reproduzierbarkeit, Versionierung von Code, Modellen und Daten sowie eine nachvollziehbare technische Dokumentation und etablierst Monitoring, Observability und Drift-Erkennung für AI-Systeme.",
-              "evidence_en": "You are responsible for quality engineering through testing, reproducibility, versioning of code, models and data as well as comprehensible technical documentation and establish monitoring, observability and drift detection for AI systems."
-            },
-            {
-              "name": "Technical customer support for projects, RFPs and RFIs, effort estimation, structuring workpackages and ownership of technical workstreams / communication with customers",
-              "required": false,
-              "evidence_de": "Du unterstützt Kundenprojekte, RFPs und RFIs durch technische Beratung, Aufwandsschätzungen und Strukturierung von Workpackages und übernimmst – abhängig von deiner Seniorität – Ownership für Teilsysteme, technische Workstreams, Engineering-Standards, Workshops und die Kommunikation mit Kunden.",
-              "evidence_en": "You support customer projects, RFPs and RFIs through technical consulting, effort estimates and structuring workpackages and take ownership—depending on your seniority—for subsystems, technical workstreams, engineering standards, workshops and communication with customers."
-            }
-          ],
-          "extraction_error": null
-        },
-        {
-          "referenznummer": "19913-3074751792188001-S",
-          "run": 2,
-          "category": "partial",
-          "rubric": {
-            "skills": "not_met",
-            "location_remote": "met",
-            "seniority": "unknown",
+            "seniority": "met",
             "language": "partly",
             "employment_type": "met"
           },
@@ -899,128 +785,476 @@
             {
               "name": "Python",
               "required": false,
-              "evidence_de": "sehr gute Kenntnisse in Python und modernem Software Engineering, einschließlich Clean Code, Testing, Debugging, Git und Code Reviews.",
-              "evidence_en": "very good knowledge in Python and modern software engineering, including Clean Code, testing, debugging, Git and code reviews."
+              "evidence_de": "sehr gute Kenntnisse in Python",
+              "evidence_en": "very good knowledge in Python"
             },
             {
               "name": "Clean Code",
               "required": false,
-              "evidence_de": "sehr gute Kenntnisse in Python und modernem Software Engineering, einschließlich Clean Code, Testing, Debugging, Git und Code Reviews.",
-              "evidence_en": "very good knowledge in Python and modern software engineering, including Clean Code, testing, debugging, Git and code reviews."
+              "evidence_de": "Clean Code",
+              "evidence_en": "Clean Code"
             },
             {
               "name": "Testing",
               "required": false,
-              "evidence_de": "sehr gute Kenntnisse in Python und modernem Software Engineering, einschließlich Clean Code, Testing, Debugging, Git und Code Reviews.",
-              "evidence_en": "very good knowledge in Python and modern software engineering, including Clean Code, testing, debugging, Git and code reviews."
+              "evidence_de": "Testing",
+              "evidence_en": "Testing"
             },
             {
               "name": "Debugging",
               "required": false,
-              "evidence_de": "sehr gute Kenntnisse in Python und modernem Software Engineering, einschließlich Clean Code, Testing, Debugging, Git und Code Reviews.",
-              "evidence_en": "very good knowledge in Python and modern software engineering, including Clean Code, testing, debugging, Git and code reviews."
+              "evidence_de": "Debugging",
+              "evidence_en": "Debugging"
             },
             {
               "name": "Git",
               "required": false,
-              "evidence_de": "sehr gute Kenntnisse in Python und modernem Software Engineering, einschließlich Clean Code, Testing, Debugging, Git und Code Reviews.",
-              "evidence_en": "very good knowledge in Python and modern software engineering, including Clean Code, testing, debugging, Git and code reviews."
+              "evidence_de": "Git",
+              "evidence_en": "Git"
             },
             {
               "name": "Code Reviews",
               "required": false,
-              "evidence_de": "sehr gute Kenntnisse in Python und modernem Software Engineering, einschließlich Clean Code, Testing, Debugging, Git und Code Reviews.",
-              "evidence_en": "very good knowledge in Python and modern software engineering, including Clean Code, testing, debugging, Git and code reviews."
+              "evidence_de": "Code Reviews",
+              "evidence_en": "Code reviews"
             },
             {
               "name": "PyTorch",
               "required": false,
-              "evidence_de": "praktische Erfahrung mit Machine-Learning-Frameworks wie PyTorch, TensorFlow oder scikit-learn sowie mit Modelltraining, Evaluation, Optimierung und produktiver Bereitstellung mit.",
-              "evidence_en": "practical experience with machine learning frameworks such as PyTorch, TensorFlow or scikit-learn as well as with model training, evaluation, optimization and production deployment."
+              "evidence_de": "PyTorch",
+              "evidence_en": "PyTorch"
             },
             {
               "name": "TensorFlow",
               "required": false,
-              "evidence_de": "praktische Erfahrung mit Machine-Learning-Frameworks wie PyTorch, TensorFlow oder scikit-learn sowie mit Modelltraining, Evaluation, Optimierung und produktiver Bereitstellung mit.",
-              "evidence_en": "practical experience with machine learning frameworks such as PyTorch, TensorFlow or scikit-learn as well as with model training, evaluation, optimization and production deployment."
+              "evidence_de": "TensorFlow",
+              "evidence_en": "TensorFlow"
             },
             {
               "name": "scikit-learn",
               "required": false,
-              "evidence_de": "praktische Erfahrung mit Machine-Learning-Frameworks wie PyTorch, TensorFlow oder scikit-learn sowie mit Modelltraining, Evaluation, Optimierung und produktiver Bereitstellung mit.",
-              "evidence_en": "practical experience with machine learning frameworks such as PyTorch, TensorFlow or scikit-learn as well as with model training, evaluation, optimization and production deployment."
+              "evidence_de": "scikit-learn",
+              "evidence_en": "scikit-learn"
             },
             {
               "name": "pandas",
               "required": false,
-              "evidence_de": "Entwicklung von Datenpipelines und Feature-Engineering-Prozessen mit Technologien wie pandas, Spark, Beam oder vergleichbaren Toolchains",
-              "evidence_en": "development of data pipelines and feature engineering processes with technologies like pandas, Spark, Beam or comparable toolchains"
+              "evidence_de": "pandas",
+              "evidence_en": "pandas"
             },
             {
               "name": "Spark",
               "required": false,
-              "evidence_de": "Entwicklung von Datenpipelines und Feature-Engineering-Prozessen mit Technologien wie pandas, Spark, Beam oder vergleichbaren Toolchains",
-              "evidence_en": "development of data pipelines and feature engineering processes with technologies like pandas, Spark, Beam or comparable toolchains"
+              "evidence_de": "Spark",
+              "evidence_en": "Spark"
             },
             {
               "name": "Beam",
               "required": false,
-              "evidence_de": "Entwicklung von Datenpipelines und Feature-Engineering-Prozessen mit Technologien wie pandas, Spark, Beam oder vergleichbaren Toolchains",
-              "evidence_en": "development of data pipelines and feature engineering processes with technologies like pandas, Spark, Beam or comparable toolchains"
+              "evidence_de": "Beam",
+              "evidence_en": "Beam"
             },
             {
-              "name": "REST APIs / FastAPI / Flask",
+              "name": "Data Pipelines",
               "required": false,
-              "evidence_de": "Du entwickelst APIs und Services (z. B. REST, FastAPI oder Flask) und kennst die Integration von AI-Lösungen in Enterprise-Umgebungen",
-              "evidence_en": "You develop APIs and services (e.g. REST, FastAPI or Flask) and know the integration of AI solutions into enterprise environments"
+              "evidence_de": "Entwicklung von Datenpipelines und Feature-Engineering-Prozessen",
+              "evidence_en": "development of data pipelines and feature engineering processes"
             },
             {
-              "name": "Cloud (Azure, GCP, AWS)",
+              "name": "Feature Engineering",
               "required": false,
-              "evidence_de": "moderne Cloud- und Cloud-Native-Architekturen auf Azure, GCP oder AWS.",
-              "evidence_en": "modern cloud and cloud-native architectures on Azure, GCP or AWS."
+              "evidence_de": "Feature-Engineering-Prozessen",
+              "evidence_en": "feature engineering processes"
+            },
+            {
+              "name": "REST",
+              "required": false,
+              "evidence_de": "REST",
+              "evidence_en": "REST"
+            },
+            {
+              "name": "FastAPI",
+              "required": false,
+              "evidence_de": "FastAPI",
+              "evidence_en": "FastAPI"
+            },
+            {
+              "name": "Flask",
+              "required": false,
+              "evidence_de": "Flask",
+              "evidence_en": "Flask"
+            },
+            {
+              "name": "Azure",
+              "required": false,
+              "evidence_de": "Azure",
+              "evidence_en": "Azure"
+            },
+            {
+              "name": "GCP",
+              "required": false,
+              "evidence_de": "GCP",
+              "evidence_en": "GCP"
+            },
+            {
+              "name": "AWS",
+              "required": false,
+              "evidence_de": "AWS",
+              "evidence_en": "AWS"
             },
             {
               "name": "Docker",
               "required": false,
-              "evidence_de": "Kenntnisse in Containerisierung und Deployment mit Docker sowie idealerweise Kubernetes",
-              "evidence_en": "knowledge in containerization and deployment with Docker and ideally Kubernetes"
+              "evidence_de": "Docker",
+              "evidence_en": "Docker"
             },
             {
               "name": "Kubernetes",
               "required": false,
-              "evidence_de": "Kenntnisse in Containerisierung und Deployment mit Docker sowie idealerweise Kubernetes",
-              "evidence_en": "knowledge in containerization and deployment with Docker and ideally Kubernetes"
+              "evidence_de": "Kubernetes",
+              "evidence_en": "Kubernetes"
             },
             {
-              "name": "MLOps / LLMOps",
+              "name": "MLOps",
               "required": false,
-              "evidence_de": "Erfahrung oder ein solides Verständnis von MLOps/LLMOps, Monitoring, Versionierung, Retraining und produktiven AI-Betriebsmodellen",
-              "evidence_en": "experience or a solid understanding of MLOps/LLMOps, monitoring, versioning, retraining and production AI operating models"
+              "evidence_de": "MLOps/LLMOps",
+              "evidence_en": "MLOps/LLMOps"
             },
             {
-              "name": "Monitoring / Versioning / Retraining",
+              "name": "LLMOps",
               "required": false,
-              "evidence_de": "Erfahrung oder ein solides Verständnis von MLOps/LLMOps, Monitoring, Versionierung, Retraining und produktiven AI-Betriebsmodellen",
-              "evidence_en": "experience or a solid understanding of MLOps/LLMOps, monitoring, versioning, retraining and production AI operating models"
+              "evidence_de": "MLOps/LLMOps",
+              "evidence_en": "MLOps/LLMOps"
             },
             {
-              "name": "Generative AI / LLMs (RAG, Embeddings, Vector Stores, Prompt Engineering, Guardrails)",
+              "name": "Monitoring",
               "required": false,
-              "evidence_de": "Erfahrung oder großes Interesse an Generative AI und Large Language Models, beispielsweise in den Bereichen RAG, Embeddings, Vector Stores, Prompt Engineering und Guardrails",
-              "evidence_en": "experience or strong interest in generative AI and large language models, for example in areas such as RAG, embeddings, vector stores, prompt engineering and guardrails"
+              "evidence_de": "Monitoring",
+              "evidence_en": "Monitoring"
             },
             {
-              "name": "Quality Engineering / Reproduzierbarkeit / technische Dokumentation / Observability / Drift-Erkennung",
+              "name": "Versioning",
               "required": false,
-              "evidence_de": "verantwortest Quality Engineering durch Testing, Reproduzierbarkeit, Versionierung von Code, Modellen und Daten sowie eine nachvollziehbare technische Dokumentation und etablierst Monitoring, Observability und Drift-Erkennung für AI-Systeme.",
-              "evidence_en": "responsible for quality engineering through testing, reproducibility, versioning of code, models and data as well as comprehensible technical documentation and establish monitoring, observability and drift detection for AI systems."
+              "evidence_de": "Versionierung",
+              "evidence_en": "versioning"
             },
             {
-              "name": "Kundenkommunikation / technische Beratung",
+              "name": "Retraining",
               "required": false,
-              "evidence_de": "Du unterstützt Kundenprojekte, RFPs und RFIs durch technische Beratung, Aufwandsschätzungen und Strukturierung von Workpackages und übernimmst – abhängig von deiner Seniorität – Ownership für Teilsysteme, technische Workstreams, Engineering-Standards, Workshops und die Kommunikation mit Kunden.",
-              "evidence_en": "You support customer projects, RFPs and RFIs through technical consulting, effort estimations and structuring of work packages and — depending on your seniority — take ownership for subsystems, technical workstreams, engineering standards, workshops and communication with customers."
+              "evidence_de": "Retraining",
+              "evidence_en": "retraining"
+            },
+            {
+              "name": "Generative AI",
+              "required": false,
+              "evidence_de": "Generative AI",
+              "evidence_en": "Generative AI"
+            },
+            {
+              "name": "Large Language Models",
+              "required": false,
+              "evidence_de": "Large Language Models",
+              "evidence_en": "Large Language Models"
+            },
+            {
+              "name": "RAG",
+              "required": false,
+              "evidence_de": "RAG",
+              "evidence_en": "RAG"
+            },
+            {
+              "name": "Embeddings",
+              "required": false,
+              "evidence_de": "Embeddings",
+              "evidence_en": "Embeddings"
+            },
+            {
+              "name": "Vector Stores",
+              "required": false,
+              "evidence_de": "Vector Stores",
+              "evidence_en": "Vector stores"
+            },
+            {
+              "name": "Prompt Engineering",
+              "required": false,
+              "evidence_de": "Prompt Engineering",
+              "evidence_en": "prompt engineering"
+            },
+            {
+              "name": "Guardrails",
+              "required": false,
+              "evidence_de": "Guardrails",
+              "evidence_en": "guardrails"
+            },
+            {
+              "name": "Data Quality",
+              "required": false,
+              "evidence_de": "Data Quality",
+              "evidence_en": "data quality"
+            }
+          ],
+          "extraction_error": null
+        },
+        {
+          "referenznummer": "19913-3074751792188001-S",
+          "run": 2,
+          "category": "poor",
+          "rubric": {
+            "skills": "not_met",
+            "location_remote": "met",
+            "seniority": "met",
+            "language": "partly",
+            "employment_type": "met"
+          },
+          "exclusion_reasons": [],
+          "dropped_evidence": 0,
+          "low_evidence": false,
+          "extracted_skills": [
+            {
+              "name": "Python",
+              "required": false,
+              "evidence_de": "sehr gute Kenntnisse in Python",
+              "evidence_en": "very good knowledge in Python"
+            },
+            {
+              "name": "Clean Code",
+              "required": false,
+              "evidence_de": "Clean Code",
+              "evidence_en": "Clean Code"
+            },
+            {
+              "name": "Testing",
+              "required": false,
+              "evidence_de": "Testing",
+              "evidence_en": "Testing"
+            },
+            {
+              "name": "Debugging",
+              "required": false,
+              "evidence_de": "Debugging",
+              "evidence_en": "Debugging"
+            },
+            {
+              "name": "Git",
+              "required": false,
+              "evidence_de": "Git",
+              "evidence_en": "Git"
+            },
+            {
+              "name": "Code Reviews",
+              "required": false,
+              "evidence_de": "Code Reviews",
+              "evidence_en": "Code reviews"
+            },
+            {
+              "name": "PyTorch",
+              "required": false,
+              "evidence_de": "PyTorch",
+              "evidence_en": "PyTorch"
+            },
+            {
+              "name": "TensorFlow",
+              "required": false,
+              "evidence_de": "TensorFlow",
+              "evidence_en": "TensorFlow"
+            },
+            {
+              "name": "scikit-learn",
+              "required": false,
+              "evidence_de": "scikit-learn",
+              "evidence_en": "scikit-learn"
+            },
+            {
+              "name": "Modelltraining",
+              "required": false,
+              "evidence_de": "Modelltraining",
+              "evidence_en": "model training"
+            },
+            {
+              "name": "Evaluation",
+              "required": false,
+              "evidence_de": "Evaluation",
+              "evidence_en": "evaluation"
+            },
+            {
+              "name": "Optimierung",
+              "required": false,
+              "evidence_de": "Optimierung",
+              "evidence_en": "optimization"
+            },
+            {
+              "name": "Produktive Bereitstellung",
+              "required": false,
+              "evidence_de": "produktiver Bereitstellung",
+              "evidence_en": "productive/production deployment"
+            },
+            {
+              "name": "Datenpipelines",
+              "required": false,
+              "evidence_de": "Entwicklung von Datenpipelines",
+              "evidence_en": "development of data pipelines"
+            },
+            {
+              "name": "pandas",
+              "required": false,
+              "evidence_de": "pandas",
+              "evidence_en": "pandas"
+            },
+            {
+              "name": "Spark",
+              "required": false,
+              "evidence_de": "Spark",
+              "evidence_en": "Spark"
+            },
+            {
+              "name": "Beam",
+              "required": false,
+              "evidence_de": "Beam",
+              "evidence_en": "Beam"
+            },
+            {
+              "name": "Feature Engineering",
+              "required": false,
+              "evidence_de": "Feature-Engineering-Prozessen",
+              "evidence_en": "feature engineering processes"
+            },
+            {
+              "name": "REST",
+              "required": false,
+              "evidence_de": "REST",
+              "evidence_en": "REST"
+            },
+            {
+              "name": "FastAPI",
+              "required": false,
+              "evidence_de": "FastAPI",
+              "evidence_en": "FastAPI"
+            },
+            {
+              "name": "Flask",
+              "required": false,
+              "evidence_de": "Flask",
+              "evidence_en": "Flask"
+            },
+            {
+              "name": "Cloud architectures",
+              "required": false,
+              "evidence_de": "moderne Cloud- und Cloud-Native-Architekturen",
+              "evidence_en": "modern cloud and cloud-native architectures"
+            },
+            {
+              "name": "Azure",
+              "required": false,
+              "evidence_de": "Azure",
+              "evidence_en": "Azure"
+            },
+            {
+              "name": "GCP",
+              "required": false,
+              "evidence_de": "GCP",
+              "evidence_en": "GCP"
+            },
+            {
+              "name": "AWS",
+              "required": false,
+              "evidence_de": "AWS",
+              "evidence_en": "AWS"
+            },
+            {
+              "name": "Docker",
+              "required": false,
+              "evidence_de": "Docker",
+              "evidence_en": "Docker"
+            },
+            {
+              "name": "Kubernetes",
+              "required": false,
+              "evidence_de": "Kubernetes",
+              "evidence_en": "Kubernetes"
+            },
+            {
+              "name": "MLOps/LLMOps",
+              "required": false,
+              "evidence_de": "MLOps/LLMOps",
+              "evidence_en": "MLOps/LLMOps"
+            },
+            {
+              "name": "Monitoring",
+              "required": false,
+              "evidence_de": "Monitoring",
+              "evidence_en": "monitoring"
+            },
+            {
+              "name": "Versionierung",
+              "required": false,
+              "evidence_de": "Versionierung",
+              "evidence_en": "versioning"
+            },
+            {
+              "name": "Retraining",
+              "required": false,
+              "evidence_de": "Retraining",
+              "evidence_en": "retraining"
+            },
+            {
+              "name": "Generative AI",
+              "required": false,
+              "evidence_de": "Generative AI",
+              "evidence_en": "Generative AI"
+            },
+            {
+              "name": "Large Language Models",
+              "required": false,
+              "evidence_de": "Large Language Models",
+              "evidence_en": "Large Language Models"
+            },
+            {
+              "name": "RAG",
+              "required": false,
+              "evidence_de": "RAG",
+              "evidence_en": "RAG"
+            },
+            {
+              "name": "Embeddings",
+              "required": false,
+              "evidence_de": "Embeddings",
+              "evidence_en": "embeddings"
+            },
+            {
+              "name": "Vector Stores",
+              "required": false,
+              "evidence_de": "Vector Stores",
+              "evidence_en": "vector stores"
+            },
+            {
+              "name": "Prompt Engineering",
+              "required": false,
+              "evidence_de": "Prompt Engineering",
+              "evidence_en": "prompt engineering"
+            },
+            {
+              "name": "Guardrails",
+              "required": false,
+              "evidence_de": "Guardrails",
+              "evidence_en": "guardrails"
+            },
+            {
+              "name": "Observability",
+              "required": false,
+              "evidence_de": "Observability",
+              "evidence_en": "observability"
+            },
+            {
+              "name": "Drift-Erkennung",
+              "required": false,
+              "evidence_de": "Drift-Erkennung",
+              "evidence_en": "drift detection"
+            },
+            {
+              "name": "Technical consulting",
+              "required": false,
+              "evidence_de": "technische Beratung",
+              "evidence_en": "technical consulting"
             }
           ],
           "extraction_error": null
@@ -1063,8 +1297,8 @@
           "category": "poor",
           "rubric": {
             "skills": "not_met",
-            "location_remote": "not_met",
-            "seniority": "partly",
+            "location_remote": "met",
+            "seniority": "unknown",
             "language": "partly",
             "employment_type": "met"
           },
@@ -1073,106 +1307,76 @@
           "low_evidence": false,
           "extracted_skills": [
             {
-              "name": "Abgeschlossenes Hochschulstudium in Informatik, Wirtschaftsinformatik, Data Science, Mathematik oder vergleichbarer Qualifikation",
+              "name": "Python",
               "required": false,
-              "evidence_de": "Abgeschlossenes Hochschulstudium in Informatik, Wirtschaftsinformatik, Data Science, Mathematik oder vergleichbarer Qualifikation",
-              "evidence_en": "Completed university degree in computer science, business informatics, data science, mathematics or comparable qualification"
+              "evidence_de": "Sicherer Umgang mit gängigen Data-Science-Tools (z.B. Python, ML-Flow, TensorFlow, PyTorch) sowie verbreiteten DevOps-Tools und Standards (Kubernetes, Git, PostgreSQL, S3)",
+              "evidence_en": "Confident use of common data-science tools (e.g. Python, ML-Flow, TensorFlow, PyTorch) as well as common DevOps tools and standards (Kubernetes, Git, PostgreSQL, S3)"
             },
             {
-              "name": "Mindestens ein Jahr relevante Berufserfahrung nach einem Hochschulstudium im Umfeld IT-Dienstleistung, IT-Systemhaus bzw. Digitalisierung",
+              "name": "ML-Flow",
               "required": false,
-              "evidence_de": "Mindestens ein Jahr relevante Berufserfahrung nach einem Hochschulstudium im Umfeld IT-Dienstleistung, IT-Systemhaus bzw. Digitalisierung",
-              "evidence_en": "At least one year of relevant professional experience after a university degree in the area of IT services, IT system house or digitalization"
+              "evidence_de": "Sicherer Umgang mit gängigen Data-Science-Tools (z.B. Python, ML-Flow, TensorFlow, PyTorch) sowie verbreiteten DevOps-Tools und Standards (Kubernetes, Git, PostgreSQL, S3)",
+              "evidence_en": "Confident use of common data-science tools (e.g. Python, ML-Flow, TensorFlow, PyTorch) as well as common DevOps tools and standards (Kubernetes, Git, PostgreSQL, S3)"
             },
             {
-              "name": "Praktische Erfahrung mit Training, Tuning, Evaluation und Management von ML-Modellen",
+              "name": "TensorFlow",
+              "required": false,
+              "evidence_de": "Sicherer Umgang mit gängigen Data-Science-Tools (z.B. Python, ML-Flow, TensorFlow, PyTorch) sowie verbreiteten DevOps-Tools und Standards (Kubernetes, Git, PostgreSQL, S3)",
+              "evidence_en": "Confident use of common data-science tools (e.g. Python, ML-Flow, TensorFlow, PyTorch) as well as common DevOps tools and standards (Kubernetes, Git, PostgreSQL, S3)"
+            },
+            {
+              "name": "PyTorch",
+              "required": false,
+              "evidence_de": "Sicherer Umgang mit gängigen Data-Science-Tools (z.B. Python, ML-Flow, TensorFlow, PyTorch) sowie verbreiteten DevOps-Tools und Standards (Kubernetes, Git, PostgreSQL, S3)",
+              "evidence_en": "Confident use of common data-science tools (e.g. Python, ML-Flow, TensorFlow, PyTorch) as well as common DevOps tools and standards (Kubernetes, Git, PostgreSQL, S3)"
+            },
+            {
+              "name": "Kubernetes",
+              "required": false,
+              "evidence_de": "Sicherer Umgang mit gängigen Data-Science-Tools (z.B. Python, ML-Flow, TensorFlow, PyTorch) sowie verbreiteten DevOps-Tools und Standards (Kubernetes, Git, PostgreSQL, S3)",
+              "evidence_en": "Confident use of common data-science tools (e.g. Python, ML-Flow, TensorFlow, PyTorch) as well as common DevOps tools and standards (Kubernetes, Git, PostgreSQL, S3)"
+            },
+            {
+              "name": "Git",
+              "required": false,
+              "evidence_de": "Sicherer Umgang mit gängigen Data-Science-Tools (z.B. Python, ML-Flow, TensorFlow, PyTorch) sowie verbreiteten DevOps-Tools und Standards (Kubernetes, Git, PostgreSQL, S3)",
+              "evidence_en": "Confident use of common data-science tools (e.g. Python, ML-Flow, TensorFlow, PyTorch) as well as common DevOps tools and standards (Kubernetes, Git, PostgreSQL, S3)"
+            },
+            {
+              "name": "PostgreSQL",
+              "required": false,
+              "evidence_de": "Sicherer Umgang mit gängigen Data-Science-Tools (z.B. Python, ML-Flow, TensorFlow, PyTorch) sowie verbreiteten DevOps-Tools und Standards (Kubernetes, Git, PostgreSQL, S3)",
+              "evidence_en": "Confident use of common data-science tools (e.g. Python, ML-Flow, TensorFlow, PyTorch) as well as common DevOps tools and standards (Kubernetes, Git, PostgreSQL, S3)"
+            },
+            {
+              "name": "S3",
+              "required": false,
+              "evidence_de": "Sicherer Umgang mit gängigen Data-Science-Tools (z.B. Python, ML-Flow, TensorFlow, PyTorch) sowie verbreiteten DevOps-Tools und Standards (Kubernetes, Git, PostgreSQL, S3)",
+              "evidence_en": "Confident use of common data-science tools (e.g. Python, ML-Flow, TensorFlow, PyTorch) as well as common DevOps tools and standards (Kubernetes, Git, PostgreSQL, S3)"
+            },
+            {
+              "name": "Computer Vision",
               "required": false,
               "evidence_de": "Praktische Erfahrung mit Training, Tuning, Evaluation und Management von ML-Modellen, idealerweise im Bereich Computer Vision",
               "evidence_en": "Practical experience with training, tuning, evaluation and management of ML models, ideally in the area of computer vision"
             },
             {
-              "name": "Erfahrung im Bereich Computer Vision (idealerweise)",
+              "name": "ML model training",
               "required": false,
-              "evidence_de": "idealerweise im Bereich Computer Vision",
-              "evidence_en": "ideally in the area of computer vision"
+              "evidence_de": "Praktische Erfahrung mit Training, Tuning, Evaluation und Management von ML-Modellen, idealerweise im Bereich Computer Vision",
+              "evidence_en": "Practical experience with training, tuning, evaluation and management of ML models, ideally in the area of computer vision"
             },
             {
-              "name": "Sicherer Umgang mit gängigen Data-Science-Tools (z.B. Python, ML-Flow, TensorFlow, PyTorch)",
-              "required": false,
-              "evidence_de": "Sicherer Umgang mit gängigen Data-Science-Tools (z.B. Python, ML-Flow, TensorFlow, PyTorch)",
-              "evidence_en": "Confident use of common data science tools (e.g., Python, ML-Flow, TensorFlow, PyTorch)"
-            },
-            {
-              "name": "Erfahrung mit verbreiteten DevOps-Tools und Standards (Kubernetes, Git, PostgreSQL, S3)",
-              "required": false,
-              "evidence_de": "sowie verbreiteten DevOps-Tools und Standards (Kubernetes, Git, PostgreSQL, S3)",
-              "evidence_en": "as well as common DevOps tools and standards (Kubernetes, Git, PostgreSQL, S3)"
-            },
-            {
-              "name": "Fundiertes Verständnis von Datenmanagement, Datenqualitätsmanagement und -sicherung",
+              "name": "Data management",
               "required": false,
               "evidence_de": "Fundiertes Verständnis von Datenmanagement, Datenqualitätsmanagement und -sicherung",
-              "evidence_en": "Solid understanding of data management, data quality management and assurance"
+              "evidence_en": "Solid understanding of data management, data quality management and data protection"
             },
             {
-              "name": "Ausgeprägte konzeptionelle und analytische Fähigkeiten",
+              "name": "Data quality management",
               "required": false,
-              "evidence_de": "Ausgeprägte konzeptionelle und analytische Fähigkeiten",
-              "evidence_en": "Strong conceptual and analytical skills"
-            },
-            {
-              "name": "Sehr gute Kommunikations- und Beratungskompetenz sowie sicheres Auftreten beim Kunden",
-              "required": false,
-              "evidence_de": "Sehr gute Kommunikation- und Beratungskompetenz sowie sicheres Auftreten beim Kunden",
-              "evidence_en": "Very good communication and consulting skills as well as a confident manner with customers"
-            },
-            {
-              "name": "Teamfähigkeit und Bereitschaft zur Zusammenarbeit im interdisziplinären Team",
-              "required": false,
-              "evidence_de": "Teamfähigkeit und Bereitschaft zur Zusammenarbeit im interdisziplinären Team",
-              "evidence_en": "Ability to work in a team and willingness to collaborate in an interdisciplinary team"
-            },
-            {
-              "name": "Verhandlungssichere Deutschkenntnisse",
-              "required": false,
-              "evidence_de": "Verhandlungssichere Deutschkenntnisse",
-              "evidence_en": "Business-fluent German skills"
-            },
-            {
-              "name": "Sehr gute Englischkenntnisse in Wort und Schrift",
-              "required": false,
-              "evidence_de": "sehr gute Englischkenntnisse in Wort und Schrift",
-              "evidence_en": "Very good English skills, written and spoken"
-            },
-            {
-              "name": "Deutschlandweite Reisebereitschaft",
-              "required": false,
-              "evidence_de": "Deutschlandweite Reisebereitschaft",
-              "evidence_en": "Willingness to travel nationwide in Germany"
-            },
-            {
-              "name": "Unterstützung bei Konzeption, Planung und Weiterentwicklung von Datenmanagement-Ansätzen",
-              "required": false,
-              "evidence_de": "Unterstützung bei der Konzeption, Planung und Weiterentwicklung von Datenmanagement-Ansätzen im Projektkontext",
-              "evidence_en": "Support in the conception, planning and further development of data management approaches in the project context"
-            },
-            {
-              "name": "Beratung zur Erzeugung, Bewertung, Integration und Nutzung synthetischer Daten",
-              "required": false,
-              "evidence_de": "Beratung zur Erzeugung, Bewertung, Integration und kontext-spezifischer Nutzung synthetischer Daten",
-              "evidence_en": "Consulting on generation, evaluation, integration and context-specific use of synthetic data"
-            },
-            {
-              "name": "Anwendung von Frameworks und Methoden zur Validierung und Verifizierung von KI-Modellen",
-              "required": false,
-              "evidence_de": "Anwendung bekannter Frameworks und Methoden zur Validierung und Verifizierung von KI-Modellen",
-              "evidence_en": "Application of known frameworks and methods for validation and verification of AI models"
-            },
-            {
-              "name": "Koordination & Zusammenarbeit mit Stakeholdern aus Bundeswehr, Industrie und BWI",
-              "required": false,
-              "evidence_de": "Koordination & Zusammenarbeit mit Stakeholdern aus Bundeswehr, Industrie und BWI",
-              "evidence_en": "Coordination & collaboration with stakeholders from the Bundeswehr, industry and BWI"
+              "evidence_de": "Fundiertes Verständnis von Datenmanagement, Datenqualitätsmanagement und -sicherung",
+              "evidence_en": "Solid understanding of data management, data quality management and data protection"
             }
           ],
           "extraction_error": null
@@ -1183,7 +1387,7 @@
           "category": "poor",
           "rubric": {
             "skills": "not_met",
-            "location_remote": "not_met",
+            "location_remote": "met",
             "seniority": "unknown",
             "language": "partly",
             "employment_type": "met"
@@ -1193,82 +1397,94 @@
           "low_evidence": false,
           "extracted_skills": [
             {
-              "name": "Abgeschlossenes Hochschulstudium in Informatik, Wirtschaftsinformatik, Data Science, Mathematik oder vergleichbarer Qualifikation",
+              "name": "Machine Learning",
               "required": false,
-              "evidence_de": "- Abgeschlossenes Hochschulstudium in Informatik, Wirtschaftsinformatik, Data Science, Mathematik oder vergleichbarer Qualifikation",
-              "evidence_en": "- Completed university degree in Computer Science, Business Informatics, Data Science, Mathematics or a comparable qualification"
+              "evidence_de": "Praktische Erfahrung mit Training, Tuning, Evaluation und Management von ML-Modellen",
+              "evidence_en": "Practical experience with training, tuning, evaluation and management of ML models"
             },
             {
-              "name": "Mindestens ein Jahr relevante Berufserfahrung nach einem Hochschulstudium im Umfeld IT-Dienstleistung, IT-Systemhaus bzw. Digitalisierung",
-              "required": false,
-              "evidence_de": "- Mindestens ein Jahr relevante Berufserfahrung nach einem Hochschulstudium im Umfeld IT-Dienstleistung, IT-Systemhaus bzw. Digitalisierung",
-              "evidence_en": "- At least one year of relevant professional experience after a university degree in the context of IT services, IT system house or digitalization"
-            },
-            {
-              "name": "Praktische Erfahrung mit Training, Tuning, Evaluation und Management von ML-Modellen",
-              "required": false,
-              "evidence_de": "- Praktische Erfahrung mit Training, Tuning, Evaluation und Management von ML-Modellen, idealerweise im Bereich Computer Vision",
-              "evidence_en": "- Practical experience with training, tuning, evaluation and management of ML models, ideally in the area of computer vision"
-            },
-            {
-              "name": "Erfahrung im Bereich Computer Vision (idealerweise)",
+              "name": "Computer Vision",
               "required": false,
               "evidence_de": "idealerweise im Bereich Computer Vision",
               "evidence_en": "ideally in the area of computer vision"
             },
             {
-              "name": "Sicherer Umgang mit gängigen Data-Science-Tools (z.B. Python, ML-Flow, TensorFlow, PyTorch)",
+              "name": "Python",
               "required": false,
-              "evidence_de": "- Sicherer Umgang mit gängigen Data-Science-Tools (z.B. Python, ML-Flow, TensorFlow, PyTorch) sowie verbreiteten DevOps-Tools und Standards (Kubernetes, Git, PostgreSQL, S3)",
-              "evidence_en": "- Confident use of common data-science tools (e.g. Python, ML-Flow, TensorFlow, PyTorch) as well as common DevOps tools and standards (Kubernetes, Git, PostgreSQL, S3)"
+              "evidence_de": "Python",
+              "evidence_en": "Python"
             },
             {
-              "name": "Erfahrung mit DevOps-Tools und Standards (Kubernetes, Git, PostgreSQL, S3)",
+              "name": "ML-Flow",
               "required": false,
-              "evidence_de": "(Kubernetes, Git, PostgreSQL, S3)",
-              "evidence_en": "(Kubernetes, Git, PostgreSQL, S3)"
+              "evidence_de": "ML-Flow",
+              "evidence_en": "ML-Flow"
             },
             {
-              "name": "Fundiertes Verständnis von Datenmanagement, Datenqualitätsmanagement und -sicherung",
+              "name": "TensorFlow",
               "required": false,
-              "evidence_de": "- Fundiertes Verständnis von Datenmanagement, Datenqualitätsmanagement und -sicherung",
-              "evidence_en": "- Solid understanding of data management, data quality management and data security"
+              "evidence_de": "TensorFlow",
+              "evidence_en": "TensorFlow"
             },
             {
-              "name": "Ausgeprägte konzeptionelle und analytische Fähigkeiten",
+              "name": "PyTorch",
               "required": false,
-              "evidence_de": "- Ausgeprägte konzeptionelle und analytische Fähigkeiten",
-              "evidence_en": "- Strong conceptual and analytical skills"
+              "evidence_de": "PyTorch",
+              "evidence_en": "PyTorch"
             },
             {
-              "name": "Sehr gute Kommunikation- und Beratungskompetenz sowie sicheres Auftreten beim Kunden",
+              "name": "Kubernetes",
               "required": false,
-              "evidence_de": "- Sehr gute Kommunikation- und Beratungskompetenz sowie sicheres Auftreten beim Kunden",
-              "evidence_en": "- Very good communication and consulting skills as well as confident appearance with the customer"
+              "evidence_de": "Kubernetes",
+              "evidence_en": "Kubernetes"
             },
             {
-              "name": "Teamfähigkeit und Bereitschaft zur Zusammenarbeit im interdisziplinären Team",
+              "name": "Git",
               "required": false,
-              "evidence_de": "- Teamfähigkeit und Bereitschaft zur Zusammenarbeit im interdisziplinären Team",
-              "evidence_en": "- Ability to work in a team and willingness to collaborate in an interdisciplinary team"
+              "evidence_de": "Git",
+              "evidence_en": "Git"
             },
             {
-              "name": "Verhandlungssichere Deutschkenntnisse",
+              "name": "PostgreSQL",
               "required": false,
-              "evidence_de": "- Verhandlungssichere Deutschkenntnisse sowie sehr gute Englischkenntnisse in Wort und Schrift",
-              "evidence_en": "- Business fluent German skills as well as very good English skills in spoken and written"
+              "evidence_de": "PostgreSQL",
+              "evidence_en": "PostgreSQL"
             },
             {
-              "name": "Sehr gute Englischkenntnisse in Wort und Schrift",
+              "name": "S3",
               "required": false,
-              "evidence_de": "sehr gute Englischkenntnisse in Wort und Schrift",
-              "evidence_en": "very good English skills in spoken and written"
+              "evidence_de": "S3",
+              "evidence_en": "S3"
             },
             {
-              "name": "Deutschlandweite Reisebereitschaft",
+              "name": "Data Management",
               "required": false,
-              "evidence_de": "- Deutschlandweite Reisebereitschaft",
-              "evidence_en": "- Willingness to travel nationwide in Germany"
+              "evidence_de": "Fundiertes Verständnis von Datenmanagement",
+              "evidence_en": "Solid understanding of data management"
+            },
+            {
+              "name": "Data Quality Management",
+              "required": false,
+              "evidence_de": "Datenqualitätsmanagement und -sicherung",
+              "evidence_en": "data quality management and assurance"
+            },
+            {
+              "name": "ML-Engineering",
+              "required": false,
+              "evidence_de": "Datenmanagement, Datenqualität und ML-Engineering",
+              "evidence_en": "data management, data quality and ML engineering"
+            },
+            {
+              "name": "Synthetic Data",
+              "required": false,
+              "evidence_de": "kontext-spezifischer Nutzung synthetischer Daten",
+              "evidence_en": "context-specific use of synthetic data"
+            },
+            {
+              "name": "Model Validation",
+              "required": false,
+              "evidence_de": "Validierung und Verifizierung von KI-Modellen",
+              "evidence_en": "validation and verification of AI models"
             }
           ],
           "extraction_error": null
@@ -1278,7 +1494,7 @@
         "category": true,
         "skills": true,
         "location_remote": true,
-        "seniority": false,
+        "seniority": true,
         "language": true,
         "employment_type": true
       }
@@ -1308,7 +1524,7 @@
         {
           "referenznummer": "12336-a26f1128j0452080-S",
           "run": 1,
-          "category": "partial",
+          "category": "poor",
           "rubric": {
             "skills": "not_met",
             "location_remote": "partly",
@@ -1323,20 +1539,26 @@
             {
               "name": ".NET MAUI",
               "required": false,
-              "evidence_de": "**.NET MAUI und Blazor**",
-              "evidence_en": ".NET MAUI and Blazor"
+              "evidence_de": ".NET MAUI",
+              "evidence_en": ".NET MAUI"
             },
             {
               "name": "Blazor",
               "required": false,
-              "evidence_de": "**.NET MAUI und Blazor**",
-              "evidence_en": ".NET MAUI and Blazor"
+              "evidence_de": "Blazor",
+              "evidence_en": "Blazor"
             },
             {
-              "name": "CI/CD-Pipelines in Azure DevOps",
+              "name": "CI/CD-Pipelines",
               "required": false,
-              "evidence_de": "**CI/CD-Pipelines** in Azure DevOps",
-              "evidence_en": "CI/CD pipelines in Azure DevOps"
+              "evidence_de": "CI/CD-Pipelines",
+              "evidence_en": "CI/CD pipelines"
+            },
+            {
+              "name": "Azure DevOps",
+              "required": false,
+              "evidence_de": "Azure DevOps",
+              "evidence_en": "Azure DevOps"
             },
             {
               "name": "KI-Integration",
@@ -1345,15 +1567,15 @@
               "evidence_en": "AI integration"
             },
             {
-              "name": "3rd-Level-Support",
+              "name": "C#",
               "required": false,
-              "evidence_de": "3rd-Level-Support",
-              "evidence_en": "3rd-level support"
+              "evidence_de": "C#/.NET",
+              "evidence_en": "C#/.NET"
             },
             {
-              "name": "C#/.NET",
+              "name": ".NET",
               "required": false,
-              "evidence_de": "**C#/.NET**",
+              "evidence_de": "C#/.NET",
               "evidence_en": "C#/.NET"
             },
             {
@@ -1369,19 +1591,19 @@
               "evidence_en": "MS SQL"
             },
             {
-              "name": "agile development",
+              "name": "Agile development",
               "required": false,
               "evidence_de": "agiler Entwicklung",
               "evidence_en": "agile development"
             },
             {
-              "name": "Desktop- und Mobile-Anwendungen",
+              "name": "3rd-Level-Support",
               "required": false,
-              "evidence_de": "Desktop- und Mobile-Anwendungen",
-              "evidence_en": "desktop and mobile applications"
+              "evidence_de": "3rd-Level-Support",
+              "evidence_en": "3rd-level support"
             },
             {
-              "name": "Architekturentscheidungen",
+              "name": "Software architecture",
               "required": false,
               "evidence_de": "Architekturentscheidungen",
               "evidence_en": "architecture decisions"
@@ -1392,7 +1614,7 @@
         {
           "referenznummer": "12336-a26f1128j0452080-S",
           "run": 2,
-          "category": "partial",
+          "category": "poor",
           "rubric": {
             "skills": "not_met",
             "location_remote": "partly",
@@ -1407,41 +1629,41 @@
             {
               "name": ".NET MAUI",
               "required": false,
-              "evidence_de": "**.NET MAUI und Blazor**",
-              "evidence_en": ".NET MAUI and Blazor"
+              "evidence_de": ".NET MAUI",
+              "evidence_en": ".NET MAUI"
             },
             {
               "name": "Blazor",
               "required": false,
-              "evidence_de": "**.NET MAUI und Blazor**",
-              "evidence_en": ".NET MAUI and Blazor"
+              "evidence_de": "Blazor",
+              "evidence_en": "Blazor"
             },
             {
-              "name": "CI/CD-Pipelines (Azure DevOps)",
+              "name": "CI/CD",
               "required": false,
-              "evidence_de": "**CI/CD-Pipelines** in Azure DevOps",
-              "evidence_en": "CI/CD pipelines in Azure DevOps"
+              "evidence_de": "CI/CD-Pipelines",
+              "evidence_en": "CI/CD pipelines"
             },
             {
-              "name": "KI-Integration (AI integration)",
+              "name": "Azure DevOps",
               "required": false,
-              "evidence_de": "KI-Integration",
-              "evidence_en": "AI integration"
+              "evidence_de": "Azure DevOps",
+              "evidence_en": "Azure DevOps"
             },
             {
-              "name": "3rd-Level-Support",
+              "name": "C#",
               "required": false,
-              "evidence_de": "3rd-Level-Support",
-              "evidence_en": "3rd-level support"
-            },
-            {
-              "name": "C#/.NET",
-              "required": false,
-              "evidence_de": "**C#/.NET**",
+              "evidence_de": "C#/.NET",
               "evidence_en": "C#/.NET"
             },
             {
-              "name": "REST-APIs",
+              "name": ".NET",
+              "required": false,
+              "evidence_de": "C#/.NET",
+              "evidence_en": "C#/.NET"
+            },
+            {
+              "name": "REST APIs",
               "required": false,
               "evidence_de": "REST-APIs",
               "evidence_en": "REST APIs"
@@ -1453,16 +1675,16 @@
               "evidence_en": "MS SQL"
             },
             {
-              "name": "agile development",
+              "name": "KI-Integration",
               "required": false,
-              "evidence_de": "agiler Entwicklung.",
-              "evidence_en": "agile development."
+              "evidence_de": "KI-Integration",
+              "evidence_en": "AI integration"
             },
             {
-              "name": "Architecture decisions",
+              "name": "Agile development",
               "required": false,
-              "evidence_de": "Architekturentscheidungen",
-              "evidence_en": "architecture decisions"
+              "evidence_de": "agiler Entwicklung",
+              "evidence_en": "agile development"
             }
           ],
           "extraction_error": null
@@ -1511,15 +1733,9 @@
             "employment_type": "met"
           },
           "exclusion_reasons": [],
-          "dropped_evidence": 1,
+          "dropped_evidence": 0,
           "low_evidence": true,
           "extracted_skills": [
-            {
-              "name": "Integrationsarchitektur",
-              "required": false,
-              "evidence_de": "Integrationsarchitektur",
-              "evidence_en": "integration architecture"
-            },
             {
               "name": "AI-Lösungen",
               "required": false,
@@ -1554,19 +1770,19 @@
               "name": "Führung internationaler Projektteams",
               "required": false,
               "evidence_de": "Führung internationaler Projektteams",
-              "evidence_en": "leading international project teams"
+              "evidence_en": "Leading international project teams"
             },
             {
               "name": "Workshops",
               "required": false,
               "evidence_de": "Workshops",
-              "evidence_en": "workshops"
+              "evidence_en": "Workshops"
             },
             {
-              "name": "Unterstützung von Sales-Teams",
+              "name": "Sales-Unterstützung",
               "required": false,
               "evidence_de": "Unterstützung von Sales-Teams",
-              "evidence_en": "supporting sales teams"
+              "evidence_en": "Support of sales teams"
             }
           ],
           "extraction_error": null
@@ -1574,26 +1790,20 @@
         {
           "referenznummer": "12336-a26f1192j0456061-S",
           "run": 2,
-          "category": "poor",
+          "category": "partial",
           "rubric": {
-            "skills": "not_met",
+            "skills": "partly",
             "location_remote": "partly",
             "seniority": "unknown",
             "language": "unknown",
             "employment_type": "met"
           },
           "exclusion_reasons": [],
-          "dropped_evidence": 1,
+          "dropped_evidence": 0,
           "low_evidence": true,
           "extracted_skills": [
             {
-              "name": "Integrationsarchitektur",
-              "required": false,
-              "evidence_de": "Integrationsarchitektur",
-              "evidence_en": "integrations architecture"
-            },
-            {
-              "name": "AI-Lösungen",
+              "name": "AI Solutions",
               "required": false,
               "evidence_de": "AI-Lösungen",
               "evidence_en": "AI solutions"
@@ -1621,32 +1831,14 @@
               "required": false,
               "evidence_de": "Docker",
               "evidence_en": "Docker"
-            },
-            {
-              "name": "Führung internationaler Projektteams",
-              "required": false,
-              "evidence_de": "Führung internationaler Projektteams",
-              "evidence_en": "leading international project teams"
-            },
-            {
-              "name": "Workshops",
-              "required": false,
-              "evidence_de": "Workshops",
-              "evidence_en": "workshops"
-            },
-            {
-              "name": "Unterstützung von Sales-Teams",
-              "required": false,
-              "evidence_de": "Unterstützung von Sales-Teams",
-              "evidence_en": "supporting sales teams"
             }
           ],
           "extraction_error": null
         }
       ],
       "run_to_run_agreement": {
-        "category": true,
-        "skills": true,
+        "category": false,
+        "skills": false,
         "location_remote": true,
         "seniority": true,
         "language": true,
@@ -1678,7 +1870,7 @@
         {
           "referenznummer": "13635-d780e451_JB5286154-S",
           "run": 1,
-          "category": "partial",
+          "category": "poor",
           "rubric": {
             "skills": "not_met",
             "location_remote": "partly",
@@ -1691,55 +1883,13 @@
           "low_evidence": false,
           "extracted_skills": [
             {
-              "name": "AI-gestützte Data Engineering Methoden",
+              "name": "Azure Cloud",
               "required": false,
-              "evidence_de": "AI-gestützten Data Engineering Methoden",
-              "evidence_en": "AI-supported data engineering methods"
+              "evidence_de": "Azure Cloud",
+              "evidence_en": "Azure Cloud"
             },
             {
-              "name": "Azure Cloud (Datamanagement- und Integrationslösungen)",
-              "required": false,
-              "evidence_de": "Datamanagement- und Integrationslösungen rund um die Azure Cloud",
-              "evidence_en": "data management and integration solutions around the Azure Cloud"
-            },
-            {
-              "name": "Technische Architektur für personalisierte und automatisierte Marketingkampagnen",
-              "required": false,
-              "evidence_de": "technische Architektur für unsere Kunden, damit diese personalisierte und automatisierte Marketingkampagnen planen und optimieren können",
-              "evidence_en": "technical architecture for our customers so they can plan and optimize personalized and automated marketing campaigns"
-            },
-            {
-              "name": "Echtzeit-Segmentierung",
-              "required": false,
-              "evidence_de": "moderner Echtzeit-Segmentierung",
-              "evidence_en": "modern real-time segmentation"
-            },
-            {
-              "name": "Automatisierte Recommendations",
-              "required": false,
-              "evidence_de": "automatisierten Recommendations",
-              "evidence_en": "automated recommendations"
-            },
-            {
-              "name": "DYMATRIX AI Platform and external AI tools",
-              "required": false,
-              "evidence_de": "unterstützt durch unsere interne DYMATRIX AI Platform und verschiedene externe AI Tools",
-              "evidence_en": "supported by our internal DYMATRIX AI Platform and various external AI tools"
-            },
-            {
-              "name": "Agenten-basierte Pipeline-Entwicklung",
-              "required": false,
-              "evidence_de": "Agenten-basierte Pipeline-Entwicklung",
-              "evidence_en": "agent-based pipeline development"
-            },
-            {
-              "name": "LLM-Integration in Datenplattformen",
-              "required": false,
-              "evidence_de": "LLM-Integration in Datenplattformen",
-              "evidence_en": "LLM integration in data platforms"
-            },
-            {
-              "name": "Azure Data Factory",
+              "name": "Data Factory",
               "required": false,
               "evidence_de": "Data Factory",
               "evidence_en": "Data Factory"
@@ -1763,46 +1913,70 @@
               "evidence_en": "Databricks"
             },
             {
-              "name": "Azure Functions",
+              "name": "Functions",
               "required": false,
               "evidence_de": "Functions",
               "evidence_en": "Functions"
             },
             {
-              "name": "Microsoft Foundry (Interesse)",
+              "name": "Microsoft Foundry",
               "required": false,
-              "evidence_de": "Interesse an Microsoft Foundry",
-              "evidence_en": "interest in Microsoft Foundry"
+              "evidence_de": "Microsoft Foundry",
+              "evidence_en": "Microsoft Foundry"
             },
             {
-              "name": "DWH / Data Lake und BI Cloud Architecture",
+              "name": "DWH",
               "required": false,
-              "evidence_de": "Entwicklung von DWH / Data Lake und BI Cloud Architecture",
-              "evidence_en": "development of DWH / Data Lake and BI cloud architecture"
+              "evidence_de": "DWH / Data Lake und BI Cloud Architecture",
+              "evidence_en": "DWH / Data Lake and BI Cloud Architecture"
             },
             {
-              "name": "AI-gestützte Personalisierung / Predictive Marketing / Customer Intelligence",
+              "name": "Data Lake",
               "required": false,
-              "evidence_de": "Erfahrungen mit AI-gestützter Personalisierung, Predictive Marketing oder Customer Intelligence",
-              "evidence_en": "experience with AI-supported personalization, predictive marketing or customer intelligence"
+              "evidence_de": "DWH / Data Lake und BI Cloud Architecture",
+              "evidence_en": "DWH / Data Lake and BI Cloud Architecture"
             },
             {
-              "name": "Mehrjährige Berufserfahrung in Konzeption und Umsetzung von Data-Engineering-Lösungen",
+              "name": "BI Cloud Architecture",
               "required": false,
-              "evidence_de": "Mehrjährige Berufserfahrung in der Konzeption und Umsetzung von innovativen Data-Engineering-Lösungen",
-              "evidence_en": "several years of professional experience in conceiving and implementing innovative data engineering solutions"
+              "evidence_de": "DWH / Data Lake und BI Cloud Architecture",
+              "evidence_en": "DWH / Data Lake and BI Cloud Architecture"
             },
             {
-              "name": "Deutsch (Sehr gutes Deutsch)",
+              "name": "Agenten-basierte Pipeline-Entwicklung",
               "required": false,
-              "evidence_de": "Sehr gutes Deutsch, gutes Englisch und ein ordentliches Maß an Organisationstalent runden Dein Profil ab",
-              "evidence_en": "Very good German, good English and a fair amount of organizational talent complete your profile"
+              "evidence_de": "Agenten-basierte Pipeline-Entwicklung",
+              "evidence_en": "agent-based pipeline development"
             },
             {
-              "name": "Englisch (gutes Englisch)",
+              "name": "LLM-Integration",
               "required": false,
-              "evidence_de": "Sehr gutes Deutsch, gutes Englisch und ein ordentliches Maß an Organisationstalent runden Dein Profil ab",
-              "evidence_en": "Very good German, good English and a fair amount of organizational talent complete your profile"
+              "evidence_de": "LLM-Integration in Datenplattformen",
+              "evidence_en": "LLM integration in data platforms"
+            },
+            {
+              "name": "AI-gestützte Personalisierung",
+              "required": false,
+              "evidence_de": "AI-gestützter Personalisierung",
+              "evidence_en": "AI-supported personalization"
+            },
+            {
+              "name": "Predictive Marketing",
+              "required": false,
+              "evidence_de": "Predictive Marketing",
+              "evidence_en": "predictive marketing"
+            },
+            {
+              "name": "Customer Intelligence",
+              "required": false,
+              "evidence_de": "Customer Intelligence",
+              "evidence_en": "customer intelligence"
+            },
+            {
+              "name": "AI",
+              "required": false,
+              "evidence_de": "AI-gestützten Data Engineering",
+              "evidence_en": "AI-supported data engineering"
             }
           ],
           "extraction_error": null
@@ -1810,7 +1984,7 @@
         {
           "referenznummer": "13635-d780e451_JB5286154-S",
           "run": 2,
-          "category": "partial",
+          "category": "poor",
           "rubric": {
             "skills": "not_met",
             "location_remote": "partly",
@@ -1823,70 +1997,100 @@
           "low_evidence": false,
           "extracted_skills": [
             {
-              "name": "Fachliche Teamführung / Projektleitung",
+              "name": "Azure",
               "required": false,
-              "evidence_de": "Du übernimmst die fachliche Führung des Projektteams",
-              "evidence_en": "You take on the technical leadership of the project team"
+              "evidence_de": "Azure Cloud",
+              "evidence_en": "Azure Cloud"
             },
             {
-              "name": "AI-gestützte Data Engineering Methoden",
+              "name": "Data Factory",
               "required": false,
-              "evidence_de": "den Einsatz von AI-gestützten Data Engineering Methoden",
-              "evidence_en": "the use of AI-supported data engineering methods"
+              "evidence_de": "Azure Data Dienste wie z. B. Data Factory",
+              "evidence_en": "Azure data services such as Data Factory"
             },
             {
-              "name": "Beratung in Datamanagement- und Integrationslösungen (Azure)",
+              "name": "SQL DB",
               "required": false,
-              "evidence_de": "Unsere Kunden berätst Du methodisch und technisch in innovativen Datamanagement- und Integrationslösungen rund um die Azure Cloud",
-              "evidence_en": "You advise our customers methodically and technically on innovative data management and integration solutions around the Azure Cloud"
+              "evidence_de": "Azure Data Dienste wie z. B. Data Factory, SQL DB",
+              "evidence_en": "Azure data services such as Data Factory, SQL DB"
             },
             {
-              "name": "Technische Architektur erstellen (Marketing/Segmentation/Recommendations)",
+              "name": "Data Lake Storage",
               "required": false,
-              "evidence_de": "Du schaffst die technische Architektur für unsere Kunden, damit diese personalisierte und automatisierte Marketingkampagnen planen und optimieren können mittels moderner Echtzeit-Segmentierung und automatisierten Recommendations",
-              "evidence_en": "You create the technical architecture for our customers so they can plan and optimize personalized and automated marketing campaigns using modern real-time segmentation and automated recommendations"
+              "evidence_de": "Azure Data Dienste wie z. B. Data Factory, SQL DB, Data Lake Storage",
+              "evidence_en": "Azure data services such as Data Factory, SQL DB, Data Lake Storage"
             },
             {
-              "name": "Projektarbeit in allen Phasen (Anforderungsanalyse bis Go-Live)",
+              "name": "Databricks",
               "required": false,
-              "evidence_de": "Du arbeitest in allen Projektphasen mit – von der Anforderungsanalyse über die Implementierung bis zum Go-Live",
-              "evidence_en": "You work in all project phases – from requirements analysis through implementation to go-live"
+              "evidence_de": "Azure Data Dienste wie z. B. Data Factory, SQL DB, Data Lake Storage, Databricks, Functions",
+              "evidence_en": "Azure data services such as Data Factory, SQL DB, Data Lake Storage, Databricks, Functions"
             },
             {
-              "name": "Arbeiten mit DYMATRIX AI Platform und externen AI Tools",
+              "name": "Functions",
               "required": false,
-              "evidence_de": "unterstützt durch unsere interne DYMATRIX AI Platform und verschiedene externe AI Tools",
-              "evidence_en": "supported by our internal DYMATRIX AI Platform and various external AI tools"
+              "evidence_de": "Azure Data Dienste wie z. B. Data Factory, SQL DB, Data Lake Storage, Databricks, Functions",
+              "evidence_en": "Azure data services such as Data Factory, SQL DB, Data Lake Storage, Databricks, Functions"
             },
             {
-              "name": "Azure Data Services (Data Factory, SQL DB, Data Lake Storage, Databricks, Functions)",
+              "name": "Microsoft Foundry",
               "required": false,
-              "evidence_de": "Gute Kenntnisse rund um die Azure Data Dienste wie z. B. Data Factory, SQL DB, Data Lake Storage, Databricks, Functions sowie Interesse an Microsoft Foundry",
-              "evidence_en": "Good knowledge of Azure data services such as Data Factory, SQL DB, Data Lake Storage, Databricks, Functions and interest in Microsoft Foundry"
+              "evidence_de": "Interesse an Microsoft Foundry",
+              "evidence_en": "Interest in Microsoft Foundry"
             },
             {
-              "name": "DWH / Data Lake und BI Cloud Architecture",
+              "name": "DWH",
               "required": false,
               "evidence_de": "Starkes Interesse an der Entwicklung von DWH / Data Lake und BI Cloud Architecture",
-              "evidence_en": "Strong interest in the development of DWH / Data Lake and BI cloud architecture"
+              "evidence_en": "Strong interest in the development of DWH / Data Lake and BI Cloud Architecture"
             },
             {
-              "name": "Erfahrung mit AI-gestützter Personalisierung / Predictive Marketing / Customer Intelligence",
+              "name": "Data Lake",
               "required": false,
-              "evidence_de": "Idealerweise hast Du schon erste Erfahrungen mit AI-gestützter Personalisierung, Predictive Marketing oder Customer Intelligence gesammelt",
-              "evidence_en": "Ideally you already have initial experience with AI-supported personalization, predictive marketing or customer intelligence"
+              "evidence_de": "Starkes Interesse an der Entwicklung von DWH / Data Lake und BI Cloud Architecture",
+              "evidence_en": "Strong interest in the development of DWH / Data Lake and BI Cloud Architecture"
             },
             {
-              "name": "Mehrjährige Berufserfahrung in Konzeption und Umsetzung von Data-Engineering-Lösungen",
+              "name": "BI Cloud Architecture",
               "required": false,
-              "evidence_de": "Mehrjährige Berufserfahrung in der Konzeption und Umsetzung von innovativen Data-Engineering-Lösungen, vorzugsweise im Beratungsumfeld",
-              "evidence_en": "Several years of professional experience in the conception and implementation of innovative data engineering solutions, preferably in a consulting environment"
+              "evidence_de": "Starkes Interesse an der Entwicklung von DWH / Data Lake und BI Cloud Architecture",
+              "evidence_en": "Strong interest in the development of DWH / Data Lake and BI Cloud Architecture"
             },
             {
-              "name": "Sehr gutes Deutsch und gutes Englisch",
+              "name": "LLM integration",
               "required": false,
-              "evidence_de": "Sehr gutes Deutsch, gutes Englisch und ein ordentliches Maß an Organisationstalent runden Dein Profil ab",
-              "evidence_en": "Very good German, good English and a fair amount of organizational talent round off your profile"
+              "evidence_de": "LLM-Integration in Datenplattformen",
+              "evidence_en": "LLM integration in data platforms"
+            },
+            {
+              "name": "Agent-based pipeline development",
+              "required": false,
+              "evidence_de": "Agenten-basierte Pipeline-Entwicklung",
+              "evidence_en": "Agent-based pipeline development"
+            },
+            {
+              "name": "AI-gestützte Personalisierung",
+              "required": false,
+              "evidence_de": "AI-gestützter Personalisierung",
+              "evidence_en": "AI-based personalization"
+            },
+            {
+              "name": "Predictive Marketing",
+              "required": false,
+              "evidence_de": "Predictive Marketing",
+              "evidence_en": "Predictive marketing"
+            },
+            {
+              "name": "Customer Intelligence",
+              "required": false,
+              "evidence_de": "Customer Intelligence",
+              "evidence_en": "Customer intelligence"
+            },
+            {
+              "name": "DYMATRIX AI Platform",
+              "required": false,
+              "evidence_de": "unsere interne DYMATRIX AI Platform",
+              "evidence_en": "our internal DYMATRIX AI Platform"
             }
           ],
           "extraction_error": null
@@ -1926,23 +2130,6 @@
         {
           "referenznummer": "12288-4971252625-S",
           "run": 1,
-          "category": "partial",
-          "rubric": {
-            "skills": "unknown",
-            "location_remote": "partly",
-            "seniority": "unknown",
-            "language": "unknown",
-            "employment_type": "met"
-          },
-          "exclusion_reasons": [],
-          "dropped_evidence": 21,
-          "low_evidence": true,
-          "extracted_skills": [],
-          "extraction_error": null
-        },
-        {
-          "referenznummer": "12288-4971252625-S",
-          "run": 2,
           "category": "poor",
           "rubric": {
             "skills": "not_met",
@@ -1952,9 +2139,27 @@
             "employment_type": "met"
           },
           "exclusion_reasons": [],
-          "dropped_evidence": 15,
+          "dropped_evidence": 1,
           "low_evidence": false,
           "extracted_skills": [
+            {
+              "name": "Azure DevOps",
+              "required": false,
+              "evidence_de": "Azure DevOps",
+              "evidence_en": "Azure DevOps"
+            },
+            {
+              "name": "Git",
+              "required": false,
+              "evidence_de": "Git",
+              "evidence_en": "Git"
+            },
+            {
+              "name": "Terraform",
+              "required": false,
+              "evidence_de": "Terraform",
+              "evidence_en": "Terraform"
+            },
             {
               "name": "Entra ID",
               "required": false,
@@ -1986,18 +2191,83 @@
               "evidence_en": "Monitoring"
             },
             {
-              "name": "Kenntnisse im Einsatz von Large Language Models (LLMs)",
+              "name": "Infrastructure-as-Code",
               "required": false,
-              "evidence_de": "Kenntnisse im Einsatz von Large Language Models (LLMs)",
-              "evidence_en": "Knowledge in the use of large language models (LLMs)"
+              "evidence_de": "Infrastructure-as-Code-Komponenten",
+              "evidence_en": "Infrastructure-as-Code components"
             },
             {
-              "name": "RAG-Technologien und -Architekturen",
+              "name": "CI/CD",
               "required": false,
-              "evidence_de": "RAG-Technologien und -Architekturen sind von Vorteil",
-              "evidence_en": "RAG technologies and architectures are an advantage"
+              "evidence_de": "CI/CD-Pipelines",
+              "evidence_en": "CI/CD pipelines"
+            },
+            {
+              "name": "Azure",
+              "required": false,
+              "evidence_de": "Azure-(AI)Lösungen",
+              "evidence_en": "Azure (AI) solutions"
+            },
+            {
+              "name": "Azure OpenAI",
+              "required": false,
+              "evidence_de": "Azure OpenAI",
+              "evidence_en": "Azure OpenAI"
+            },
+            {
+              "name": "AI Foundry",
+              "required": false,
+              "evidence_de": "AI Foundry",
+              "evidence_en": "AI Foundry"
+            },
+            {
+              "name": "Cognitive Services",
+              "required": false,
+              "evidence_de": "Cognitive Services",
+              "evidence_en": "Cognitive Services"
+            },
+            {
+              "name": "AI Search",
+              "required": false,
+              "evidence_de": "AI Search",
+              "evidence_en": "AI Search"
+            },
+            {
+              "name": "Azure AI Stack",
+              "required": false,
+              "evidence_de": "Microsoft Azure AI Stack",
+              "evidence_en": "Microsoft Azure AI Stack"
+            },
+            {
+              "name": "Large Language Models",
+              "required": false,
+              "evidence_de": "Large Language Models (LLMs)",
+              "evidence_en": "Large Language Models (LLMs)"
+            },
+            {
+              "name": "RAG",
+              "required": false,
+              "evidence_de": "RAG-Technologien und -Architekturen",
+              "evidence_en": "RAG technologies and architectures"
             }
           ],
+          "extraction_error": null
+        },
+        {
+          "referenznummer": "12288-4971252625-S",
+          "run": 2,
+          "category": "partial",
+          "rubric": {
+            "skills": "unknown",
+            "location_remote": "partly",
+            "seniority": "unknown",
+            "language": "unknown",
+            "employment_type": "met"
+          },
+          "exclusion_reasons": [],
+          "dropped_evidence": 20,
+          "low_evidence": true,
+          "extracted_skills": [],
           "extraction_error": null
         }
       ],
@@ -2012,10 +2282,9 @@
     }
   ],
   "cause_summary": {
-    "label_ambiguity": 8,
-    "data_issue": 4,
-    "extraction_error": 16,
-    "code_deviation": 4,
-    "rubric_rule_or_threshold": 4
+    "label_ambiguity": 6,
+    "rubric_rule_or_threshold": 14,
+    "data_issue": 2,
+    "extraction_error": 6
   }
 }

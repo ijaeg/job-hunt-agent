@@ -1827,3 +1827,86 @@ implements the decided changes with tests, re-runs the dev set to record
 the new numbers, then runs the test set once (`eval/run_fit_eval.py
 --set test`) and writes `docs/fit_evaluation.md`'s "Test set" and
 "Limitations" sections.
+
+## 2026-11-16 — WP-14 Stage 2: fit evaluation, decided changes and test set (spec §9.3)
+
+**Decisions recorded** (2026-11-16, Ingo; see each file's **Decision**
+line): D-21 Option 2 only (deviates from its own Option-3 recommendation -
+field description/worked example for skill granularity; the all-dropped
+skills case keeps scoring `unknown`, not `not_met`); D-22 Option 2 (pass
+the listing title to the extraction prompt); D-23 Option 2 for the
+`hybrid` preference only (a stated-but-unquantified remote type satisfies
+`hybrid`, not `remote`); D-24 Option 1 (no code change, document the
+limitation); D-25 Option 3 (`skills: not_met` caps the category at
+`poor`).
+
+**Implemented, with tests:**
+
+- `src/job_hunt_agent/models.py`: `Requirement.name` gets a
+  `Field(description=...)` (D-21).
+- `prompts/extract_requirements.md`: a worked example for atomic skill
+  names (D-21) and a `title: {title}` placeholder plus guidance that a
+  title-only seniority claim needs no ad-text evidence quote (D-22).
+- `src/job_hunt_agent/tools/assess.py`: `_extract_one` gains a `title`
+  parameter, passed from `details.title` at the one call site (D-22).
+- `src/job_hunt_agent/rubric.py`: `_location_remote_verdict`'s `hybrid`
+  branch now credits a stated `remote_type` even without a percentage
+  (D-23, `remote` preference unchanged); `assess` caps the category at
+  `poor` whenever `rubric["skills"] == "not_met"`, composing correctly
+  with the unknown-dimensions cap and exclusions (D-25).
+- `eval/run_fit_eval.py`: `run_listing` passes the title through the same
+  way, so the eval script and the tool stay on the same code path.
+- 5 new tests (460 -> 465): `tests/test_rubric.py` (hybrid-vs-remote
+  stated-type-without-percent, skills-not_met cap and its
+  non-interference with `partly`/`met`), `tests/test_tools_assess.py`
+  (the title appears in the formatted extraction prompt).
+
+**Dev-set re-run** (`eval/run_fit_eval.py --set dev`, real model, numbers
+recorded next to the Stage 1 numbers in `docs/fit_evaluation.md`,
+`eval/results/fit_eval_dev.json`; the Stage 1 file kept as
+`eval/results/fit_eval_dev_stage1.json`): category accuracy 25.0 %/37.5 %
+-> 50.0 %/50.0 %; `dropped_evidence` 58 -> 40; the two D-25 target listings
+(`12336-a26f1128j0452080-S`, `13635-d780e451_JB5286154-S`) now correctly
+`poor`; `13509-000021113EF002-S`'s `location_remote` now correctly `met`
+(D-23). The all-evidence-dropped case (D-21) recurred once
+(`12288-4971252625-S`, run 2) - reported per the decision, scoring left
+as `unknown`, not changed.
+
+**Test set run once** (`eval/run_fit_eval.py --set test`, real model, no
+code change after this run, spec §9.1/invariant 6):
+`eval/results/fit_eval_test.json`. **Category accuracy 33.3 % (4/12) both
+runs**; 4x4 confusion matrix: `partial`->`poor` 7, `poor`->`poor` 2,
+`excluded`->`excluded` 2, `excluded`->`poor` 1, everything else 0.
+Run-to-run agreement: category 12/12 (100 %), per-dimension 59/60
+(98.3 %). 61 disagreements classified by cause: `rubric_rule_or_threshold`
+32, `label_ambiguity` 12, `data_issue` 10, `extraction_error` 5,
+`code_deviation` 2. Headline finding: D-25's `skills: not_met` cap, built
+from 2 dev-set listings with genuinely zero skill overlap, fires on
+**all 12** test listings (agreeing with the label on only 3) because the
+40 % share-of-all-extracted-skills threshold (D-9) is strict against
+Alex's narrow 6-skill profile whenever a real ad names more than a
+handful of technologies (10-60 skills extracted per test listing) - this
+is the main reason test accuracy (33.3 %) is lower than the post-fix dev
+set (50.0 %), and is **not** an extraction-quality problem
+(`dropped_evidence` only 9 across 24 runs). One new BA-data contradiction
+found: `10001-1003964383-S`'s title states "befristet bis 31.01.2028"
+but its `contract_duration` field says `"UNBEFRISTET"`. Full writeup,
+every disagreement's cause, and the proposed spec §7 wording for D-23/
+D-25 (for the coach to apply): `docs/fit_evaluation.md` "Test set",
+"Limitations", "Proposed spec §7 wording".
+
+**No rubric, prompt or code change after the test-set run** (per the stop
+rule); the skills-threshold finding above is recorded as a limitation/
+idea for a future iteration, not implemented here.
+
+**Checks:** 465 tests, 0 skipped, 99% coverage. `ruff check .`/`ruff
+format --check .` clean (147 files). `mypy src app.py pages scripts eval`
+clean except the same pre-existing, unrelated
+`scripts/wp12_should_check.py` error. Real-model run: both the dev-set
+re-run and the test-set run (40 real extraction calls total) - required
+since `tools/assess.py`, `rubric.py` and the extraction prompt all
+changed. PII check (`pii.EMAIL_PATTERN`/`PHONE_NUMBER_PATTERN`) and
+`referenznummer` validity confirmed clean on all three new result files.
+
+**WP-14 complete.** Remaining Must items per spec §13: the tool-trajectory
+evaluation (§9.2) is next.
