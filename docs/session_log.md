@@ -1910,3 +1910,80 @@ changed. PII check (`pii.EMAIL_PATTERN`/`PHONE_NUMBER_PATTERN`) and
 
 **WP-14 complete.** Remaining Must items per spec §13: the tool-trajectory
 evaluation (§9.2) is next.
+
+## 2026-11-16 — WP-14b: fit evaluation, second round - new skills metric (spec §9.3)
+
+D-26 opened a second, rule-bound round to replace the skills metric that
+drove WP-14's 33.3 % test-set accuracy: a fresh test set drawn and
+approved before any code change, the new metric measured on the 20
+now-development listings only, a stop criterion fixed in advance, and -
+only if met - one new test run.
+
+**Step 1 (test-set draw):** the 20 `eval/fit_set.yaml` listings became all
+development; 10 new test listings drawn from the real fixture listings not
+already in that file (same strata, `random.Random(1400)`, employer cap 2
+across all 30), written to `eval/fit_set_round2.yaml`. Coach review caught
+two issues before approval - a YAML parse error (an unquoted colon inside
+a plain scalar; fixed with a folded block scalar) and one listing's
+title/employer copied wrong from an ad-hoc print statement - both fixed
+and re-verified against the fixture file byte-for-byte before Ingo
+approved.
+
+**Step 2 (new metric, dev-set only):** `rubric.assess`'s category
+computation (weighted share, thresholds, the unknown-dimensions cap,
+D-25's cap, exclusions) pulled out into a new pure function,
+`category_from_rubric` (no behaviour change; existing tests stayed
+green). `eval/rescore_fit_round2.py` re-scored the 40 stored WP-14 round-1
+runs (no model call): a sanity check first confirmed the harness
+reproduces the current metric's stored skills verdicts and categories
+exactly, **40/40**, then four variants were computed - `matched` =
+number of distinct profile skills found; N = 2 or 3, each with/without
+D-25's cap. [D-27](decisions/D-27-skills-metric-variant.md) recorded the
+numbers and Ingo's decision: **N = 3, with D-25's cap** (14/20, 15/20
+correct, vs. D-26's ≥ 12/20 floor); known cost, a false `skills: met` on
+one dev listing pushing it to `strong` where the label is `partial`.
+
+**Step 3 (implementation + blind labelling):** `rubric._skills_verdict`
+rewritten for N = 3 (`SKILLS_MATCHED_THRESHOLD`), with new tests for
+matched 0/1/2/3, duplicate-skill dedup, and a fix to a test that had
+stopped exercising the unknown-dimensions cap after the metric change
+(coverage would otherwise have silently dropped from the branch).
+`scripts/label_fit.py` extended to continue from `fit_set.yaml`'s 20 into
+`fit_set_round2.yaml`'s 10 automatically, same tool, same CSV columns,
+stratum never shown. Ingo labelled the 10 new listings; a coach review
+against `docs/labelling_guide.md` corrected 5 of 10 rows, each with a
+note in `eval/fit_labels.csv`.
+
+**Step 4 (one test run):** `eval/run_fit_eval.py --set round2`
+(`openai/gpt-5-mini`, reasoning effort `low`, 10 listings, 2 runs each, no
+code or threshold change after the run): `eval/results/fit_eval_round2_test.json`.
+**Category accuracy 60.0 % (6/10) both runs** - nearly double round 1's
+33.3 %. Dimension agreement: skills 90 %/90 %, location/remote 60 %/60 %,
+seniority 100 %/70 %, language 90 %/90 %, employment type 80 %/80 %.
+Run-to-run: category 9/10. 27 disagreements classified by cause
+(`attach_cause`/`summarize_causes`, recorded in the result file):
+`data_issue` 14 (dominant - D-24's remote-free-text gap on 3 listings, a
+BA location/distance contradiction on one, a shared `full_time`-field
+anomaly on the two listings from fixture source prefix `13644`),
+`rubric_rule_or_threshold` 8 (the false-`strong` risk D-27 flagged
+recurred once, plus two listings where a small known-dimension set
+rounds a middling skills result up past the label), `extraction_error` 3
+(seniority run-to-run only), `label_ambiguity` 2, `code_deviation` 0.
+Full writeup, confusion matrices, every disagreement's cause, limitations
+and the proposed spec §7 wording for the new metric (for the coach to
+apply): `docs/fit_evaluation.md` "Second round (D-26)". Round-1 result
+files and numbers untouched.
+
+**Checks:** 468 tests, 0 skipped, 99% coverage. `ruff check .`/
+`ruff format --check .` clean (151 files). `mypy src app.py pages
+scripts/label_fit.py eval/run_fit_eval.py eval/rescore_fit_round2.py`
+clean. PII check clean on the new result file's evidence quotes.
+
+**Decision files:** [D-26](decisions/D-26-fit-eval-second-round.md)
+(round rules, closed), [D-27](decisions/D-27-skills-metric-variant.md)
+(metric variant, closed). No open decision files from this package.
+
+**WP-14b complete.** Next: the coach applies the proposed §7 wording
+(D-23, D-25, and this round's skills-metric paragraph) to
+`PRODUCT_SPEC.md`; the tool-trajectory evaluation (§9.2) remains the next
+Must item per spec §13.
