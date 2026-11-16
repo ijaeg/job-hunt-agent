@@ -74,4 +74,4 @@ text for all three "Senior ..." dev titles) rather than a guess.
   in principle also affect other listings not yet in the dev sample.
 - No change to weights, thresholds or the rubric's own logic.
 
-**Decision:**
+**Decision:** Option 2 (2026-11-16, Ingo). The title is passed to the extraction prompt; verbatim evidence still comes from the ad text only.

@@ -95,4 +95,4 @@ documenting the mismatch and watching the test set.
   **present-but-unquantified** structured value is read, not whether
   free text is read at all.
 
-**Decision:**
+**Decision:** Option 1 (2026-11-16, Ingo). No code change; location/remote keeps reading the structured fields only (spec §7). docs/fit_evaluation.md states the limitation; 17338-c2de5ff0cd55000215-S stays a documented, expected disagreement.

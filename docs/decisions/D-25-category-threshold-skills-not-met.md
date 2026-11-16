@@ -98,4 +98,4 @@ documented values" asks to avoid.
   describing the new cap, proposed back to Ingo rather than edited
   directly (CLAUDE.md).
 
-**Decision:**
+**Decision:** Option 3 (2026-11-16, Ingo). skills: not_met caps the category at poor; hard exclusions still win over everything (FR-06 AC4). No change to thresholds or weights.

@@ -91,4 +91,4 @@ place to say so.
   `met`, category `poor` -> `partial`, matching the label in both runs).
 - No change to weights or the overall category thresholds.
 
-**Decision:**
+**Decision:** Option 2, for the "hybrid" preference only (2026-11-16, Ingo). A stated remote type without a percentage (e.g. NACH_VEREINBARUNG) satisfies a hybrid preference within the radius; it does not satisfy a "remote" preference, because it does not guarantee fully remote work.

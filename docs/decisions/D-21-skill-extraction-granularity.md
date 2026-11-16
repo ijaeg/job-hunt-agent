@@ -114,4 +114,4 @@ test set.
   `12336-a26f1192j0456061-S` - must be re-measured, not assumed.
 - No change to weights or thresholds (D-9's start values stand).
 
-**Decision:**
+**Decision:** Option 2 only (2026-11-16, Ingo, following the coach's recommendation, deviating from this file's own recommendation). Field description and a worked example in the extraction prompt; no change to how an all-dropped skills list is scored - it stays "unknown", because a missing evidence must never count against a listing (FR-06 AC3 principle). Re-measure on the dev set; if the all-dropped case still occurs, report it rather than change the scoring.
