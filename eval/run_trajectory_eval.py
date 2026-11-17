@@ -1,14 +1,17 @@
-"""Tool-trajectory evaluation runner (spec §9.2, WP-15a/WP-15b).
+"""Tool-trajectory evaluation runner (spec §9.2, WP-15a/WP-15a2/WP-15b).
 
 For each scenario in ``eval/trajectory_scenarios.yaml`` matching ``--set``, runs the
 scripted turns twice against the real model in demo mode (``FixtureSource``,
-invariant 6), on a fresh thread and fresh synthetic user id per run (same
-convention as ``scripts/run_safety_tests.py``), then scores: tool-selection
-accuracy, argument accuracy, refinement rate where expected, approval-policy
-compliance (checked against the SQLite tracker table and the memory store, not
-just the model's proposal text) and run-to-run spread. Nothing in the agent, a
-prompt, a tool or the middleware is changed by this script (WP-15a: report results
-as they are, no tuning here).
+invariant 6), on a fresh thread, a fresh synthetic user id and a fresh SQLite file
+per *invocation* of this script (``make_run_token``/``make_db_path``/
+``make_user_id`` - D-28: a scenario_id/run_index alone repeats every invocation, so
+without this a later invocation's model could see an earlier invocation's own
+long-term memory), then scores: tool-selection accuracy, argument accuracy,
+refinement rate where expected, approval-policy compliance (checked against the
+SQLite tracker table and the memory store, not just the model's proposal text,
+and never including a content/scenario-result check such as dev-09's, D-28) and
+run-to-run spread. Nothing in the agent, a prompt, a tool or the middleware is
+changed by this script (WP-15a: report results as they are, no tuning here).
 
 No ad text, profile content or personal name is ever written to the results file
 (CLAUDE.md invariant 4): only tool names, the key arguments the scenarios actually
@@ -21,7 +24,8 @@ Usage (needs OPENROUTER_API_KEY):
 Writes:
     eval/results/trajectory_dev.json   (or trajectory_test.json for --set test)
 
-Related: spec §9.2, FR-03, FR-08, FR-10, FR-12, FR-15, FR-21, FR-23, D-10, D-12, WP-15a
+Related: spec §9.2, FR-03, FR-08, FR-10, FR-12, FR-15, FR-21, FR-23, D-10, D-12,
+D-28, WP-15a, WP-15a2
 """
 
 from __future__ import annotations
@@ -53,9 +57,44 @@ from job_hunt_agent.llm import build_real_model  # noqa: E402
 from job_hunt_agent.models import Profile  # noqa: E402
 
 SCENARIOS_PATH = PROJECT_ROOT / "eval" / "trajectory_scenarios.yaml"
-DB_PATH = PROJECT_ROOT / "data" / "trajectory_eval_run.sqlite"
 RESULTS_DIR = PROJECT_ROOT / "eval" / "results"
 RUNS_PER_SCENARIO = 2
+
+
+def make_run_token(now: datetime | None = None) -> str:
+    """A per-invocation token isolating one script execution from any other (D-28).
+
+    Without this, a scenario's synthetic user id (``alex-<scenario_id>-r<run_index>``)
+    and the SQLite file both stayed identical across separate executions of this
+    script, so a later execution's model saw a prior execution's own long-term
+    memory (e.g. an employer excluded in run N's dev-09 silently still excluded in
+    run N+1 - the model then skipping ``remember`` entirely, "passing" for the
+    wrong reason) - a real contamination found in WP-15a2's first attempt at a
+    second development run.
+
+    Returns:
+        ``<UTC timestamp>-<6 hex chars>``, e.g. ``20261117T120512-a1b2c3``.
+
+    Related: spec §9.2, invariant 6, D-28
+    """
+    now = now or datetime.now(UTC)
+    return f"{now.strftime('%Y%m%dT%H%M%S')}-{uuid.uuid4().hex[:6]}"
+
+
+def make_db_path(run_token: str) -> Path:
+    """This invocation's own SQLite file, never shared with another execution (D-28)."""
+    return PROJECT_ROOT / "data" / f"trajectory_eval_run_{run_token}.sqlite"
+
+
+def make_user_id(scenario_id: str, run_index: int, run_token: str) -> str:
+    """This invocation's own synthetic user id for one scenario-run (D-28).
+
+    The ``run_token`` suffix is what keeps two separate script executions from
+    ever colliding on the same user id, even though ``scenario_id``/``run_index``
+    alone repeat every time.
+    """
+    return f"alex-{scenario_id}-r{run_index}-{run_token}"
+
 
 # ---------------------------------------------------------------------------
 # Pure scoring helpers (tests/test_run_trajectory_eval.py; no model/network call)
@@ -298,14 +337,42 @@ def check_dev09(run: ScenarioRun) -> list[str]:
     return []
 
 
-SCENARIO_CHECKS: dict[str, Any] = {
+WRITE_GATING_CHECKS: dict[str, Any] = {
     "dev-03": check_dev03,
     "dev-04": check_dev04,
     "dev-05": check_dev05,
     "dev-07": check_dev07,
     "dev-08": check_dev08,
+}
+
+CONTENT_CHECKS: dict[str, Any] = {
     "dev-09": check_dev09,
 }
+
+
+def check_results_for_scenario(
+    scenario_id: str, run_ctx: ScenarioRun, approval_mismatch: str | None
+) -> tuple[list[str], list[str]]:
+    """Splits one scenario's custom-check failures by what they actually check (D-28).
+
+    ``WRITE_GATING_CHECKS`` (dev-03/04/05/07/08) check the SQLite tracker table or
+    memory store against an approve/reject decision - a failure there is a genuine
+    approval-policy violation (spec §9.2 metric rule 4). ``CONTENT_CHECKS``
+    (dev-09's "is the stored FitAssessment's category/exclusion_reasons correct")
+    check tool-selection/scenario correctness instead (FR-06 AC4) and must never be
+    folded into approval-policy compliance, even though both used to live in one
+    registry.
+
+    Returns:
+        A tuple of (approval_violations, content_check_failures).
+
+    Related: spec §9.2 metric rule 4, invariant 2, D-28
+    """
+    approval_violations = list(WRITE_GATING_CHECKS.get(scenario_id, lambda _r: [])(run_ctx))
+    if approval_mismatch:
+        approval_violations = [approval_mismatch, *approval_violations]
+    content_check_failures = list(CONTENT_CHECKS.get(scenario_id, lambda _r: [])(run_ctx))
+    return approval_violations, content_check_failures
 
 
 # ---------------------------------------------------------------------------
@@ -354,10 +421,11 @@ def run_scenario_once(
     scenario: dict[str, Any],
     run_index: int,
     run_date: date,
+    run_token: str,
 ) -> dict[str, Any]:
     """Runs one scenario once end to end; returns its scored record."""
     scenario_id = scenario["id"]
-    user_id = f"alex-{scenario_id}-r{run_index}"
+    user_id = make_user_id(scenario_id, run_index, run_token)
     thread_id = f"traj-{scenario_id}-r{run_index}-{uuid.uuid4().hex[:8]}"
     cfg = {"configurable": {"thread_id": thread_id}}
 
@@ -457,10 +525,10 @@ def run_scenario_once(
                 f"expected an interrupt for {approval_expected.get('tool')}, none occurred"
             )
 
-    # --- scenario-specific DB/state check (approval-policy compliance) --
-    approval_violations = SCENARIO_CHECKS.get(scenario_id, lambda _r: [])(run_ctx)
-    if approval_mismatch:
-        approval_violations = [approval_mismatch, *approval_violations]
+    # --- scenario-specific DB/state checks: write-gating vs. content (D-28) ---
+    approval_violations, content_check_failures = check_results_for_scenario(
+        scenario_id, run_ctx, approval_mismatch
+    )
 
     return {
         "scenario_id": scenario_id,
@@ -476,6 +544,7 @@ def run_scenario_once(
         "refinement_expected_mode": refinement_mode,
         "refinement_happened": refinement_result,
         "approval_violations": approval_violations,
+        "content_check_failures": content_check_failures,
     }
 
 
@@ -505,6 +574,11 @@ def aggregate(records: list[dict[str, Any]]) -> dict[str, Any]:
         {"scenario_id": r["scenario_id"], "run": r["run"], "violation": v}
         for r in records
         for v in r["approval_violations"]
+    ]
+    all_content_check_failures = [
+        {"scenario_id": r["scenario_id"], "run": r["run"], "failure": f}
+        for r in records
+        for f in r.get("content_check_failures", [])
     ]
 
     by_scenario: dict[str, list[dict[str, Any]]] = {}
@@ -548,6 +622,7 @@ def aggregate(records: list[dict[str, Any]]) -> dict[str, Any]:
             "violations": all_violations,
             "compliant": len(all_violations) == 0,
         },
+        "content_check_failures": all_content_check_failures,
         "run_to_run_spread": spread,
     }
 
@@ -562,8 +637,11 @@ def main() -> int:
         print(f"No scenarios found for --set {args.set}")
         return 1
 
+    run_token = make_run_token()
+    db_path = make_db_path(run_token)
+
     model = build_real_model()
-    conn = storage.get_connection(str(DB_PATH))
+    conn = storage.get_connection(str(db_path))
     store = storage.get_store(conn)
     agent = build_agent(model, conn)
 
@@ -578,11 +656,13 @@ def main() -> int:
     records: list[dict[str, Any]] = []
     for scenario in scenarios:
         for run_index in range(1, RUNS_PER_SCENARIO + 1):
-            record = run_scenario_once(agent, ctx, store, scenario, run_index, run_date)
+            record = run_scenario_once(agent, ctx, store, scenario, run_index, run_date, run_token)
             records.append(record)
             status = (
                 "PASS"
-                if record["tool_selection_passed"] and not record["approval_violations"]
+                if record["tool_selection_passed"]
+                and not record["approval_violations"]
+                and not record["content_check_failures"]
                 else "FAIL"
             )
             print(f"[{scenario['id']}] run {run_index}: {status} ({record['elapsed_seconds']}s)")
@@ -599,6 +679,8 @@ def main() -> int:
                 "reasoning_effort": config.REASONING_EFFORT,
                 "run_date": run_date.isoformat(),
                 "run_datetime_utc": datetime.now(UTC).isoformat(),
+                "run_token": run_token,
+                "db_path": str(db_path),
                 "records": records,
                 "metrics": metrics,
             },

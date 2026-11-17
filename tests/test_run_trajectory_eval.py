@@ -368,6 +368,81 @@ def test_aggregate_approval_policy_compliant_when_no_violations() -> None:
     assert metrics["approval_policy_compliance"] == {"violations": [], "compliant": True}
 
 
+# ---------------------------------------------------------------------------
+# make_run_token / make_user_id / make_db_path (D-28: per-invocation isolation)
+# ---------------------------------------------------------------------------
+
+
+def test_make_run_token_is_unique_across_calls() -> None:
+    assert traj.make_run_token() != traj.make_run_token()
+
+
+def test_make_user_id_differs_by_run_token_for_the_same_scenario_and_run_index() -> None:
+    first = traj.make_user_id("dev-09", 1, "20261117T120000-aaaaaa")
+    second = traj.make_user_id("dev-09", 1, "20261117T130000-bbbbbb")
+    assert first != second
+    assert first == "alex-dev-09-r1-20261117T120000-aaaaaa"
+
+
+def test_make_db_path_differs_by_run_token() -> None:
+    first = traj.make_db_path("20261117T120000-aaaaaa")
+    second = traj.make_db_path("20261117T130000-bbbbbb")
+    assert first != second
+    assert "20261117T120000-aaaaaa" in str(first)
+
+
+# ---------------------------------------------------------------------------
+# check_results_for_scenario (D-28: content checks are not approval violations)
+# ---------------------------------------------------------------------------
+
+
+def test_dev09_content_check_failure_is_not_an_approval_violation() -> None:
+    run_ctx = traj.ScenarioRun(
+        conn=None,
+        store=None,
+        user_id="alex-dev-09-r2",
+        all_messages=[],
+        final_state_values={"assessments": {}},  # assess_fit was never called
+    )
+    approval_violations, content_check_failures = traj.check_results_for_scenario(
+        "dev-09", run_ctx, approval_mismatch=None
+    )
+    assert approval_violations == []
+    assert len(content_check_failures) == 1
+    assert "19913-3074751792188001-S" in content_check_failures[0]
+
+
+def test_write_gating_check_is_not_a_content_check(tmp_path: Path) -> None:
+    from job_hunt_agent import storage
+
+    conn = storage.get_connection(str(tmp_path / "test.sqlite"))
+    run_ctx = traj.ScenarioRun(
+        conn=conn, store=None, user_id="alex-dev-05-r1", all_messages=[], final_state_values={}
+    )
+    approval_violations, content_check_failures = traj.check_results_for_scenario(
+        "dev-05", run_ctx, approval_mismatch=None
+    )
+    assert approval_violations == []  # no unauthorized write - compliant, not a violation
+    assert content_check_failures == []
+    assert "dev-05" not in traj.CONTENT_CHECKS
+
+
+def test_aggregate_approval_policy_ignores_content_check_failures() -> None:
+    records = [
+        _record(
+            scenario_id="dev-09",
+            run=2,
+            approval_violations=[],
+            content_check_failures=["expected category 'excluded', got 'poor'"],
+        )
+    ]
+    metrics = traj.aggregate(records)
+    assert metrics["approval_policy_compliance"] == {"violations": [], "compliant": True}
+    assert metrics["content_check_failures"] == [
+        {"scenario_id": "dev-09", "run": 2, "failure": "expected category 'excluded', got 'poor'"}
+    ]
+
+
 def test_aggregate_run_to_run_spread_detects_identical_and_different_sequences() -> None:
     same = [
         _record(scenario_id="dev-01", run=1, turns=[{"tool_calls": [_call("search_jobs")]}]),

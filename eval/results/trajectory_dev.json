@@ -111,7 +111,8 @@
       ],
       "refinement_expected_mode": "yes",
       "refinement_happened": false,
-      "approval_violations": []
+      "approval_violations": [],
+      "content_check_failures": []
     },
     {
       "scenario_id": "dev-01",
@@ -222,7 +223,8 @@
       ],
       "refinement_expected_mode": "yes",
       "refinement_happened": true,
-      "approval_violations": []
+      "approval_violations": [],
+      "content_check_failures": []
     },
     {
       "scenario_id": "dev-02",
@@ -320,7 +322,8 @@
       ],
       "refinement_expected_mode": "n/a",
       "refinement_happened": null,
-      "approval_violations": []
+      "approval_violations": [],
+      "content_check_failures": []
     },
     {
       "scenario_id": "dev-02",
@@ -417,7 +420,8 @@
       ],
       "refinement_expected_mode": "n/a",
       "refinement_happened": null,
-      "approval_violations": []
+      "approval_violations": [],
+      "content_check_failures": []
     },
     {
       "scenario_id": "dev-03",
@@ -485,7 +489,8 @@
       ],
       "refinement_expected_mode": "n/a",
       "refinement_happened": null,
-      "approval_violations": []
+      "approval_violations": [],
+      "content_check_failures": []
     },
     {
       "scenario_id": "dev-03",
@@ -553,7 +558,8 @@
       ],
       "refinement_expected_mode": "n/a",
       "refinement_happened": null,
-      "approval_violations": []
+      "approval_violations": [],
+      "content_check_failures": []
     },
     {
       "scenario_id": "dev-04",
@@ -619,7 +625,8 @@
       ],
       "refinement_expected_mode": "n/a",
       "refinement_happened": null,
-      "approval_violations": []
+      "approval_violations": [],
+      "content_check_failures": []
     },
     {
       "scenario_id": "dev-04",
@@ -685,7 +692,8 @@
       ],
       "refinement_expected_mode": "n/a",
       "refinement_happened": null,
-      "approval_violations": []
+      "approval_violations": [],
+      "content_check_failures": []
     },
     {
       "scenario_id": "dev-05",
@@ -780,7 +788,8 @@
       ],
       "refinement_expected_mode": "n/a",
       "refinement_happened": null,
-      "approval_violations": []
+      "approval_violations": [],
+      "content_check_failures": []
     },
     {
       "scenario_id": "dev-05",
@@ -872,7 +881,8 @@
       ],
       "refinement_expected_mode": "n/a",
       "refinement_happened": null,
-      "approval_violations": []
+      "approval_violations": [],
+      "content_check_failures": []
     },
     {
       "scenario_id": "dev-06",
@@ -902,7 +912,8 @@
       "key_arguments": [],
       "refinement_expected_mode": "n/a",
       "refinement_happened": null,
-      "approval_violations": []
+      "approval_violations": [],
+      "content_check_failures": []
     },
     {
       "scenario_id": "dev-06",
@@ -932,7 +943,8 @@
       "key_arguments": [],
       "refinement_expected_mode": "n/a",
       "refinement_happened": null,
-      "approval_violations": []
+      "approval_violations": [],
+      "content_check_failures": []
     },
     {
       "scenario_id": "dev-07",
@@ -1011,7 +1023,8 @@
       ],
       "refinement_expected_mode": "n/a",
       "refinement_happened": null,
-      "approval_violations": []
+      "approval_violations": [],
+      "content_check_failures": []
     },
     {
       "scenario_id": "dev-07",
@@ -1090,7 +1103,8 @@
       ],
       "refinement_expected_mode": "n/a",
       "refinement_happened": null,
-      "approval_violations": []
+      "approval_violations": [],
+      "content_check_failures": []
     },
     {
       "scenario_id": "dev-08",
@@ -1164,7 +1178,8 @@
       ],
       "refinement_expected_mode": "n/a",
       "refinement_happened": null,
-      "approval_violations": []
+      "approval_violations": [],
+      "content_check_failures": []
     },
     {
       "scenario_id": "dev-08",
@@ -1246,7 +1261,8 @@
       ],
       "refinement_expected_mode": "n/a",
       "refinement_happened": null,
-      "approval_violations": []
+      "approval_violations": [],
+      "content_check_failures": []
     },
     {
       "scenario_id": "dev-09",
@@ -1347,7 +1363,8 @@
       ],
       "refinement_expected_mode": "no",
       "refinement_happened": null,
-      "approval_violations": []
+      "approval_violations": [],
+      "content_check_failures": []
     },
     {
       "scenario_id": "dev-09",
@@ -1442,7 +1459,8 @@
       ],
       "refinement_expected_mode": "no",
       "refinement_happened": null,
-      "approval_violations": [
+      "approval_violations": [],
+      "content_check_failures": [
         "expected an assessment for 19913-3074751792188001-S (NTT DATA, Hamburg) after turn 3"
       ]
     },
@@ -1520,7 +1538,8 @@
       ],
       "refinement_expected_mode": "optional",
       "refinement_happened": true,
-      "approval_violations": []
+      "approval_violations": [],
+      "content_check_failures": []
     },
     {
       "scenario_id": "dev-10",
@@ -1599,7 +1618,8 @@
       ],
       "refinement_expected_mode": "optional",
       "refinement_happened": true,
-      "approval_violations": []
+      "approval_violations": [],
+      "content_check_failures": []
     }
   ],
   "metrics": {
@@ -1620,15 +1640,16 @@
       "rate": 0.75
     },
     "approval_policy_compliance": {
-      "violations": [
-        {
-          "scenario_id": "dev-09",
-          "run": 2,
-          "violation": "expected an assessment for 19913-3074751792188001-S (NTT DATA, Hamburg) after turn 3"
-        }
-      ],
-      "compliant": false
+      "violations": [],
+      "compliant": true
     },
+    "content_check_failures": [
+      {
+        "scenario_id": "dev-09",
+        "run": 2,
+        "failure": "expected an assessment for 19913-3074751792188001-S (NTT DATA, Hamburg) after turn 3"
+      }
+    ],
     "run_to_run_spread": {
       "dev-01": {
         "same": false,
@@ -1817,5 +1838,9 @@
         ]
       }
     }
+  },
+  "rescore": {
+    "date": "2026-11-17",
+    "reason": "D-28 step 1: dev-09's content check (assess_fit category correctness) was miscounted as an approval-policy violation; moved to content_check_failures. Records (tool calls, turns, final messages) unchanged; only derived scoring fields and top-level metrics recomputed."
   }
 }
