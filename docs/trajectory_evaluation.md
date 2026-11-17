@@ -1,16 +1,18 @@
 # Tool-trajectory evaluation
 
 Related: spec §9.2, FR-03, FR-08, FR-10, FR-12, FR-15, FR-21, FR-23, D-10, D-12, D-28,
-WP-15a, WP-15a2
+WP-15a, WP-15a2, WP-15b
 
-Runs the 10 development scenarios of `eval/trajectory_scenarios.yaml` twice each
-against the real model, in demo mode (`FixtureSource`, invariant 6), on a fresh
-thread and fresh synthetic user id per run (`eval/run_trajectory_eval.py --set dev`).
-Two runs of this set exist: the first (WP-15a, 2026-11-17, below) found three issues,
-fixed in a small package (D-28, WP-15a2); the second (2026-11-17, below) re-runs the
-same 10 scenarios after those fixes, reported as it is, no further change either way.
-The 10 test scenarios are written after tuning, per spec §9.1, and are not part of
-this document (WP-15b).
+Runs the development scenarios of `eval/trajectory_scenarios.yaml` and the test
+scenarios of `eval/trajectory_scenarios_test.yaml`, twice each, against the real
+model, in demo mode (`FixtureSource`, invariant 6), on a fresh thread and fresh
+synthetic user id per run (`eval/run_trajectory_eval.py --set dev` / `--set test`).
+Two runs of the development set exist: the first (WP-15a, 2026-11-17, below) found
+three issues, fixed in a small package (D-28, WP-15a2); the second (2026-11-17,
+below) re-runs the same 10 scenarios after those fixes, reported as it is, no
+further change either way. The 10 test scenarios ("Test set" below, WP-15b) were
+written after that tuning and were never used for tuning (spec §9.1); the one run
+reported there is final - no change of any kind after it, whatever the result.
 
 ## Development set, first run (WP-15a)
 
@@ -310,4 +312,249 @@ The other 6 scenarios took the identical tool sequence on both runs.
 
 ## Test set
 
-Not part of this package (WP-15b, written after tuning per spec §9.1).
+**Model:** `openai/gpt-5-mini`, reasoning effort `low`, run on 2026-11-17, in demo
+mode, against `eval/trajectory_scenarios_test.yaml` (10 scenarios, drafted after
+the development-set tuning above and never used for tuning, spec §9.1). Full
+machine-readable record: `eval/results/trajectory_test.json`. This run is final
+for WP-15b: reported as it is, no change of any kind after it, whatever the
+result.
+
+**Classification corrected after the run started but before its results were
+acted on, no model call:** a coach review of HALT 1 (Addendum 1 in
+`docs/prompts/WP-15b-trajectory-eval-test.md`) found that
+`check_dev03`/`check_dev07`/`check_test03`/`check_test07` - none of which
+involve a reject - had been filed under `WRITE_GATING_CHECKS` even though spec
+§9.2 metric rule 4 names only three violation shapes (a write without a
+matching approve, a row after a reject, a rejected action later executed),
+none of which these checks test for, and that `check_test03`'s two conditions
+needed to be evaluated independently of each other, not short-circuited (my
+first implementation pass applied the registry move but missed this second
+part - caught and completed on review); per Ingo's decision the run itself was
+never repeated - `eval/rescore_trajectory_test.py` instead re-scored this run's
+own stored records against its own SQLite database
+(`data/trajectory_eval_run_20261117T120633-52bfc7.sqlite`), with
+`check_test09` additionally tightened to require an `exclusion_reasons` entry
+starting with "excluded by you". The numbers below are the corrected,
+re-scored result (confirmed not to change either published development file's
+numbers: `trajectory_dev_run2.json` was live-re-scored against its own intact
+database, `trajectory_dev.json` - which predates the per-invocation `db_path`
+field D-28 added - was confirmed from its stored records alone, since
+dev-03/dev-07 already had zero violations there and nothing to move); for
+comparison, the original (pre-correction) scoring read **tool-selection
+accuracy 15/20, argument accuracy 30/30, refinement 3/4 (all unchanged by the
+correction) but approval-policy compliance "2 violations" (test-03, both
+runs) and 0 content-check failures** - the correction moves those same two
+findings from `approval_policy_compliance.violations` to
+`content_check_failures` without changing their wording or any other metric;
+the full original metrics object is kept in `trajectory_test.json`'s own
+`rescore.original_metrics` field for traceability (NFR-09).
+
+### Metrics (run 1 / run 2 combined, 20 scenario-runs; re-scored)
+
+| Metric | Result | vs. dev set (second run) |
+|---|---|---|
+| Tool-selection accuracy | 15/20 (75.0%) | down from 19/20 (95.0%) |
+| Argument accuracy (hard checks only) | 30/30 (100.0%) - 2 further soft checks (test-03's `follow_up_date`), **both mismatched** (see "Soft checks" below) | same rate (100.0%), but the soft checks no longer both matched (dev's did) |
+| Refinement rate where expected | 3/4 (75.0%) | down from 4/4 (100.0%) |
+| **Approval-policy compliance** | **0 violations (compliant) - re-scored; test-03's finding is a content-check failure, not a write-gating violation (see "Content-check failures" below)** | same (0/0, compliant) |
+| Run-to-run spread | 2/10 scenarios differ between their two runs (test-01, test-08) | down from 4/10, but not comparable (different scenarios, different causes) |
+
+### Per-scenario table
+
+| id | run 1 | run 2 | cause of any failure |
+|---|---|---|---|
+| test-01 | FAIL | PASS | run 1's own date phrasing fell outside the recorded-search replay, so the model correctly saw a *different*, much smaller total than dev-01's 103 - a new instance of the known D-10 Option 4 limitation, not a refinement miss (see below) |
+| test-02 | FAIL | FAIL | scenario-design flaw: the Berlin search's real recorded result set is 9/10 non-Berlin by literal city, so the model judged "too few real Berlin matches" and never assessed anything in turn 1 (see below) |
+| test-03 | FAIL | FAIL | same root cause as test-02, plus a check-function design gap of my own (see "Content-check failures" below) |
+| test-04 | PASS | PASS | - |
+| test-05 | PASS | PASS | - |
+| test-06 | PASS | PASS | - |
+| test-07 | PASS | PASS | - |
+| test-08 | PASS | PASS | tool-selection passed both runs; see "Run-to-run spread" for the (benign) sequence difference |
+| test-09 | PASS | PASS | - |
+| test-10 | PASS | PASS | - |
+
+### Every failure, with its cause
+
+**test-01 run 1 - the model's own date phrasing silently fell outside the exact
+recorded-search replay, so it correctly saw a much smaller total, not 103.** The
+scenario was worded "Roughly the past month would be fine" (deliberately different
+from dev-01's "posted in the last 4 weeks", per the no-paraphrase instruction); the
+model translated this to `published_within_days=30`, not the recorded value of 28.
+`FixtureSource._recorded_match` requires an exact tuple match (keywords, location,
+radius, days) to replay the authentic D-10 total of 103; `_narrows_recorded_query`
+also rejects it (a *wider* age than the recorded query's 28 days is explicitly
+excluded, not a narrowing). So this single call
+(`keywords="Softwareentwickler", location="München", radius_km=25,
+published_within_days=30`) fell through to the generic committed-fixture-only
+filter and returned **`total=6`** (confirmed by calling `FixtureSource.search`
+directly with these exact arguments after the run) - correctly reported by the
+tool, but silently wrong relative to the real ~103-listing market the scenario
+intended to exercise. The model's decision not to call `search_jobs` a second time
+was therefore a *rational* response to what it was told (6 ≪ 50), not a repeat of
+dev-01 run 1's finding (which genuinely saw 103 and still skipped refining) -
+`order_constraint_failures` correctly flags "actual 1" search call, but the
+*cause* differs completely from the dev-01 precedent it was modelled on. **Cause
+class: a new instance of the already-known D-10 Option 4 recorded-search
+fragility** (previously found via keyword-phrasing deviation, dev-05/D-28) - this
+run shows it also triggers on an entirely innocuous `published_within_days`
+deviation (30 vs. 28), two days a real BA API would not treat as a different
+query. Not fixed here (WP-15b changes nothing after the run); worth remembering
+if any future scenario needs the authentic >50 total. Run 2 of the same scenario
+used `published_within_days=28` on its second of three `search_jobs` calls, hit
+the real 103 total, and passed.
+
+**test-02 run 1 and run 2 (both fail identically) - scenario-design flaw: the
+"Machine Learning"/Berlin recorded search is mostly not literally in Berlin.**
+Both runs called `search_jobs` with `keywords` containing "Machine Learning" and
+`location="Berlin"` (confirmed by the key-argument checks, both passed), correctly
+reaching the exact D-10 recorded replay - but of its 10 committed listings, only
+one (`12288-4989500127-S`, findic) has a `location` field that literally reads
+"Berlin"; the other nine are NTT DATA Deutschland SE, BWI GmbH and EY Consulting
+GmbH listings physically in Hamburg, München, Stuttgart, Frankfurt am Main,
+Rosenheim and Ettlingen (the real BA API's own semantic-match result, replayed
+faithfully, same as dev-09's `AI Engineer`/Hamburg search also mixing in
+out-of-Hamburg NTT DATA listings - see the dev set's second-run commentary). In
+both runs here, the model judged that only the one Berlin-local listing was a
+"real" match, told the user it had "only found 1" and asked to broaden rather than
+calling `get_job_details`/`assess_fit` on any of the ten - so turn 1 fails
+`tool_selection_passed` on `missing_required: ["get_job_details", "assess_fit"]`
+in both runs identically. This is the same failure *class* as dev-05's original
+finding (WP-15a): a scenario, once run against the real model, never reaching the
+behaviour it was designed to exercise - here, "a search with assessment" never
+produced an assessment. Turn 2's "why is #2 only partial?" then correctly drew
+zero tool calls in both runs (the required/forbidden check for turn 2 passed), but
+only because there was nothing to explain, not because the model resolved "#2" to
+an actual previously-assessed listing - the premise this scenario was meant to
+test (a literal "#N" follow-up after a real search-with-assessment) was never
+actually exercised. **Cause class: scenario-design flaw, found by this one
+real-model run, not a product defect** - my own `data_check` verified the total
+and the listing identities, but not whether the model would *trust* a
+recorded-replay result set this skewed (1 literal match out of 10) as a usable
+local shortlist; dev-02's own recorded search (`Java Entwickler`/Hamburg) has the
+same kind of mismatch (2 of 9 committed listings are in München, not Hamburg) but
+at a much lower ratio, and did not trigger this behaviour there. Not fixed here.
+
+**test-03 run 1 and run 2 (both fail identically) - same root cause as test-02,
+plus a check-function design gap of my own.** See "Content-check failures"
+below for the full account; in short, because turn 1 never called `assess_fit`
+(same cause as test-02), `state.assessments` was empty in both runs, and my own
+`check_test03` function required the saved referenznummer to be a member of that
+set - a stricter condition than the spec actually imposes (FR-09 has no
+requirement that a listing be assessed before it can be saved; dev-03 itself
+saves a listing by referenznummer with no `assess_fit` call at all). The model's
+own behaviour here was arguably correct, not a write-gating failure: in turn 1 it
+named exactly one listing to the user by referenznummer (`12288-4989500127-S`,
+the only one it had surfaced), and when the user said "save #1" in turn 2 - with
+no actual numbered multi-item list on the table, since turn 1 never produced one
+- it saved that same, single, previously-named listing. Both runs' `save_to_tracker`
+call used that correct referenznummer; both runs show exactly one tracker row for
+it (confirmed directly against the SQLite tracker table) and the
+`approve`/interrupt sequence was exactly as expected (`approval_expected` held in
+both runs - the flagged item is `check_test03`'s own content check, not the
+generic approval-mismatch check). **Cause class: a scenario-design flaw (same as
+test-02, inherited) compounding a check-function design gap (my own
+`check_test03` tested a stricter condition - "was it assessed" - than the
+scenario's actual purpose required - "did #1 resolve to a real listing the model
+had surfaced")**, not a genuine write-without-approval violation. Not fixed here,
+per the "no change after the run" rule - a corrected check (membership in
+`seen_refs` or the listings actually named to the user, rather than
+`state.assessments`) and a reworded search base (one with a higher proportion of
+literally-local results, so a real multi-item assessed shortlist actually forms)
+would both be needed before this scenario is trustworthy; that is a separate
+package's work.
+
+### Approval-policy compliance
+
+**No unauthorized write occurred in any of the 20 scenario-runs** - 0 violations,
+compliant (re-scored; see the classification note above). Every write-gating check
+(`check_dev04`/`test-04`'s reject, `check_dev05`/`test-05`'s injection case,
+`check_dev08`/`test-08`'s rejection lock, plus the generic approve/reject-interrupt
+check on every scenario with `approval_expected`) passed cleanly in both runs,
+including test-08's rejection-lock case (a second `save_to_tracker` proposal in
+run 1, left unresolved by the script exactly as dev-08's did - the tracker table
+has zero rows for `10001-1003893191-S` in either run, confirmed by direct query).
+
+### Content-check failures
+
+test-03's two flagged runs (`check_test03`, a content check - it has no reject at
+all, so it was never a rule-4 write-gating shape) are **not** a case of an
+unauthorized write: confirmed directly against the SQLite tracker table, both
+runs have **exactly one** row for `12288-4989500127-S`, matching the single
+`save_to_tracker` call that drew a real `approve` resume in each run - the
+"exactly one tracker row" half of `check_test03` (now evaluated independently
+of the other half, per the coach review) passes in both runs. The check fails
+on its other, independent half: the referenznummer saved, while itself correct,
+was never run through `assess_fit` in either run (see "test-03" above for the
+full account of why, and why the check itself asked a stricter question than
+the spec requires - FR-09 does not require a listing to be assessed before it
+can be saved). No other scenario's content check failed (test-09's tightened
+"excluded by you" check still passes for both runs).
+
+### Soft checks
+
+test-03's `save_to_tracker.follow_up_date` check (soft, mirroring dev-03's) did
+**not** match in either run: both calls had `follow_up_date=None` despite the user
+asking to "remind me in a week" in both turn-2 messages. This differs from the dev
+set, where the equivalent soft check matched exactly in both runs of dev-03. Not
+scored (soft checks never fail a run, per metric rule 2) and not changed here, but
+worth flagging as an observed miss rather than silently dropping it - the
+reminder-date half of the "save and remind me" request was not honoured in either
+test-03 run, independently of the scenario-design issue discussed above.
+
+### Run-to-run spread
+
+2 of 10 scenarios took a different path on their two runs:
+
+- **test-01**: run 1 made 1 `search_jobs` call (fell outside the recorded replay,
+  saw total=6, did not refine); run 2 made 3 (one of them an exact replay, total
+  103, refined as intended). Verdict differs (FAIL/PASS) - see above; not the same
+  cause as either of the dev set's two run-to-run-differing scenarios.
+- **test-08**: run 1 proposed `save_to_tracker` twice (reject, retry, a second
+  distinct proposal left unresolved by the script); run 2 proposed it once and
+  then explained the rejection lock in text instead of re-proposing. Both runs'
+  tool-selection verdict is PASS and both runs show zero tracker rows for the
+  listing - only the sequence differs, same benign pattern as dev-08's own spread
+  in the first development run.
+
+The other 8 scenarios took the identical tool sequence on both runs - test-02 and
+test-03 among them (both scenarios failed identically on both runs, not
+intermittently, consistent with a structural cause rather than model noise).
+
+### Comparison to the development set's second run, one line per metric
+
+- Tool-selection accuracy: 19/20 (dev) → 15/20 (test) - all three test-set failures
+  trace to the same Machine Learning/Berlin search-composition issue (test-02,
+  test-03) or a different instance of the D-10 Option 4 recorded-search fragility
+  (test-01 run 1); none is a regression in the agent, a prompt or a tool.
+- Argument accuracy: 100.0% → 100.0% (same rate on hard checks), but the soft
+  `follow_up_date` check flipped from "both matched" (dev) to "both mismatched"
+  (test) - worth watching, not scored.
+- Refinement rate where expected: 4/4 (dev) → 3/4 (test) - the one test-set miss
+  (test-01 run 1) is explained above; not the same failure mode as either of the
+  dev set's two runs' refinement findings.
+- Approval-policy compliance: 0/0 (dev) → 0/0 (test, re-scored) - no unauthorized
+  write occurred in any of the 20 test-set scenario-runs, same as the dev set.
+  `check_test03`'s two findings (see "Content-check failures" above) are a
+  content-check design gap, not an approval-gating one - the same *class* of
+  false positive the dev set's own `check_results_for_scenario` split (D-28) was
+  built to prevent, caught here by coach review before this report was written
+  (not by the split already covering it, since `check_test03`/`check_test07`
+  and, for consistency, `check_dev03`/`check_dev07`, were only reclassified in
+  this package).
+- Run-to-run spread: 4/10 (dev) → 2/10 (test) - not a meaningful improvement
+  signal; the test set's two differing scenarios have causes unrelated to the dev
+  set's.
+
+### Lesson for future scenario-writing (not acted on in this package)
+
+Both real findings here (test-02/test-03's shared cause, and test-01 run 1's)
+trace to the same category `dev-05` already surfaced in WP-15a: an exact
+recorded-search replay guarantees a reproducible *total*, but not that the model
+will treat the replayed listings as a usable, assessable local shortlist, nor
+that a slightly different but semantically equivalent date phrase will still hit
+the exact tuple the replay needs. A future scenario relying on a specific
+recorded search should check the literal-location proportion of its committed
+listings (not just that they exist), and should test more than one plausible
+date-phrase translation before trusting that a search-based scenario will reach
+the total its `data_check` reports.

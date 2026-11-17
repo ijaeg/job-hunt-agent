@@ -427,6 +427,18 @@ def test_write_gating_check_is_not_a_content_check(tmp_path: Path) -> None:
     assert "dev-05" not in traj.CONTENT_CHECKS
 
 
+def test_dev03_and_dev07_are_content_checks_not_write_gating() -> None:
+    """Addendum 1 (WP-15b): no-reject "did the approved write persist" checks are content."""
+    assert "dev-03" in traj.CONTENT_CHECKS
+    assert "dev-03" not in traj.WRITE_GATING_CHECKS
+    assert "dev-07" in traj.CONTENT_CHECKS
+    assert "dev-07" not in traj.WRITE_GATING_CHECKS
+    assert "test-03" in traj.CONTENT_CHECKS
+    assert "test-03" not in traj.WRITE_GATING_CHECKS
+    assert "test-07" in traj.CONTENT_CHECKS
+    assert "test-07" not in traj.WRITE_GATING_CHECKS
+
+
 def test_aggregate_approval_policy_ignores_content_check_failures() -> None:
     records = [
         _record(
@@ -530,18 +542,48 @@ def test_check_test03_passes_when_saved_ref_was_assessed_in_turn1(tmp_path: Path
     assert traj.check_test03(run_ctx) == []
 
 
-def test_check_test03_fails_when_saved_ref_was_not_assessed() -> None:
+def test_check_test03_fails_when_saved_ref_was_not_assessed_but_row_exists(
+    tmp_path: Path,
+) -> None:
+    """The two checks are independent (coach review item 2): a tracker row existing
+    for the saved ref does not excuse it being absent from turn 1's assessed set."""
+    from job_hunt_agent import storage
+
+    conn = storage.get_connection(str(tmp_path / "test03_unassessed.sqlite"))
+    user_id = "alex-test-03-r1"
     ref = "15548-1650634-1-S"
+    storage.save_tracker_entry(conn, _tracker_entry(user_id, ref))
     run_ctx = traj.ScenarioRun(
-        conn=None,
+        conn=conn,
         store=None,
-        user_id="alex-test-03-r1",
+        user_id=user_id,
         all_messages=[_ai_message_with_tool_call("save_to_tracker", referenznummer=ref)],
         final_state_values={"assessments": {"some-other-S": object()}},
     )
     violations = traj.check_test03(run_ctx)
     assert len(violations) == 1
     assert "not among the listings assessed" in violations[0]
+
+
+def test_check_test03_reports_both_failures_independently_not_short_circuited(
+    tmp_path: Path,
+) -> None:
+    """Coach review item 2: neither check short-circuits the other."""
+    from job_hunt_agent import storage
+
+    conn = storage.get_connection(str(tmp_path / "test03_both_fail.sqlite"))
+    ref = "15548-1650634-1-S"
+    run_ctx = traj.ScenarioRun(
+        conn=conn,
+        store=None,
+        user_id="alex-test-03-r1",
+        all_messages=[_ai_message_with_tool_call("save_to_tracker", referenznummer=ref)],
+        final_state_values={"assessments": {"some-other-S": object()}},  # ref not assessed
+    )
+    violations = traj.check_test03(run_ctx)  # no tracker row saved either
+    assert len(violations) == 2
+    assert "not among the listings assessed" in violations[0]
+    assert "found 0" in violations[1]
 
 
 def test_check_test03_fails_when_no_save_call() -> None:
@@ -600,6 +642,23 @@ def test_check_test07_detects_missing_tracker_row_and_missing_list_tracker_menti
     violations = traj.check_test07(run_ctx)
     assert "expected a tracker row for 12288-4989500127-S" in violations
     assert "list_tracker's own result did not include 12288-4989500127-S" in violations
+
+
+def test_check_test07_checks_are_independent_row_exists_but_list_tracker_silent(
+    tmp_path: Path,
+) -> None:
+    """Coach review item 3: a passing tracker-row check does not excuse list_tracker failing."""
+    from job_hunt_agent import storage
+
+    conn = storage.get_connection(str(tmp_path / "test07_row_only.sqlite"))
+    user_id = "alex-test-07-r3"
+    ref = "12288-4989500127-S"
+    storage.save_tracker_entry(conn, _tracker_entry(user_id, ref))
+    run_ctx = traj.ScenarioRun(
+        conn=conn, store=None, user_id=user_id, all_messages=[], final_state_values={}
+    )
+    violations = traj.check_test07(run_ctx)
+    assert violations == ["list_tracker's own result did not include 12288-4989500127-S"]
 
 
 def test_check_test07_passes_when_tracker_row_and_list_tracker_mention_both_present(
@@ -688,7 +747,28 @@ def test_check_test09_fails_when_exclusion_reasons_empty() -> None:
     )
     violations = traj.check_test09(run_ctx)
     assert len(violations) == 1
-    assert "non-empty exclusion_reasons" in violations[0]
+    assert "excluded by you" in violations[0]
+
+
+def test_check_test09_fails_when_exclusion_reason_is_not_the_users_own() -> None:
+    """Addendum 1 (WP-15b): an unrelated exclusion reason (e.g. temp-agency) must not pass."""
+    from job_hunt_agent.models import FitAssessment
+
+    assessment = FitAssessment(
+        referenznummer="15548-1650634-1-S",
+        category="excluded",
+        exclusion_reasons=["temporary agency work (Arbeitnehmerüberlassung)"],
+    )
+    run_ctx = traj.ScenarioRun(
+        conn=None,
+        store=None,
+        user_id="alex-test-09-r1",
+        all_messages=[],
+        final_state_values={"assessments": {"15548-1650634-1-S": assessment}},
+    )
+    violations = traj.check_test09(run_ctx)
+    assert len(violations) == 1
+    assert "excluded by you" in violations[0]
 
 
 def test_check_test09_passes_when_excluded_with_reasons() -> None:

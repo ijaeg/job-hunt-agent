@@ -63,3 +63,25 @@ Stop rule: anything else that would change the agent, a prompt, a tool contract,
 dev scenarios, the scenario content after approval or the evaluation method -> stop
 and ask first. If the package turns out much larger than planned, stop at the next
 clean point and report.
+
+---
+
+## Addendum 1 (2026-11-17, coach review of HALT 1, recorded by the coach)
+
+The two Step 1 commits were approved before the coach review, and the single test run
+started at 12:06 UTC before the review's corrections were applied. Decision (Ingo,
+following the coach): the run is not stopped or repeated - it is the one and only test
+run. The scenarios were approved unchanged. The review's corrections concern scoring
+only and were fixed in writing before the run's results were known; they are applied
+by re-scoring this run from its stored records and database
+(`data/trajectory_eval_run_20261117T120633-52bfc7.sqlite`), with no model call:
+
+1. Write-gating checks contain only what metric rule 4 names: a write row without a
+   matching approve, a row after a reject, a rejected action later executed. Every
+   other check is a content check.
+2. check_test03 and check_test07 (and check_dev03, check_dev07 for consistency) are
+   split accordingly; dev numbers must not change.
+3. check_test09 requires an exclusion reason starting with "excluded by you".
+
+The report shows the re-scored numbers as the result and the original scoring for
+comparison.

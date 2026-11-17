@@ -1,9 +1,11 @@
 set: test
 date_drafted: '2026-11-17'
 approval:
-  date:
-  by:
-  note:
+  date: '2026-11-17'
+  by: Ingo
+  note: >-
+    Approved after coach review; check classification per metric rule 4, applied
+    by re-scoring the single test run.
 data_check: |
   Verified directly against FixtureSource (no model call), 2026-11-17, re-reading
   data/samples/fixtures/recorded_searches.json/listings.json fresh rather than
