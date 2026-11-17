@@ -2173,3 +2173,122 @@ directly in conversation and are recorded in this log and in
 **Next:** WP-15b (10 test scenarios, written now that tuning is done, never
 used for tuning) and WP-15c (the D-13 explanation-consistency check), per spec
 §13.
+
+## 2026-11-17 — WP-15b: tool-trajectory evaluation, test scenarios and the one test run
+
+**Done:**
+
+1. **10 test scenarios (spec §9.1, §9.2).** `eval/trajectory_scenarios_test.yaml`
+   (branch `feature/trajectory-eval-test`): one analogue per development scenario,
+   worded differently (not paraphrases) and, where the fixture data allowed, with
+   other listings/employers (BWI GmbH, EY Consulting GmbH, findic, ThoughtWorks
+   Deutschland GmbH instead of dev's EXXETA AG/Löwenstein/MCA Engineering/NTT
+   DATA). Includes the two spec shapes the dev set did not use: test-02's literal
+   "Why is #2 only partial?" and test-03's "Please save #1 ... remind me in a
+   week" by shortlist position rather than a reference number. `data_check`
+   documents a **data-quality finding, not fixed in this package**:
+   `FixtureSource`'s generic fallback search path (any query that doesn't exactly
+   match or narrow one of the 5 D-10 recorded searches) can spuriously include
+   listings whose `distance_km` was computed for a different search's origin -
+   confirmed directly (`keywords="DevOps", location="Berlin"` wrongly returns two
+   Hamburg listings). Every search-based test scenario was restricted to an exact
+   recorded replay or a genuine zero-result query to avoid it.
+2. **New DB/state checks (D-28 split).** `eval/run_trajectory_eval.py`:
+   `check_test03/04/07/08/09` (five new functions, `test-05` reuses `check_dev05`
+   directly - same referenznummer, the fixture set's only injection listing);
+   `load_scenarios` now reads a file per `--set` (`trajectory_scenarios.yaml` /
+   `trajectory_scenarios_test.yaml`) instead of filtering one file - `--set dev`
+   unchanged. HALT 1 approved by Ingo ("go ahead with proposed commit") - 2
+   commits (prompt+scenarios, runner+tests).
+3. **The one test run** (`openai/gpt-5-mini`, reasoning effort `low`, 10
+   scenarios x 2 runs, demo mode, fresh DB/user ids, 2026-11-17 12:06 UTC,
+   `eval/results/trajectory_test.json`): tool-selection accuracy 15/20 (75.0%),
+   argument accuracy 30/30 hard checks (100%), refinement rate 3/4 (75%),
+   run-to-run spread 2/10 (test-01, test-08). Three real findings, full detail in
+   [docs/trajectory_evaluation.md](trajectory_evaluation.md#test-set):
+   - **test-01 run 1:** the scenario's own date phrasing ("roughly the past
+     month") led the model to `published_within_days=30`, not the recorded 28 -
+     `FixtureSource` silently fell back to a much smaller fixture-only total (6,
+     not the real 103), so not refining was a *rational* response to what the
+     tool reported, not a repeat of dev-01's finding. A new instance of the
+     known D-10 Option 4 recorded-search fragility (previously found via keyword
+     phrasing, D-28; now also via publication-age phrasing).
+   - **test-02, both runs identically:** the "Machine Learning"/Berlin recorded
+     search's 10 committed listings are 9/10 not literally in Berlin (NTT DATA,
+     BWI GmbH, EY Consulting GmbH offices elsewhere); the model judged "too few
+     real Berlin matches" and never called `get_job_details`/`assess_fit` -
+     scenario-design flaw, same failure class as WP-15a's dev-05 finding, found
+     by this one real-model run.
+   - **test-03, both runs identically:** same root cause as test-02, plus a
+     check-function design gap of my own (`check_test03` required the saved ref
+     to be in `state.assessments`, stricter than FR-09 actually requires - dev-03
+     itself saves without ever calling `assess_fit`). The model's save was
+     itself correct (the one listing it had named, matching "#1").
+4. **Addendum 1 (coach review of HALT 1, landed after the run had already
+   started; Ingo's decision following the coach: the run stands, not
+   repeated).** Scoring-only corrections, applied by
+   `eval/rescore_trajectory_test.py` against the run's own stored records and
+   SQLite database, no model call: (a) `check_dev03`/`check_dev07`/
+   `check_test03`/`check_test07` (none involve a reject) moved from
+   `WRITE_GATING_CHECKS` to `CONTENT_CHECKS`, since spec §9.2 metric rule 4 only
+   names three shapes and these are none of them; (b) `check_test03`'s two
+   conditions ("saved ref was assessed in turn 1", "exactly one tracker row
+   exists") no longer short-circuit each other - both independently evaluated
+   and unit-tested (both can now fail together) - **my first implementation
+   pass applied (a) but missed this part of Addendum 1's own "split
+   accordingly" wording; caught and completed on a follow-up read of the same
+   addendum**; (c) applied consistently to `check_dev03`/`check_dev07` too -
+   re-scored for real: `trajectory_dev_run2.json` against its own still-intact
+   database (confirmed 0 violations, matching published numbers exactly), but
+   `trajectory_dev.json`'s re-score is **not possible from its database** - that
+   file's `db_path` field is `null` (it predates D-28's per-invocation DB field),
+   and the only candidate shared file is explicitly flagged by D-28's own
+   addendum as contaminated by multiple pre-D-28 runs sharing fixed user ids;
+   confirmed instead from the stored records alone (dev-03/dev-07 already had
+   zero violations there, nothing to move) and reported as the one check this
+   couldn't be done for, per the "stop and report which one" rule; (d)
+   `check_test09` tightened to require an `exclusion_reasons` entry starting
+   with "excluded by you" (unchanged outcome for this run). Re-scored result:
+   **approval-policy compliance 0/0 (compliant)** - test-03's finding is a
+   content-check failure, not a write-gating violation; splitting its two
+   conditions did not surface a new failure (the tracker-row half independently
+   passes in both runs). Caught and fixed my own mid-task error here too: ran
+   my first implementation pass's re-scoring script twice by accident (once
+   piped to `tail`, once to `head`), which clobbered the `rescore.original_metrics`
+   provenance field with already-corrected numbers on the second pass; reconstructed the
+   true pre-correction value from the terminal output captured right after the
+   one real run and patched it back in directly, with a note recording the
+   correction; the re-score script was then made idempotent (keeps an existing
+   `original_metrics` rather than overwriting it) so this cannot recur.
+5. `docs/trajectory_evaluation.md`: new "Test set" section (metrics, per-scenario
+   table, every failure with its cause, approval-policy/content-check-failure
+   account, soft checks, run-to-run spread, dev-vs-test comparison, a
+   lesson-for-future-scenarios note) plus one paragraph on the classification
+   correction with the original scoring shown for comparison. Dev sections
+   unchanged.
+
+**Checks:** 526 tests, 0 skipped, 99% coverage. `ruff check .`/`ruff format
+--check .` clean (160 files). `mypy src app.py pages` clean (38 files). Real-model
+run: the one test run itself (20 scenario-runs against `openai/gpt-5-mini`).
+PII: `eval/results/trajectory_test.json` scanned for e-mail and phone-number
+patterns - none found (the only regex hits were referenznummer substrings, the
+same known false-positive shape as WP-10's P-01 check). Data integrity: every
+referenznummer used in the test scenarios confirmed present in
+`data/samples/fixtures/listings.json` before the run (`data_check`); no fixture
+data changed. Data covers the scenario: test-01's >50 query re-verified against
+`recorded_searches.json` directly before writing the scenario, independent of
+the dev file's own report. Docs match the data: all numbers in
+`docs/trajectory_evaluation.md` and this entry taken from
+`eval/results/trajectory_test.json` (re-scored), not from memory.
+
+**No new decision file.** HALT 1's only decision (approval of the 10 test
+scenarios and their checks) was given directly ("go ahead with proposed
+commit"); `eval/trajectory_scenarios_test.yaml`'s own `approval` block now
+records it. The coach review and Ingo's decision following it were recorded as
+Addendum 1 to `docs/prompts/WP-15b-trajectory-eval-test.md`, the same pattern
+WP-05 and D-28 already established for a post-HALT correction
+- not a separate decision file.
+
+**Next:** WP-15c (the D-13 explanation-consistency check, spec §13); the
+test-01/test-02/test-03 findings above are documented limitations, not
+scheduled fixes, per the "no change after the run" rule for this package.

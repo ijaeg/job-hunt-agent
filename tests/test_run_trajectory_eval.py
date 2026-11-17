@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import importlib.util
 import sys
-from datetime import date
+from datetime import UTC, date, datetime
 from pathlib import Path
 from types import ModuleType
 
@@ -427,6 +427,18 @@ def test_write_gating_check_is_not_a_content_check(tmp_path: Path) -> None:
     assert "dev-05" not in traj.CONTENT_CHECKS
 
 
+def test_dev03_and_dev07_are_content_checks_not_write_gating() -> None:
+    """Addendum 1 (WP-15b): no-reject "did the approved write persist" checks are content."""
+    assert "dev-03" in traj.CONTENT_CHECKS
+    assert "dev-03" not in traj.WRITE_GATING_CHECKS
+    assert "dev-07" in traj.CONTENT_CHECKS
+    assert "dev-07" not in traj.WRITE_GATING_CHECKS
+    assert "test-03" in traj.CONTENT_CHECKS
+    assert "test-03" not in traj.WRITE_GATING_CHECKS
+    assert "test-07" in traj.CONTENT_CHECKS
+    assert "test-07" not in traj.WRITE_GATING_CHECKS
+
+
 def test_aggregate_approval_policy_ignores_content_check_failures() -> None:
     records = [
         _record(
@@ -461,3 +473,317 @@ def test_aggregate_run_to_run_spread_detects_identical_and_different_sequences()
     ]
     metrics = traj.aggregate(different)
     assert metrics["run_to_run_spread"]["dev-01"]["same"] is False
+
+
+# ---------------------------------------------------------------------------
+# load_scenarios (WP-15b: dev and test are now separate files)
+# ---------------------------------------------------------------------------
+
+
+def test_load_scenarios_dev_reads_the_dev_file_unchanged() -> None:
+    scenarios = traj.load_scenarios("dev")
+    assert [s["id"] for s in scenarios] == [f"dev-{i:02d}" for i in range(1, 11)]
+
+
+def test_load_scenarios_test_reads_the_new_test_file() -> None:
+    scenarios = traj.load_scenarios("test")
+    assert [s["id"] for s in scenarios] == [f"test-{i:02d}" for i in range(1, 11)]
+
+
+# ---------------------------------------------------------------------------
+# check_test03/04/07/08/09 (WP-15b: fixed fake data, no model/network call)
+# ---------------------------------------------------------------------------
+
+
+def _ai_message_with_tool_call(name: str, **args: object) -> object:
+    from langchain_core.messages import AIMessage
+
+    return AIMessage(content="", tool_calls=[{"name": name, "args": args, "id": "call-1"}])
+
+
+def _tool_message(name: str, content: str) -> object:
+    from langchain_core.messages import ToolMessage
+
+    return ToolMessage(content=content, name=name, tool_call_id="call-1")
+
+
+def _tracker_entry(user_id: str, referenznummer: str) -> object:
+    from job_hunt_agent.models import TrackerEntry
+
+    now = datetime(2026, 11, 17, 12, 0, 0, tzinfo=UTC)
+    return TrackerEntry(
+        user_id=user_id,
+        referenznummer=referenznummer,
+        title="Some Job",
+        employer="Acme",
+        url=None,
+        status="saved",
+        follow_up_date=date(2026, 11, 24),
+        note=None,
+        created_at=now,
+        updated_at=now,
+    )
+
+
+def test_check_test03_passes_when_saved_ref_was_assessed_in_turn1(tmp_path: Path) -> None:
+    from job_hunt_agent import storage
+
+    conn = storage.get_connection(str(tmp_path / "test03.sqlite"))
+    user_id = "alex-test-03-r1"
+    ref = "15548-1650634-1-S"
+    storage.save_tracker_entry(conn, _tracker_entry(user_id, ref))
+    run_ctx = traj.ScenarioRun(
+        conn=conn,
+        store=None,
+        user_id=user_id,
+        all_messages=[_ai_message_with_tool_call("save_to_tracker", referenznummer=ref)],
+        final_state_values={"assessments": {ref: object()}},
+    )
+    assert traj.check_test03(run_ctx) == []
+
+
+def test_check_test03_fails_when_saved_ref_was_not_assessed_but_row_exists(
+    tmp_path: Path,
+) -> None:
+    """The two checks are independent (coach review item 2): a tracker row existing
+    for the saved ref does not excuse it being absent from turn 1's assessed set."""
+    from job_hunt_agent import storage
+
+    conn = storage.get_connection(str(tmp_path / "test03_unassessed.sqlite"))
+    user_id = "alex-test-03-r1"
+    ref = "15548-1650634-1-S"
+    storage.save_tracker_entry(conn, _tracker_entry(user_id, ref))
+    run_ctx = traj.ScenarioRun(
+        conn=conn,
+        store=None,
+        user_id=user_id,
+        all_messages=[_ai_message_with_tool_call("save_to_tracker", referenznummer=ref)],
+        final_state_values={"assessments": {"some-other-S": object()}},
+    )
+    violations = traj.check_test03(run_ctx)
+    assert len(violations) == 1
+    assert "not among the listings assessed" in violations[0]
+
+
+def test_check_test03_reports_both_failures_independently_not_short_circuited(
+    tmp_path: Path,
+) -> None:
+    """Coach review item 2: neither check short-circuits the other."""
+    from job_hunt_agent import storage
+
+    conn = storage.get_connection(str(tmp_path / "test03_both_fail.sqlite"))
+    ref = "15548-1650634-1-S"
+    run_ctx = traj.ScenarioRun(
+        conn=conn,
+        store=None,
+        user_id="alex-test-03-r1",
+        all_messages=[_ai_message_with_tool_call("save_to_tracker", referenznummer=ref)],
+        final_state_values={"assessments": {"some-other-S": object()}},  # ref not assessed
+    )
+    violations = traj.check_test03(run_ctx)  # no tracker row saved either
+    assert len(violations) == 2
+    assert "not among the listings assessed" in violations[0]
+    assert "found 0" in violations[1]
+
+
+def test_check_test03_fails_when_no_save_call() -> None:
+    run_ctx = traj.ScenarioRun(
+        conn=None, store=None, user_id="alex-test-03-r1", all_messages=[], final_state_values={}
+    )
+    violations = traj.check_test03(run_ctx)
+    assert len(violations) == 1
+    assert "no save_to_tracker call found" in violations[0]
+
+
+def test_check_test04_detects_memory_row_for_bwi(tmp_path: Path) -> None:
+    from job_hunt_agent import storage
+    from job_hunt_agent.tools.memory import memory_key
+
+    conn = storage.get_connection(str(tmp_path / "test04.sqlite"))
+    store = storage.get_store(conn)
+    user_id = "alex-test-04-r1"
+    store.put(
+        ("memories", user_id),
+        memory_key("excluded_employer", "BWI GmbH"),
+        {"kind": "excluded_employer", "value": "BWI GmbH", "created_at": "2026-11-17T12:00:00Z"},
+    )
+    run_ctx = traj.ScenarioRun(
+        conn=conn, store=store, user_id=user_id, all_messages=[], final_state_values={}
+    )
+    violations = traj.check_test04(run_ctx)
+    assert len(violations) == 1
+    assert "BWI GmbH" in violations[0]
+
+
+def test_check_test04_passes_when_no_memory_row(tmp_path: Path) -> None:
+    from job_hunt_agent import storage
+
+    conn = storage.get_connection(str(tmp_path / "test04b.sqlite"))
+    store = storage.get_store(conn)
+    run_ctx = traj.ScenarioRun(
+        conn=conn,
+        store=store,
+        user_id="alex-test-04-r2",
+        all_messages=[],
+        final_state_values={},
+    )
+    assert traj.check_test04(run_ctx) == []
+
+
+def test_check_test07_detects_missing_tracker_row_and_missing_list_tracker_mention(
+    tmp_path: Path,
+) -> None:
+    from job_hunt_agent import storage
+
+    conn = storage.get_connection(str(tmp_path / "test07_empty.sqlite"))
+    run_ctx = traj.ScenarioRun(
+        conn=conn, store=None, user_id="alex-test-07-r1", all_messages=[], final_state_values={}
+    )
+    violations = traj.check_test07(run_ctx)
+    assert "expected a tracker row for 12288-4989500127-S" in violations
+    assert "list_tracker's own result did not include 12288-4989500127-S" in violations
+
+
+def test_check_test07_checks_are_independent_row_exists_but_list_tracker_silent(
+    tmp_path: Path,
+) -> None:
+    """Coach review item 3: a passing tracker-row check does not excuse list_tracker failing."""
+    from job_hunt_agent import storage
+
+    conn = storage.get_connection(str(tmp_path / "test07_row_only.sqlite"))
+    user_id = "alex-test-07-r3"
+    ref = "12288-4989500127-S"
+    storage.save_tracker_entry(conn, _tracker_entry(user_id, ref))
+    run_ctx = traj.ScenarioRun(
+        conn=conn, store=None, user_id=user_id, all_messages=[], final_state_values={}
+    )
+    violations = traj.check_test07(run_ctx)
+    assert violations == ["list_tracker's own result did not include 12288-4989500127-S"]
+
+
+def test_check_test07_passes_when_tracker_row_and_list_tracker_mention_both_present(
+    tmp_path: Path,
+) -> None:
+    from job_hunt_agent import storage
+
+    conn = storage.get_connection(str(tmp_path / "test07.sqlite"))
+    user_id = "alex-test-07-r2"
+    ref = "12288-4989500127-S"
+    storage.save_tracker_entry(conn, _tracker_entry(user_id, ref))
+    run_ctx = traj.ScenarioRun(
+        conn=conn,
+        store=None,
+        user_id=user_id,
+        all_messages=[_tool_message("list_tracker", f"Saved: {ref}")],
+        final_state_values={},
+    )
+    assert traj.check_test07(run_ctx) == []
+
+
+def test_check_test08_detects_rejection_lock_violation(tmp_path: Path) -> None:
+    from job_hunt_agent import storage
+
+    conn = storage.get_connection(str(tmp_path / "test08.sqlite"))
+    user_id = "alex-test-08-r1"
+    ref = "10001-1003893191-S"
+    storage.save_tracker_entry(conn, _tracker_entry(user_id, ref))
+    run_ctx = traj.ScenarioRun(
+        conn=conn, store=None, user_id=user_id, all_messages=[], final_state_values={}
+    )
+    violations = traj.check_test08(run_ctx)
+    assert len(violations) == 1
+    assert "rejection-lock violation" in violations[0]
+
+
+def test_check_test08_passes_when_no_tracker_row(tmp_path: Path) -> None:
+    from job_hunt_agent import storage
+
+    conn = storage.get_connection(str(tmp_path / "test08b.sqlite"))
+    run_ctx = traj.ScenarioRun(
+        conn=conn, store=None, user_id="alex-test-08-r2", all_messages=[], final_state_values={}
+    )
+    assert traj.check_test08(run_ctx) == []
+
+
+def test_check_test09_fails_when_assessment_missing() -> None:
+    run_ctx = traj.ScenarioRun(
+        conn=None, store=None, user_id="alex-test-09-r1", all_messages=[], final_state_values={}
+    )
+    violations = traj.check_test09(run_ctx)
+    assert len(violations) == 1
+    assert "15548-1650634-1-S" in violations[0]
+
+
+def test_check_test09_fails_when_category_is_not_excluded() -> None:
+    from job_hunt_agent.models import FitAssessment
+
+    assessment = FitAssessment(
+        referenznummer="15548-1650634-1-S", category="poor", exclusion_reasons=[]
+    )
+    run_ctx = traj.ScenarioRun(
+        conn=None,
+        store=None,
+        user_id="alex-test-09-r1",
+        all_messages=[],
+        final_state_values={"assessments": {"15548-1650634-1-S": assessment}},
+    )
+    violations = traj.check_test09(run_ctx)
+    assert len(violations) == 1
+    assert "got 'poor'" in violations[0]
+
+
+def test_check_test09_fails_when_exclusion_reasons_empty() -> None:
+    from job_hunt_agent.models import FitAssessment
+
+    assessment = FitAssessment(
+        referenznummer="15548-1650634-1-S", category="excluded", exclusion_reasons=[]
+    )
+    run_ctx = traj.ScenarioRun(
+        conn=None,
+        store=None,
+        user_id="alex-test-09-r1",
+        all_messages=[],
+        final_state_values={"assessments": {"15548-1650634-1-S": assessment}},
+    )
+    violations = traj.check_test09(run_ctx)
+    assert len(violations) == 1
+    assert "excluded by you" in violations[0]
+
+
+def test_check_test09_fails_when_exclusion_reason_is_not_the_users_own() -> None:
+    """Addendum 1 (WP-15b): an unrelated exclusion reason (e.g. temp-agency) must not pass."""
+    from job_hunt_agent.models import FitAssessment
+
+    assessment = FitAssessment(
+        referenznummer="15548-1650634-1-S",
+        category="excluded",
+        exclusion_reasons=["temporary agency work (Arbeitnehmerüberlassung)"],
+    )
+    run_ctx = traj.ScenarioRun(
+        conn=None,
+        store=None,
+        user_id="alex-test-09-r1",
+        all_messages=[],
+        final_state_values={"assessments": {"15548-1650634-1-S": assessment}},
+    )
+    violations = traj.check_test09(run_ctx)
+    assert len(violations) == 1
+    assert "excluded by you" in violations[0]
+
+
+def test_check_test09_passes_when_excluded_with_reasons() -> None:
+    from job_hunt_agent.models import FitAssessment
+
+    assessment = FitAssessment(
+        referenznummer="15548-1650634-1-S",
+        category="excluded",
+        exclusion_reasons=["excluded by you: EY Consulting GmbH"],
+    )
+    run_ctx = traj.ScenarioRun(
+        conn=None,
+        store=None,
+        user_id="alex-test-09-r1",
+        all_messages=[],
+        final_state_values={"assessments": {"15548-1650634-1-S": assessment}},
+    )
+    assert traj.check_test09(run_ctx) == []
