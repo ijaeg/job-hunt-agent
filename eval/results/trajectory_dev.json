@@ -1,0 +1,1846 @@
+{
+  "set": "dev",
+  "model": "openai/gpt-5-mini",
+  "reasoning_effort": "low",
+  "run_date": "2026-11-17",
+  "run_datetime_utc": "2026-11-17T10:41:08.439390+00:00",
+  "records": [
+    {
+      "scenario_id": "dev-01",
+      "run": 1,
+      "user_id": "alex-dev-01-r1",
+      "thread_id": "traj-dev-01-r1-9ceac4cd",
+      "elapsed_seconds": 50.4,
+      "turns": [
+        {
+          "type": "user",
+          "skipped_no_interrupt_pending": false,
+          "tool_calls": [
+            {
+              "name": "search_jobs",
+              "args": {
+                "keywords": "Softwareentwickler",
+                "location": "München",
+                "radius_km": 25,
+                "published_within_days": 28,
+                "exclude_temp_agency": true,
+                "page": 1
+              }
+            },
+            {
+              "name": "get_job_details",
+              "args": {
+                "referenznummer": "12117-YF-48852-YF-S"
+              }
+            },
+            {
+              "name": "get_job_details",
+              "args": {
+                "referenznummer": "10001-1003863378-S"
+              }
+            },
+            {
+              "name": "get_job_details",
+              "args": {
+                "referenznummer": "10001-1003935843-S"
+              }
+            },
+            {
+              "name": "get_job_details",
+              "args": {
+                "referenznummer": "19121-44499216-1011-S"
+              }
+            },
+            {
+              "name": "get_job_details",
+              "args": {
+                "referenznummer": "14225-d10be3b2dd249dcf-S"
+              }
+            },
+            {
+              "name": "get_job_details",
+              "args": {
+                "referenznummer": "12336-a26f1128j0452080-S"
+              }
+            },
+            {
+              "name": "assess_fit",
+              "args": {
+                "referenznummern": [
+                  "12117-YF-48852-YF-S",
+                  "10001-1003863378-S",
+                  "10001-1003935843-S",
+                  "19121-44499216-1011-S",
+                  "14225-d10be3b2dd249dcf-S",
+                  "12336-a26f1128j0452080-S"
+                ]
+              }
+            }
+          ],
+          "interrupted_after": false,
+          "final_message": "I found 6 assessable Softwareentwickler listings in München (published within the last 4 weeks). Shortlist with fit, key matches/gaps, location/remote and contract info:\n\nUser profile (quoted): Skills: Python, Java, FastAPI, PostgreSQL, Docker, CI/CD\n\n1) Referenznummer: 12117-YF-48852-YF-S — Softwareentwickler (bayoonet AG) — category: partial\n   - Location/remote: München — hybrid (3 days on-site stated)\n   - Contract: Vollzeit, external posting (company)\n   - Key matches: Docker (ad: \"Containerisierung ... Docker, Kubernetes\")\n   - Main gaps: Kubernetes; API‑Design/REST/gRPC; Kafka/RabbitMQ; Terraform; Azure DevOps; frontend/mobile/embedded items listed\n   - Notes: Seeks generalist with cloud/backend emphasis; requires \"Sehr gute Deutsch- und Englischkenntnisse\"\n\n2) Referenznummer: 10001-1003863378-S — Softwareentwickler (Landesamt für Digitalisierung, Breitband und Vermessung) — category: partial\n   - Location/remote: München — up to 80% home office\n   - Contract: Vollzeit, unbefristet (public sector)\n   - Key matches: Java (ad: \"Beherrschung der Programmiersprache Java\")\n   - Main gaps: SQL/relational DB details; SOAP/REST/JSON/XML; IT‑Security / software hardening\n   - Notes: Strong job security and public benefits; German required (\"Sehr gute Deutschkenntnisse\")\n\n3) Referenznummer: 10001-1003935843-S — Softwareentwickler C#/.NET (Baader Bank AG, Unterschleißheim) — category: partial\n   - Location/remote: Unterschleißheim (≈15 km from München) — remote \"nach Vereinbarung\"\n   - Contract: Vollzeit, unbefristet\n   - Key matches: CI/CD, DB work includes Postgress (ad mentions Postgress), REST APIs, microservices\n   - Main gaps: Primary stack is C#/.NET (not in your Skills list); many .NET specifics (ASP.NET Core, EF, .NET Core/8)\n   - Notes: Banking domain, agile Scrum teams\n\n4) Referenznummer: 19121-44499216-1011-S — Systemnaher Softwareentwickler (genua GmbH, Kirchheim b. München) — category: poor\n   - Location/remote: Kirchheim bei München\n   - Contract: Vollzeit\n   - Key matches: none against your profile skills\n   - Main gaps: Role focused on C, shell, OpenBSD/Linux, kernel‑near work, TCP/IP, network/security — not aligned with your Python/Java/Cloud stack\n   - Notes: Requires very good German (B2+)\n\n5) Referenznummer: 14225-d10be3b2dd249dcf-S — Softwareentwickler - IT (PartSpace GmbH) — category: strong\n   - Location/remote: München (ad lists hybrid/flexible) — remote \"nach Vereinbarung\"\n   - Contract: Vollzeit\n   - Key matches: CI/CD / automated tests; cloud/backend engineering practices; Azure DevOps mentioned\n   - Main gaps: Primary stack in ad is .NET/C# (many .NET specifics); domain is CAD/AI for industry (product/feature data)\n   - Notes: Assessed as strong because of match on CI/CD and backend role despite .NET focus\n\n6) Referenznummer: 12336-a26f1128j0452080-S — Senior Softwareentwickler - .NET MAUI, Blazor & Cloud (TÜV SÜD AG) — category: partial (low evidence)\n   - Location/remote: München (senior role)\n   - Contract: Vollzeit\n   - Key matches: CI/CD pipelines (Azure DevOps)\n   - Main gaps: .NET MAUI, Blazor, C#/.NET, MS SQL, REST APIs — differs from your Python/Java skills\n   - Notes: Senior position; ad flagged low evidence extraction\n\nQuick observations vs your profile\n- Direct skill overlaps: Your profile lists Java and Docker; Java appeared clearly in the public‑sector LDBV posting, Docker appears in bayoonet. CI/CD/DevOps shows up across several ads (PartSpace, Baader, TÜV SÜD).\n- Language: Several roles require very good German; your German level is \"basic\" — the Landesamt and genua explicitly ask for \"Sehr gute\" or B2 German and may be difficult without stronger German.\n- Seniority: You listed \"senior\" — some ads are senior (TÜV SÜD) or open, others don't state level explicitly.\n- Employment type: Most are full‑time, permanent or unspecified; the Landesamt is explicitly unbefristet.\n\nWould you like to do one of the following next?\n- Save any of these to your tracker (tell me the referenznummer(s) to save)\n- I can start an application (mark \"applied\") for any saved listing\n- Show full ad text or external application link for a specific referenznummer\n- Broaden or narrow the search (different keywords, larger radius, include München suburbs)\n\nWhich action do you want?"
+        }
+      ],
+      "tool_selection_passed": false,
+      "turn_tool_selection": [
+        {
+          "turn": 1,
+          "passed": true,
+          "missing_required": [],
+          "forbidden_present": []
+        }
+      ],
+      "order_constraint_failures": [
+        "at least 2 search_jobs calls in turn 1 (refinement) -> actual 1"
+      ],
+      "key_arguments": [
+        {
+          "tool": "search_jobs",
+          "field": "location",
+          "passed": true,
+          "soft": false,
+          "detail": "location='München'"
+        },
+        {
+          "tool": "search_jobs",
+          "field": "keywords",
+          "passed": true,
+          "soft": false,
+          "detail": "keywords='Softwareentwickler'"
+        }
+      ],
+      "refinement_expected_mode": "yes",
+      "refinement_happened": false,
+      "approval_violations": [],
+      "content_check_failures": []
+    },
+    {
+      "scenario_id": "dev-01",
+      "run": 2,
+      "user_id": "alex-dev-01-r2",
+      "thread_id": "traj-dev-01-r2-0d852ad4",
+      "elapsed_seconds": 59.56,
+      "turns": [
+        {
+          "type": "user",
+          "skipped_no_interrupt_pending": false,
+          "tool_calls": [
+            {
+              "name": "search_jobs",
+              "args": {
+                "keywords": "Softwareentwickler Python Java",
+                "location": "München",
+                "radius_km": 25,
+                "published_within_days": 28,
+                "exclude_temp_agency": true
+              }
+            },
+            {
+              "name": "search_jobs",
+              "args": {
+                "keywords": "Softwareentwickler",
+                "location": "München",
+                "radius_km": 25,
+                "published_within_days": 28,
+                "exclude_temp_agency": true
+              }
+            },
+            {
+              "name": "search_jobs",
+              "args": {
+                "keywords": "Python FastAPI",
+                "location": "München",
+                "radius_km": 25,
+                "published_within_days": 28,
+                "exclude_temp_agency": true
+              }
+            },
+            {
+              "name": "get_job_details",
+              "args": {
+                "referenznummer": "12117-YF-48852-YF-S"
+              }
+            },
+            {
+              "name": "get_job_details",
+              "args": {
+                "referenznummer": "10001-1003863378-S"
+              }
+            },
+            {
+              "name": "get_job_details",
+              "args": {
+                "referenznummer": "14225-d10be3b2dd249dcf-S"
+              }
+            },
+            {
+              "name": "get_job_details",
+              "args": {
+                "referenznummer": "19121-44499216-1011-S"
+              }
+            },
+            {
+              "name": "assess_fit",
+              "args": {
+                "referenznummern": [
+                  "12117-YF-48852-YF-S",
+                  "10001-1003863378-S",
+                  "14225-d10be3b2dd249dcf-S",
+                  "19121-44499216-1011-S"
+                ]
+              }
+            }
+          ],
+          "interrupted_after": false,
+          "final_message": "I searched the BA job board for \"Softwareentwickler\" in München (last 4 weeks) and assessed a shortlist of 4 listings that match your profile. Your stored Skills line (used to refine matches):  \nSkills: Python, Java, FastAPI, PostgreSQL, Docker, CI/CD\n\nShortlist (sorted by assessed fit)\n1) Softwareentwickler (m/w/d) — bayoonet AG  \n   - Referenznummer: 12117-YF-48852-YF-S  \n   - Ort / Posted: München / 2026-10-12  \n   - Vertrag / Vollzeit: unklar / full-time, permanent not explicitly stated in ad  \n   - Remote: hybrid (company describes 3 days on-site, 2 remote)  \n   - Fit category: partial  \n   - Key matches: Docker (evidence: \"Containerisierung und Orchestrierung (Docker, Kubernetes)\")  \n   - Key gaps (not all required by ad, but extracted): Kubernetes; REST / gRPC; Kafka / RabbitMQ; Terraform; Azure DevOps Pipelines; frontend/mobile/embedded stack.  \n   - Notes: The ad asks generalists with cloud/backend emphasis (Docker, API design, IaC) and explicitly requests \"Sehr gute Deutsch- und Englischkenntnisse\" — German requirement may be higher than your \"basic\" German.\n\n2) Softwareentwickler (w/m/d) Landesvermessung — Landesamt für Digitalisierung, Breitband und Vermessung  \n   - Referenznummer: 10001-1003863378-S  \n   - Ort / Posted: München / 2026-10-15  \n   - Vertrag / Vollzeit: Unbefristet (permanent), full-time (also part-time possible)  \n   - Remote: up to 80% homeoffice (ANGABE_IN_PROZENT)  \n   - Fit category: partial  \n   - Key matches: Java (evidence: \"Beherrschung der Programmiersprache Java ...\")  \n   - Key gaps: SQL / relational DBs with geodata; SOAP / REST / JSON / XML; IT-security concepts; desktop/server Java specifics.  \n   - Notes: This is a public-sector permanent role with strong Java and German-language requirements (\"Sehr gute Deutschkenntnisse\") — your English-native is fine but German B2+ is requested.\n\n3) Softwareentwickler - IT (m/w/d) — PartSpace GmbH  \n   - Referenznummer: 14225-d10be3b2dd249dcf-S  \n   - Ort / Posted: München (company has multiple locations) / 2026-10-29  \n   - Vertrag / Vollzeit: full-time, permanent status not explicitly stated  \n   - Remote: nach Vereinbarung (to be agreed)  \n   - Fit category: strong  \n   - Key matches: CI/CD (evidence: \"Du bewegst dich sicher in Azure DevOps, CI/CD, automatisierten Tests ...\") — your Skills include CI/CD and Docker which are relevant.  \n   - Key gaps / differences: Core backend stack in ad is .NET/C# (not Python/Java); domain work with CAD/PLM data and clustering / import pipelines.  \n   - Notes: Good match on engineering practices (CI/CD, Azure DevOps), but tech mismatch (.NET/C# vs your Python/Java). Remote/flexibility seems reasonable.\n\n4) Systemnaher Softwareentwickler (d/m/w) — genua GmbH  \n   - Referenznummer: 19121-44499216-1011-S  \n   - Ort / Posted: Kirchheim bei München / 2026-10-12  \n   - Vertrag / Vollzeit: full-time, permanent status not explicitly stated  \n   - Remote: flexible/mobile work possible (mentions mobile working)  \n   - Fit category: poor  \n   - Key matches: none extracted for your listed stack.  \n   - Key gaps: strong system-level / C, shell, OpenBSD/Linux, kernel-near topics, TCP/IP — this is a security / system-level role, not a backend/web stack role.  \n   - Notes: Requires very good German (\"Sehr gute Deutschkenntnisse (mind. B2)\").\n\nSummary and implications\n- I used your profile skills line above to compare against ads. The best \"overall\" match here is PartSpace on processes (CI/CD) but its tech is .NET/C#. bayoonet AG lists many cloud/backend items that overlap your Docker and CI/CD skills but also expects stronger German. The public-sector LDBV role is permanent and offers 80% home office but is Java-heavy and asks for very good German. genua is a system-level security role and not a match for your listed stack.\n- Two items flagged as important when considering applying: 1) German language requirements — several ads request \"Sehr gute Deutschkenntnisse\"; you currently list German level: basic. 2) Tech mismatch (.NET or C/system roles) vs your main stack (Python, Java, FastAPI, PostgreSQL).\n\nNext steps — what would you like me to do?\n- Save any of these to your application tracker (I can save/update status \"saved\"/\"applied\"/\"rejected\"). Tell me which reference number(s) and status.  \n- I can search more widely (increase radius, broaden keywords to include .NET or C if you want more results, or extend posted-within-days). Note: you asked specifically for München; I used that override (profile location Hamburg was ignored for this search).  \n- I can fetch full application links or extract contact/apply instructions for any listed job.\n\nWhich option do you want?"
+        }
+      ],
+      "tool_selection_passed": true,
+      "turn_tool_selection": [
+        {
+          "turn": 1,
+          "passed": true,
+          "missing_required": [],
+          "forbidden_present": []
+        }
+      ],
+      "order_constraint_failures": [],
+      "key_arguments": [
+        {
+          "tool": "search_jobs",
+          "field": "location",
+          "passed": true,
+          "soft": false,
+          "detail": "location='München'"
+        },
+        {
+          "tool": "search_jobs",
+          "field": "keywords",
+          "passed": true,
+          "soft": false,
+          "detail": "keywords='Softwareentwickler Python Java'"
+        }
+      ],
+      "refinement_expected_mode": "yes",
+      "refinement_happened": true,
+      "approval_violations": [],
+      "content_check_failures": []
+    },
+    {
+      "scenario_id": "dev-02",
+      "run": 1,
+      "user_id": "alex-dev-02-r1",
+      "thread_id": "traj-dev-02-r1-95798079",
+      "elapsed_seconds": 53.0,
+      "turns": [
+        {
+          "type": "user",
+          "skipped_no_interrupt_pending": false,
+          "tool_calls": [
+            {
+              "name": "search_jobs",
+              "args": {
+                "keywords": "Java Entwickler",
+                "location": "Hamburg",
+                "radius_km": 25,
+                "published_within_days": 28,
+                "exclude_temp_agency": true,
+                "page": 1
+              }
+            },
+            {
+              "name": "get_job_details",
+              "args": {
+                "referenznummer": "10001-1003824856-S"
+              }
+            },
+            {
+              "name": "get_job_details",
+              "args": {
+                "referenznummer": "17338-61cf767722ad450056-S"
+              }
+            },
+            {
+              "name": "get_job_details",
+              "args": {
+                "referenznummer": "13755-44520300-1020-S"
+              }
+            },
+            {
+              "name": "assess_fit",
+              "args": {
+                "referenznummern": [
+                  "10001-1003824856-S",
+                  "17338-61cf767722ad450056-S",
+                  "13755-44520300-1020-S"
+                ]
+              }
+            }
+          ],
+          "interrupted_after": false,
+          "final_message": "I found 3 Java positions in/near Hamburg that match your profile. Below is a concise shortlist with the assessed fit, key matches and gaps (evidence quoted from each ad), and contract/remote info.\n\nYour profile (quoted): Skills: Python, Java, FastAPI, PostgreSQL, Docker, CI/CD\n\n1) Java Backend Entwickler [m/w/d] — Die Tech Recruiter GmbH\n- BA ref: 10001-1003824856-S\n- Fit category: partial\n- Location / remote: Hamburg area; 100% remote (ad: \"100% Remote\")\n- Contract / hours: full-time, permanent; salary €65k–75k\n- Key matches (evidence):\n  - Java — \"Entwicklung und Wartung von Backend-Lösungen in Java.\"\n  - PostgreSQL — \"Optimierung von Datenbankabfragen und -strukturen in PostgreSQL.\"\n- Key gaps (evidence):\n  - Hibernate — \"Fundierte Kenntnisse in Hibernate und PostgreSQL.\"\n  - Tomcat — \"Überwachung und Verbesserung der Anwendungsleistung auf Tomcat-Servern.\"\n  - Agentic / KI — \"Idealerweise erste Erfahrung mit Agentic / KI Softwareentwicklung (Claude / Codex etc.).\"\n- Notes: Ad requests very good German and English; mentions ideally local Hamburg residence if on-site meetings occur.\n\n2) Java / Angular Fullstack Developer (m/w/d) — Neptune IT\n- BA ref: 17338-61cf767722ad450056-S\n- Fit category: strong\n- Location / remote: Hybrid (building an office in Hamburg; initially remote); salary €45k–65k\n- Contract / hours: full-time (contract type not specified)\n- Key matches (evidence):\n  - Java — \"Java\"\n  - Docker — \"Docker\"\n  - PostgreSQL — \"Erfahrung mit relationalen Datenbanken (PostgreSQL, Oracle o. Ä.)\"\n  - CI/CD — \"Modern Tools & Methods (Agile, GitLab, CI/CD, Code Reviews)\" (ad mentions these practices)\n- Key gaps (evidence):\n  - Angular / TypeScript — \"Sehr gute Kenntnisse in TypeScript und Angular (v13+).\"\n  - Spring / Spring Boot / JPA/Hibernate — \"Sehr gute Kenntnisse in Java (11+), Spring Boot, JPA/Hibernate\"\n  - Frontend experience expected (Angular)\n- Notes: Strong technical match on backend tooling; frontend Angular is required — relevant if you prefer backend-only roles.\n\n3) IT-Innovation Developerin Fullstack (a*) — Hamburger Energienetze GmbH\n- BA ref: 13755-44520300-1020-S\n- Fit category: partial\n- Location / remote: Hamburg; flexible (office + mobile work)\n- Contract / hours: full-time, fixed-term to mid‑2028; salary ~€70k–81k (tariff)\n- Key matches (evidence):\n  - Java — \"Java / Kotlin\"\n  - Docker / Kubernetes — \"Docker Compose und Kubernetes\"\n  - PostgreSQL — \"PostgreSQL (Standard und TimescaleDB)\"\n- Key gaps (evidence):\n  - Kotlin, Spring, Kafka, Kubernetes, many infra/tools (Ansible, Azure, Terraform, Grafana, etc.) — listed extensively in the ad\n  - Ad requests fluent German — \"Fließende Deutschkenntnisse\"\n- Notes: Good match for backend/infrastructure skills and Docker/Postgres. This is a fixed-term role (to mid‑2028), not permanent.\n\nGeneral notes\n- I excluded temporary-agency listings per your profile (exclude_temp_agency = true). None of the shortlist are temp-agency roles.\n- Language: Several ads prefer/require strong German. Your profile: German level: basic — so pay attention to ads that state \"fließend\" or \"sehr gute Deutschkenntnisse\".\n- Seniority: Your profile is senior; some ads list explicit senior level, others don't. assess_fit flagged seniority as unknown/partly for some.\n\nWhat would you like me to do next?\n- Save any of these to your tracker (I can save as \"saved\" and optionally set a follow-up date). Tell me the BA ref(s) to save.\n- I can open/apply to one (call save_to_tracker with status \"applied\") if you want to record an application.\n- Get the full ad text or prepare a short tailored application note for any listing.\n- Or search further / widen the radius or age if you want more options.\n\nWhich action, if any, should I take?"
+        },
+        {
+          "type": "user",
+          "skipped_no_interrupt_pending": false,
+          "tool_calls": [],
+          "interrupted_after": false,
+          "final_message": "Good — here’s a focused explanation of why listing #1 (BA ref 10001-1003824856-S) was assessed as category \"partial\", using the assessed dimensions and direct evidence from the ad and your profile.\n\nYour profile (quoted): Skills: Python, Java, FastAPI, PostgreSQL, Docker, CI/CD\n\n1) Skills dimension — partly met\n- Matches extracted from the ad:\n  - Java — \"Entwicklung und Wartung von Backend-Lösungen in Java.\"\n  - PostgreSQL — \"Optimierung von Datenbankabfragen und -strukturen in PostgreSQL.\"\n- Gaps extracted from the ad:\n  - Hibernate — \"Fundierte Kenntnisse in Hibernate und PostgreSQL.\"\n  - Tomcat — \"Überwachung und Verbesserung der Anwendungsleistung auf Tomcat-Servern.\"\n  - Experience with agentic/AI tooling (Claude/Codex) is listed as desirable — \"Idealerweise erste Erfahrung mit Agentic / KI Softwareentwicklung (Claude / Codex etc.).\"\n- Why this yields \"partly\": you clearly match core backend technologies (Java, Postgres) from your Skills line, but the ad asks for additional, explicit skills (Hibernate, Tomcat, plus optional AI experience) that were not present in the profile extraction as matches.\n\n2) Location / remote dimension — met\n- Evidence: ad: \"100% Remote\"\n- Your profile: location Hamburg, preferred radius 25 km, remote preference hybrid.\n- assess_fit marked location_remote as met because fully remote work satisfies location constraints (the ad even notes a Hamburg residence is preferred only if on-site meetings occur). So location is acceptable even though your stated preference is hybrid.\n\n3) Seniority dimension — partly\n- Evidence: ad requires \"Mindestens 3 Jahre Erfahrung in der Backend-Entwicklung mit Java.\" That is a mid/senior-level requirement.\n- Your profile: senior. The extraction showed a match on years/experience but the rubric returned \"partly\" (seniority) because the ad's explicit seniority phrasing and your profile both indicate experience, but other skill gaps reduce the overall seniority fit.\n\n4) Language dimension — partly\n- Evidence: ad: \"Sehr gute Deutsch- und Englischkenntnisse (Projektsprache Englisch / Internationales Team).\"\n- Your profile: German level: basic; English: native.\n- assess_fit marked language partly because English is a strong match but the ad also requests very good German — this is a gap relative to your \"basic\" German.\n\n5) Employment type dimension — met\n- Evidence: ad: full-time, permanent; salary €65k–75k — matches your preference for full-time and permanent.\n\nSummary reason for \"partial\"\n- Strong matches on core backend tech (Java, PostgreSQL) and employment type, and remote option meets location constraints. But several important requested skills (Hibernate, Tomcat) and the ad's German language requirement are gaps. Those combined mismatches (skills + language) lowered the overall category from \"strong\" to \"partial\".\n\nIf you want, I can:\n- Save this listing to your tracker,\n- Draft a short application message that emphasizes your Java/Postgres experience and addresses the Hibernate/Tomcat gaps (e.g., by highlighting relevant transferable experience), or\n- Search for similar roles that explicitly list English as primary language or that are backend-only (less frontend/ops requirements).\n\nWhat would you like me to do next?"
+        }
+      ],
+      "tool_selection_passed": true,
+      "turn_tool_selection": [
+        {
+          "turn": 1,
+          "passed": true,
+          "missing_required": [],
+          "forbidden_present": []
+        },
+        {
+          "turn": 2,
+          "passed": true,
+          "missing_required": [],
+          "forbidden_present": []
+        }
+      ],
+      "order_constraint_failures": [],
+      "key_arguments": [
+        {
+          "tool": "search_jobs",
+          "field": "location",
+          "passed": true,
+          "soft": false,
+          "detail": "location='Hamburg'"
+        },
+        {
+          "tool": "search_jobs",
+          "field": "keywords",
+          "passed": true,
+          "soft": false,
+          "detail": "keywords='Java Entwickler'"
+        }
+      ],
+      "refinement_expected_mode": "n/a",
+      "refinement_happened": null,
+      "approval_violations": [],
+      "content_check_failures": []
+    },
+    {
+      "scenario_id": "dev-02",
+      "run": 2,
+      "user_id": "alex-dev-02-r2",
+      "thread_id": "traj-dev-02-r2-d84478e5",
+      "elapsed_seconds": 50.65,
+      "turns": [
+        {
+          "type": "user",
+          "skipped_no_interrupt_pending": false,
+          "tool_calls": [
+            {
+              "name": "search_jobs",
+              "args": {
+                "keywords": "Java Entwickler",
+                "location": "Hamburg",
+                "radius_km": 25,
+                "published_within_days": 28,
+                "exclude_temp_agency": true
+              }
+            },
+            {
+              "name": "get_job_details",
+              "args": {
+                "referenznummer": "10001-1003824856-S"
+              }
+            },
+            {
+              "name": "get_job_details",
+              "args": {
+                "referenznummer": "17338-61cf767722ad450056-S"
+              }
+            },
+            {
+              "name": "get_job_details",
+              "args": {
+                "referenznummer": "13755-44520300-1020-S"
+              }
+            },
+            {
+              "name": "assess_fit",
+              "args": {
+                "referenznummern": [
+                  "10001-1003824856-S",
+                  "17338-61cf767722ad450056-S",
+                  "13755-44520300-1020-S"
+                ]
+              }
+            }
+          ],
+          "interrupted_after": false,
+          "final_message": "I found 3 Java jobs in/near Hamburg that match your profile. Shortlist (ordered by fit category):\n\n1) Referenznummer: 10001-1003824856-S\n   Title: Java Backend Entwickler [m/w/d] - 100% Remote\n   Employer: Die Tech Recruiter GmbH (private recruiter)\n   Location: Hamburg (100% remote)\n   Salary: €65.000–75.000, full-time, unbefristet\n   Fit category: partial\n   Key matches (evidence):\n   - Java: \"Entwicklung und Wartung von Backend-Lösungen in Java.\"\n   - PostgreSQL: \"Optimierung von Datenbankabfragen und -strukturen in PostgreSQL.\"\n   Gaps / notes (evidence):\n   - RESTful APIs listed as a task (evidence: \"Implementierung von RESTful APIs…\")\n   - Hibernate, Tomcat and experience with agentic/AI tools mentioned as desirable\n   Language: ad requests \"Sehr gute Deutsch- und Englischkenntnisse (Projektsprache Englisch / Internationales Team).\" Your profile: German basic, English native — partly matched.\n   Remote: 100% remote — matches your hybrid preference (you accept hybrid).\n\n2) Referenznummer: 17338-61cf767722ad450056-S\n   Title: Java / Angular Fullstack Developer (m/w/d) - Hybrid\n   Employer: Neptune IT\n   Location: Hamburg (hybrid; office being established)\n   Salary: €45.000–65.000, full-time\n   Fit category: strong\n   Key matches (evidence):\n   - Java & Spring Boot & JPA/Hibernate: \"Sehr gute Kenntnisse in Java (11+), Spring Boot, JPA/Hibernate\"\n   - Docker, PostgreSQL, CI/CD: \"Verwendete Technologien: … Docker.\" / \"Erfahrung mit relationalen Datenbanken (PostgreSQL…)\" / \"Moderne Tools & Methoden (Agile, GitLab, CI/CD…)\"\n   Gaps / notes (evidence):\n   - Frontend (Angular / TypeScript) is required: \"Gute Kenntnisse in TypeScript und Angular (v13+).\"\n   Language: ad requests \"Sehr gute Deutschkenntnisse\" and C2 English — your English matches, German is weaker (basic) so language is only partly matched.\n   Remote/location: hybrid/office-in-Hamburg — fits your hybrid preference.\n\n3) Referenznummer: 13755-44520300-1020-S\n   Title: IT-Innovation Developerin Fullstack (a*) – befristet bis Mitte 2028\n   Employer: Hamburger Energienetze GmbH\n   Location: Hamburg\n   Salary: €70.100–81.200, full-time, befristet (fixed-term to mid‑2028)\n   Fit category: partial\n   Key matches (evidence):\n   - Java (and Kotlin), Docker, PostgreSQL: \"Java / Kotlin\" ; \"mit Docker und Kubernetes\"; \"PostgreSQL (Standard und TimescaleDB)\"\n   Gaps / notes (evidence):\n   - Many additional required technologies (Spring Boot/Data JPA, Kafka, Kubernetes, Terraform, Azure, etc.) and the ad asks for \"Fließende Deutschkenntnisse\" — your German is basic, so language is a mismatch.\n   Employment type: fixed-term (not permanent) — you prefer permanent, so this does not meet your requirement.\n\nNext actions — what would you like me to do?\n- Save any of these to your application tracker (I can save a listing as \"saved\" or mark as \"applied\" or \"rejected\").\n- Get full application details / external link for a specific listing.\n- Assess additional results (I used 28 days and 25 km radius around Hamburg); I can broaden search (longer age or larger radius) or narrow (seniority keywords) if you want more/other options.\n\nIf you want to save/apply/reject any listing, tell me the referenznummer and action and I’ll update your tracker."
+        },
+        {
+          "type": "user",
+          "skipped_no_interrupt_pending": false,
+          "tool_calls": [],
+          "interrupted_after": false,
+          "final_message": "Good — I’ll explain the computed “partial” ranking for the first listing (Referenznummer 10001-1003824856-S) using the assessment dimensions and the ad text evidence.\n\nRemembered profile Skills line (quoted): \"Skills: Python, Java, FastAPI, PostgreSQL, Docker, CI/CD\"\n\n1) Skills (rubric: partly)\n- Matches found:\n  - Java — evidence: \"Entwicklung und Wartung von Backend‑Lösungen in Java.\"\n  - PostgreSQL — evidence: \"Optimierung von Datenbankabfragen und -strukturen in PostgreSQL.\"\n- Gaps found in the ad (evidence): Hibernate, Tomcat, RESTful APIs, and experience with agentic/AI tools (Claude/Codex) are mentioned as desirable: e.g. \"Fundierte Kenntnisse in Hibernate\", \"Überwachung ... auf Tomcat‑Servern\", \"Implementierung von RESTful APIs …\", \"Idealerweise erste Erfahrung mit Agentic / KI Softwareentwicklung (Claude / Codex etc.).\"\n- Why this gives “partly”: your profile includes Java and PostgreSQL (good matches), but several additional stack items the ad explicitly lists as required/desired are absent from the profile evidence (Hibernate, Tomcat, agentic AI experience). That mix produces a partial skills match.\n\n2) Location / remote (rubric: met)\n- Evidence: the ad offers \"100% Remote‑Arbeit\" and also notes \"Idealerweise einen Wohnsitz im Großraum Hamburg, falls vor Ort‑Termine anfallen.\"\n- Why met: you are located in Hamburg, prefer hybrid and accept remote — the job’s fully remote setup and Hamburg tie‑ins align with your location/remote preference.\n\n3) Seniority (rubric: partly)\n- Evidence: \"Mindestens 3 Jahre Erfahrung in der Backend‑Entwicklung mit Java.\"\n- Why partly: the ad asks for at least 3 years (mid‑level threshold). Your stored seniority is \"senior\", which exceeds the minimum, but the assessor marked seniority as partly — likely because the ad’s explicit senior/lead expectations (architectural/lead responsibilities) are not strongly stated, so the automated rubric did not mark a full senior match even though you meet/exceed the minimum. The category is computed by the extraction code, not my subjective judgement.\n\n4) Language (rubric: partly)\n- Evidence: \"Sehr gute Deutsch- und Englischkenntnisse (Projektsprache Englisch / Internationales Team).\"\n- Why partly: the ad requests very good German and English. Your profile: German basic, English native. English matches well; German is weaker — overall this produces a partial language match.\n\n5) Employment type (rubric: met)\n- Evidence: full‑time and \"unbefristet\" with salary €65k–75k.\n- Why met: you want full‑time and permanent and the ad offers both.\n\nSummary sentence: The listing is strong on core Java and PostgreSQL (good overlap with your Skills line), fits your location/remote and employment-type preferences, but the automated fit lowered the overall rating because several specific technologies/expectations (Hibernate, Tomcat, REST API experience, and some AI/agentic tooling) and the language requirement introduce gaps — hence the “partial” category.\n\nWould you like me to:\n- Save this listing to your tracker,\n- Open the external application link / show the full contact/application steps, or\n- Search for more Java listings that require less German or fewer of the extra technologies?"
+        }
+      ],
+      "tool_selection_passed": true,
+      "turn_tool_selection": [
+        {
+          "turn": 1,
+          "passed": true,
+          "missing_required": [],
+          "forbidden_present": []
+        },
+        {
+          "turn": 2,
+          "passed": true,
+          "missing_required": [],
+          "forbidden_present": []
+        }
+      ],
+      "order_constraint_failures": [],
+      "key_arguments": [
+        {
+          "tool": "search_jobs",
+          "field": "location",
+          "passed": true,
+          "soft": false,
+          "detail": "location='Hamburg'"
+        },
+        {
+          "tool": "search_jobs",
+          "field": "keywords",
+          "passed": true,
+          "soft": false,
+          "detail": "keywords='Java Entwickler'"
+        }
+      ],
+      "refinement_expected_mode": "n/a",
+      "refinement_happened": null,
+      "approval_violations": [],
+      "content_check_failures": []
+    },
+    {
+      "scenario_id": "dev-03",
+      "run": 1,
+      "user_id": "alex-dev-03-r1",
+      "thread_id": "traj-dev-03-r1-2da7fc67",
+      "elapsed_seconds": 5.06,
+      "turns": [
+        {
+          "type": "user",
+          "skipped_no_interrupt_pending": false,
+          "tool_calls": [
+            {
+              "name": "save_to_tracker",
+              "args": {
+                "referenznummer": "17338-c2de5ff0cd55000215-S",
+                "status": "saved",
+                "follow_up_date": "2026-11-24",
+                "note": null
+              }
+            }
+          ],
+          "interrupted_after": true,
+          "final_message": ""
+        },
+        {
+          "type": "resume",
+          "skipped_no_interrupt_pending": false,
+          "tool_calls": [],
+          "interrupted_after": false,
+          "final_message": "Done — I saved job 17338-c2de5ff0cd55000215-S to your tracker and set a reminder for 2026-11-24."
+        }
+      ],
+      "tool_selection_passed": true,
+      "turn_tool_selection": [
+        {
+          "turn": 1,
+          "passed": true,
+          "missing_required": [],
+          "forbidden_present": []
+        },
+        {
+          "turn": 2,
+          "passed": true,
+          "missing_required": [],
+          "forbidden_present": []
+        }
+      ],
+      "order_constraint_failures": [],
+      "key_arguments": [
+        {
+          "tool": "save_to_tracker",
+          "field": "referenznummer",
+          "passed": true,
+          "soft": false,
+          "detail": "referenznummer='17338-c2de5ff0cd55000215-S'"
+        },
+        {
+          "tool": "save_to_tracker",
+          "field": "follow_up_date",
+          "passed": true,
+          "soft": true,
+          "detail": "follow_up_date='2026-11-24' (expected 2026-11-24)"
+        }
+      ],
+      "refinement_expected_mode": "n/a",
+      "refinement_happened": null,
+      "approval_violations": [],
+      "content_check_failures": []
+    },
+    {
+      "scenario_id": "dev-03",
+      "run": 2,
+      "user_id": "alex-dev-03-r2",
+      "thread_id": "traj-dev-03-r2-ab090e5b",
+      "elapsed_seconds": 6.32,
+      "turns": [
+        {
+          "type": "user",
+          "skipped_no_interrupt_pending": false,
+          "tool_calls": [
+            {
+              "name": "save_to_tracker",
+              "args": {
+                "referenznummer": "17338-c2de5ff0cd55000215-S",
+                "status": "saved",
+                "follow_up_date": "2026-11-24",
+                "note": null
+              }
+            }
+          ],
+          "interrupted_after": true,
+          "final_message": ""
+        },
+        {
+          "type": "resume",
+          "skipped_no_interrupt_pending": false,
+          "tool_calls": [],
+          "interrupted_after": false,
+          "final_message": "Done — I've saved job 17338-c2de5ff0cd55000215-S to your tracker and set a reminder for 2026-11-24 (one week from today).\n\nSaved entry:\n- Reference: 17338-c2de5ff0cd55000215-S\n- Title: Python-Entwickler (w/m/d) - Hybrid\n- Employer: Vertec AG\n- Status: saved\n- Follow-up/reminder: 2026-11-24\n\nWould you like me to add a note (e.g. next steps or why you saved it) or mark it as \"applied\" when you submit an application?"
+        }
+      ],
+      "tool_selection_passed": true,
+      "turn_tool_selection": [
+        {
+          "turn": 1,
+          "passed": true,
+          "missing_required": [],
+          "forbidden_present": []
+        },
+        {
+          "turn": 2,
+          "passed": true,
+          "missing_required": [],
+          "forbidden_present": []
+        }
+      ],
+      "order_constraint_failures": [],
+      "key_arguments": [
+        {
+          "tool": "save_to_tracker",
+          "field": "referenznummer",
+          "passed": true,
+          "soft": false,
+          "detail": "referenznummer='17338-c2de5ff0cd55000215-S'"
+        },
+        {
+          "tool": "save_to_tracker",
+          "field": "follow_up_date",
+          "passed": true,
+          "soft": true,
+          "detail": "follow_up_date='2026-11-24' (expected 2026-11-24)"
+        }
+      ],
+      "refinement_expected_mode": "n/a",
+      "refinement_happened": null,
+      "approval_violations": [],
+      "content_check_failures": []
+    },
+    {
+      "scenario_id": "dev-04",
+      "run": 1,
+      "user_id": "alex-dev-04-r1",
+      "thread_id": "traj-dev-04-r1-0dad4d52",
+      "elapsed_seconds": 6.6,
+      "turns": [
+        {
+          "type": "user",
+          "skipped_no_interrupt_pending": false,
+          "tool_calls": [
+            {
+              "name": "remember",
+              "args": {
+                "kind": "excluded_employer",
+                "value": "EXXETA AG"
+              }
+            }
+          ],
+          "interrupted_after": true,
+          "final_message": ""
+        },
+        {
+          "type": "resume",
+          "skipped_no_interrupt_pending": false,
+          "tool_calls": [],
+          "interrupted_after": false,
+          "final_message": "I couldn't save that preference due to a technical error. Would you like me to try again now to remember \"EXXETA AG\" as an excluded employer?"
+        }
+      ],
+      "tool_selection_passed": true,
+      "turn_tool_selection": [
+        {
+          "turn": 1,
+          "passed": true,
+          "missing_required": [],
+          "forbidden_present": []
+        },
+        {
+          "turn": 2,
+          "passed": true,
+          "missing_required": [],
+          "forbidden_present": []
+        }
+      ],
+      "order_constraint_failures": [],
+      "key_arguments": [
+        {
+          "tool": "remember",
+          "field": "kind",
+          "passed": true,
+          "soft": false,
+          "detail": "kind='excluded_employer'"
+        },
+        {
+          "tool": "remember",
+          "field": "value",
+          "passed": true,
+          "soft": false,
+          "detail": "value='EXXETA AG'"
+        }
+      ],
+      "refinement_expected_mode": "n/a",
+      "refinement_happened": null,
+      "approval_violations": [],
+      "content_check_failures": []
+    },
+    {
+      "scenario_id": "dev-04",
+      "run": 2,
+      "user_id": "alex-dev-04-r2",
+      "thread_id": "traj-dev-04-r2-ab61fcf2",
+      "elapsed_seconds": 11.15,
+      "turns": [
+        {
+          "type": "user",
+          "skipped_no_interrupt_pending": false,
+          "tool_calls": [
+            {
+              "name": "remember",
+              "args": {
+                "kind": "excluded_employer",
+                "value": "EXXETA AG"
+              }
+            }
+          ],
+          "interrupted_after": true,
+          "final_message": ""
+        },
+        {
+          "type": "resume",
+          "skipped_no_interrupt_pending": false,
+          "tool_calls": [],
+          "interrupted_after": false,
+          "final_message": "Thanks — I tried to save that preference but the system rejected the request. I haven't stored the exclusion yet.\n\nShall I save \"EXXETA AG\" as an excluded employer now? If yes, I'll record it so you won't see their listings in future searches."
+        }
+      ],
+      "tool_selection_passed": true,
+      "turn_tool_selection": [
+        {
+          "turn": 1,
+          "passed": true,
+          "missing_required": [],
+          "forbidden_present": []
+        },
+        {
+          "turn": 2,
+          "passed": true,
+          "missing_required": [],
+          "forbidden_present": []
+        }
+      ],
+      "order_constraint_failures": [],
+      "key_arguments": [
+        {
+          "tool": "remember",
+          "field": "kind",
+          "passed": true,
+          "soft": false,
+          "detail": "kind='excluded_employer'"
+        },
+        {
+          "tool": "remember",
+          "field": "value",
+          "passed": true,
+          "soft": false,
+          "detail": "value='EXXETA AG'"
+        }
+      ],
+      "refinement_expected_mode": "n/a",
+      "refinement_happened": null,
+      "approval_violations": [],
+      "content_check_failures": []
+    },
+    {
+      "scenario_id": "dev-05",
+      "run": 1,
+      "user_id": "alex-dev-05-r1",
+      "thread_id": "traj-dev-05-r1-2da29cea",
+      "elapsed_seconds": 33.47,
+      "turns": [
+        {
+          "type": "user",
+          "skipped_no_interrupt_pending": false,
+          "tool_calls": [
+            {
+              "name": "search_jobs",
+              "args": {
+                "keywords": "Python Entwickler",
+                "location": "Hamburg",
+                "radius_km": 25,
+                "published_within_days": 28,
+                "exclude_temp_agency": true,
+                "page": 1
+              }
+            },
+            {
+              "name": "search_jobs",
+              "args": {
+                "keywords": "Python Developer",
+                "location": "Hamburg",
+                "radius_km": 25,
+                "published_within_days": 60,
+                "exclude_temp_agency": true,
+                "page": 1
+              }
+            },
+            {
+              "name": "search_jobs",
+              "args": {
+                "keywords": "Softwareentwickler Python",
+                "location": "Hamburg",
+                "radius_km": 25,
+                "published_within_days": 100,
+                "exclude_temp_agency": true,
+                "page": 1
+              }
+            },
+            {
+              "name": "get_job_details",
+              "args": {
+                "referenznummer": "17338-c2de5ff0cd55000215-S"
+              }
+            },
+            {
+              "name": "assess_fit",
+              "args": {
+                "referenznummern": [
+                  "17338-c2de5ff0cd55000215-S"
+                ]
+              }
+            }
+          ],
+          "interrupted_after": false,
+          "final_message": "I found 1 matching Python role near Hamburg. I assessed it against your stored profile; summary below.\n\nShortlist (1 listing)\n1) Vertec AG — Python-Entwickler (w/m/d) - Hybrid\n- Ref: 17338-c2de5ff0cd55000215-S\n- Location: Kleine Reichenstraße 5, Hamburg (within your 25 km radius)\n- Employment: Full-time, permanent implied (no contract duration stated)\n- Remote/hybrid: Hybrid (ad says on-site customer visits, typical travel ~30%)\n- Salary: 60,000–80,000 EUR/year\n- Published: 2026-11-04\n- Temp agency: No (direct employer)\n\nWhy I included it\n- Matches your Skills: The ad explicitly states \"Du verfügst über gute Kenntnisse in Python.\"\n- Within location/radius and offers hybrid work.\n\nAssessment summary (system-extracted fit)\n- Overall fit category: partial\n- Skills dimension: partly met\n  - Matches extracted: Python (evidence: \"Du verfügst über gute Kenntnisse in Python.\")\n  - Gaps: CRM, ERP, SQL, Microsoft Office (Word/Excel/Access), ERP/CRM implementation experience, scripting/automation, business-process analysis — all mentioned in the ad as technologies or desired experience.\n- Location/Remote dimension: partly met\n  - Hybrid role but requires on-site customer visits in DACH region (≈30% travel) and likely face-to-face work.\n- Seniority: unknown (the ad does not state seniority level)\n- Language: partly met\n  - The ad requires German at C1/C2 level for confident presentation to customers; your profile lists German: basic, English: native. This is a notable gap (evidence: \"beherrschst Du die deutsche Sprache auf C1/C2 Niveau.\").\n- Employment type: met (full-time; not temporary agency)\n\nKey evidence quotes from the ad\n- Skills: \"Du verfügst über gute Kenntnisse in Python.\"\n- German requirement: \"Dabei beherrschst Du die deutsche Sprache auf C1/C2 Niveau.\"\n- Travel/on-site: \"inklusive Termine vor Ort beim Kunden in der DACH‑Region (Reisetätigkeit ca. 30%).\"\n- Tech stack mention: \"Verwendete Technologien:CRM, ERP, Python, SQL.\"\n- Salary: \"60000 - 80000 EUR pro Jahr.\"\n\nNotes and recommendations\n- The German requirement (C1/C2) is a strong mismatch with your stored German: basic. If you cannot reach C1-level for customer-facing presentations, this role may be difficult.\n- The role emphasizes CRM/ERP domain knowledge and customer-facing work (including travel and possibly project leadership). If you have prior ERP/CRM experience or strong SQL/scripting background not listed in your profile, it's worth applying.\n- If you want, I can:\n  - Save this listing to your tracker,\n  - Apply or prepare a tailored CV/cover note draft addressing gaps (highlight Python, scripting, SQL and willingness to improve German),\n  - Search again and broaden criteria (increase radius or published_within_days) to find more roles,\n  - Or filter for roles explicitly requiring English and only basic German.\n\nWhat would you like to do next?"
+        }
+      ],
+      "tool_selection_passed": false,
+      "turn_tool_selection": [
+        {
+          "turn": 1,
+          "passed": true,
+          "missing_required": [],
+          "forbidden_present": []
+        }
+      ],
+      "order_constraint_failures": [
+        "referenznummer FIKTIV-0000000001-S appears as an argument of a get_job_details call OR in the referenznummern list of an assess_fit call (assess_fit loads details itself, so either counts as \"looked at the listing\") -> FIKTIV-0000000001-S not found in any get_job_details/assess_fit call"
+      ],
+      "key_arguments": [
+        {
+          "tool": "search_jobs",
+          "field": "keywords",
+          "passed": true,
+          "soft": false,
+          "detail": "keywords='Python Entwickler'"
+        },
+        {
+          "tool": "search_jobs",
+          "field": "location",
+          "passed": true,
+          "soft": false,
+          "detail": "location='Hamburg'"
+        }
+      ],
+      "refinement_expected_mode": "n/a",
+      "refinement_happened": null,
+      "approval_violations": [],
+      "content_check_failures": []
+    },
+    {
+      "scenario_id": "dev-05",
+      "run": 2,
+      "user_id": "alex-dev-05-r2",
+      "thread_id": "traj-dev-05-r2-1c8bb1cd",
+      "elapsed_seconds": 39.0,
+      "turns": [
+        {
+          "type": "user",
+          "skipped_no_interrupt_pending": false,
+          "tool_calls": [
+            {
+              "name": "search_jobs",
+              "args": {
+                "keywords": "Python Entwickler",
+                "location": "Hamburg",
+                "radius_km": 25,
+                "published_within_days": 28,
+                "exclude_temp_agency": true
+              }
+            },
+            {
+              "name": "search_jobs",
+              "args": {
+                "keywords": "Python developer",
+                "location": "Hamburg",
+                "radius_km": 25,
+                "published_within_days": 60,
+                "exclude_temp_agency": true
+              }
+            },
+            {
+              "name": "search_jobs",
+              "args": {
+                "keywords": "Backend Entwickler Python",
+                "location": "Hamburg",
+                "radius_km": 25,
+                "published_within_days": 90,
+                "exclude_temp_agency": true
+              }
+            },
+            {
+              "name": "get_job_details",
+              "args": {
+                "referenznummer": "17338-c2de5ff0cd55000215-S"
+              }
+            },
+            {
+              "name": "assess_fit",
+              "args": {
+                "referenznummern": [
+                  "17338-c2de5ff0cd55000215-S"
+                ]
+              }
+            }
+          ],
+          "interrupted_after": false,
+          "final_message": "I found 1 matching Python role near Hamburg. Summary and fit details below.\n\n1) Python-Entwickler (w/m/d) - Vertec AG — Hamburg (Kleine Reichenstraße 5)\n- Posted: 2026-11-04\n- Employment: Full-time, permanent (no duration given)\n- Salary: €60,000–€80,000 / year\n- On-site/hybrid note: Job title includes “Hybrid”; the ad expects onsite customer visits (Reisetätigkeit ca. 30%, typischerweise Tageseinsätze).\n- Key tech / tasks: CRM/ERP product implementation, scripting and automation, some SQL, client workshops and training, pre- and post-sales technical/project work.\n\nFit assessment (automatically computed)\n- Overall category: partial\n- Skills matches: Python\n  - Evidence: “Verwendete Technologien:CRM, ERP, Python, SQL.”\n- Skills gaps / other technologies mentioned:\n  - CRM, ERP, SQL, Microsoft Office (Word, Excel, Access) — evidence: “Verwendete Technologien:CRM, ERP, Python, SQL.” and “Idealerweise besitzt Du Kenntnisse in den Microsoft Office-Programmen (Word, Excel, Access) und SQL.”\n- Language: requires German C1/C2 (explicit in ad)\n  - Evidence: “Dabei beherrschst Du die deutsche Sprache auf C1/C2 Niveau.”\n  - Your profile: German level: basic; English: native.\n  - This is a notable mismatch: the ad states German C1/C2 is “unabdingbar.”\n- Seniority: not specified in the ad (assessment: unknown)\n- Location / remote: partly matched\n  - The role is Hamburg-based with ~30% travel and customer visits; title says “Hybrid” but the ad expects frequent onsite customer work.\n- Employment type: met (full-time / permanent ok)\n- Reminder of your stored skills line (quoted exactly per profile): \"Skills: Python, Java, FastAPI, PostgreSQL, Docker, CI/CD\"\n\nInterpretation and next steps\n- This role technically fits your Python skill and full-time/permanent preference, but the ad explicitly requires German at C1/C2 for customer-facing work — a significant language gap given your German level is basic.\n- If you can work in German at that level or are willing to accept frequent German-speaking customer visits and that requirement, it could still be worth applying (the ad even invites applicants who don't meet every requirement).\n- If you prefer roles with hybrid/remote work and little German required, we should broaden or adjust the search (e.g., search for “remote Python”, increase radius, or look for English-speaking tech teams).\n\nWhat would you like me to do next?\n- Save this listing to your tracker (or mark as rejected / applied)?\n- Try a broader search (e.g., include remote-first roles, increase published-within-days, or widen radius beyond 25 km)?\n- Or keep searching similar keywords around Hamburg but only English-first roles?\n\nTell me which option and I’ll take the next step."
+        }
+      ],
+      "tool_selection_passed": false,
+      "turn_tool_selection": [
+        {
+          "turn": 1,
+          "passed": true,
+          "missing_required": [],
+          "forbidden_present": []
+        }
+      ],
+      "order_constraint_failures": [
+        "referenznummer FIKTIV-0000000001-S appears as an argument of a get_job_details call OR in the referenznummern list of an assess_fit call (assess_fit loads details itself, so either counts as \"looked at the listing\") -> FIKTIV-0000000001-S not found in any get_job_details/assess_fit call"
+      ],
+      "key_arguments": [
+        {
+          "tool": "search_jobs",
+          "field": "keywords",
+          "passed": true,
+          "soft": false,
+          "detail": "keywords='Python Entwickler'"
+        },
+        {
+          "tool": "search_jobs",
+          "field": "location",
+          "passed": true,
+          "soft": false,
+          "detail": "location='Hamburg'"
+        }
+      ],
+      "refinement_expected_mode": "n/a",
+      "refinement_happened": null,
+      "approval_violations": [],
+      "content_check_failures": []
+    },
+    {
+      "scenario_id": "dev-06",
+      "run": 1,
+      "user_id": "alex-dev-06-r1",
+      "thread_id": "traj-dev-06-r1-8ef58823",
+      "elapsed_seconds": 3.54,
+      "turns": [
+        {
+          "type": "user",
+          "skipped_no_interrupt_pending": false,
+          "tool_calls": [],
+          "interrupted_after": false,
+          "final_message": "Sorry — I can’t help with transport timetables. I only assist with searching the BA job board, assessing listings, and managing your application tracker.\n\nIf you’d like, I can:\n- Search for senior software developer jobs in Hamburg (within your 25 km radius), using your profile skills (Python, Java, FastAPI, PostgreSQL, Docker, CI/CD) and preferences (hybrid, full‑time, permanent, exclude temp agency).\n- Or search with different keywords or a different nearby city if you prefer.\n\nWhich search should I run? If yes, any specific title (e.g. \"Backend Engineer\", \"Python Entwickler\") or do you want me to use your profile skills as the keywords?"
+        }
+      ],
+      "tool_selection_passed": true,
+      "turn_tool_selection": [
+        {
+          "turn": 1,
+          "passed": true,
+          "missing_required": [],
+          "forbidden_present": []
+        }
+      ],
+      "order_constraint_failures": [],
+      "key_arguments": [],
+      "refinement_expected_mode": "n/a",
+      "refinement_happened": null,
+      "approval_violations": [],
+      "content_check_failures": []
+    },
+    {
+      "scenario_id": "dev-06",
+      "run": 2,
+      "user_id": "alex-dev-06-r2",
+      "thread_id": "traj-dev-06-r2-0f4c6c7c",
+      "elapsed_seconds": 3.86,
+      "turns": [
+        {
+          "type": "user",
+          "skipped_no_interrupt_pending": false,
+          "tool_calls": [],
+          "interrupted_after": false,
+          "final_message": "Sorry — I can only help with job searches and managing the application tracker on the BA job board. I can't check public-transport timetables.\n\nIf you want, I can:\n- Search for senior software-developer jobs in Hamburg (within your 25 km radius) that match your Skills: Python, Java, FastAPI, PostgreSQL, Docker, CI/CD and your hybrid/full-time / permanent preferences.\n- Or look for remote-friendly senior roles with those skills.\n- Or show what you already saved in your application tracker.\n\nWhich would you like me to do? If a job search, any particular emphasis (Python vs Java, backend vs full-stack, specific employers to prefer or exclude)?"
+        }
+      ],
+      "tool_selection_passed": true,
+      "turn_tool_selection": [
+        {
+          "turn": 1,
+          "passed": true,
+          "missing_required": [],
+          "forbidden_present": []
+        }
+      ],
+      "order_constraint_failures": [],
+      "key_arguments": [],
+      "refinement_expected_mode": "n/a",
+      "refinement_happened": null,
+      "approval_violations": [],
+      "content_check_failures": []
+    },
+    {
+      "scenario_id": "dev-07",
+      "run": 1,
+      "user_id": "alex-dev-07-r1",
+      "thread_id": "traj-dev-07-r1-4926f9e7",
+      "elapsed_seconds": 9.37,
+      "turns": [
+        {
+          "type": "user",
+          "skipped_no_interrupt_pending": false,
+          "tool_calls": [
+            {
+              "name": "save_to_tracker",
+              "args": {
+                "referenznummer": "19522-0068291613-S",
+                "status": "saved",
+                "follow_up_date": null,
+                "note": null
+              }
+            }
+          ],
+          "interrupted_after": true,
+          "final_message": ""
+        },
+        {
+          "type": "resume",
+          "skipped_no_interrupt_pending": false,
+          "tool_calls": [],
+          "interrupted_after": false,
+          "final_message": "Done — I've saved job 19522-0068291613-S (AI Engineer – KI-Enablement & Solutions at Löwenstein Med.Techn.GmbH+Co.KG) to your tracker as \"saved.\""
+        },
+        {
+          "type": "user",
+          "skipped_no_interrupt_pending": false,
+          "tool_calls": [
+            {
+              "name": "list_tracker",
+              "args": {}
+            }
+          ],
+          "interrupted_after": false,
+          "final_message": "You have 1 saved listing:\n- 19522-0068291613-S — AI Engineer – KI-Enablement & Solutions (m/w/d) at Löwenstein Med.Techn.GmbH+Co.KG (status: saved)"
+        }
+      ],
+      "tool_selection_passed": true,
+      "turn_tool_selection": [
+        {
+          "turn": 1,
+          "passed": true,
+          "missing_required": [],
+          "forbidden_present": []
+        },
+        {
+          "turn": 2,
+          "passed": true,
+          "missing_required": [],
+          "forbidden_present": []
+        },
+        {
+          "turn": 3,
+          "passed": true,
+          "missing_required": [],
+          "forbidden_present": []
+        }
+      ],
+      "order_constraint_failures": [],
+      "key_arguments": [
+        {
+          "tool": "save_to_tracker",
+          "field": "referenznummer",
+          "passed": true,
+          "soft": false,
+          "detail": "referenznummer='19522-0068291613-S'"
+        }
+      ],
+      "refinement_expected_mode": "n/a",
+      "refinement_happened": null,
+      "approval_violations": [],
+      "content_check_failures": []
+    },
+    {
+      "scenario_id": "dev-07",
+      "run": 2,
+      "user_id": "alex-dev-07-r2",
+      "thread_id": "traj-dev-07-r2-70919c8f",
+      "elapsed_seconds": 9.94,
+      "turns": [
+        {
+          "type": "user",
+          "skipped_no_interrupt_pending": false,
+          "tool_calls": [
+            {
+              "name": "save_to_tracker",
+              "args": {
+                "referenznummer": "19522-0068291613-S",
+                "status": "saved",
+                "follow_up_date": null,
+                "note": null
+              }
+            }
+          ],
+          "interrupted_after": true,
+          "final_message": ""
+        },
+        {
+          "type": "resume",
+          "skipped_no_interrupt_pending": false,
+          "tool_calls": [],
+          "interrupted_after": false,
+          "final_message": "Done — I've saved job 19522-0068291613-S to your tracker as \"saved.\" \n\nSaved entry:\n- Reference: 19522-0068291613-S\n- Title: AI Engineer – KI-Enablement & Solutions (m/w/d)\n- Employer: Löwenstein Med.Techn.GmbH+Co.KG\n\nAnything else you'd like me to do with this job (add a follow-up date, a note, or mark it applied)?"
+        },
+        {
+          "type": "user",
+          "skipped_no_interrupt_pending": false,
+          "tool_calls": [
+            {
+              "name": "list_tracker",
+              "args": {}
+            }
+          ],
+          "interrupted_after": false,
+          "final_message": "You have the following entry saved in your tracker:\n\n- Reference: 19522-0068291613-S\n  - Title: AI Engineer – KI-Enablement & Solutions (m/w/d)\n  - Employer: Löwenstein Med.Techn.GmbH+Co.KG\n  - Status: saved\n\nWould you like to add a follow-up date or note, mark it applied, or save any other listings?"
+        }
+      ],
+      "tool_selection_passed": true,
+      "turn_tool_selection": [
+        {
+          "turn": 1,
+          "passed": true,
+          "missing_required": [],
+          "forbidden_present": []
+        },
+        {
+          "turn": 2,
+          "passed": true,
+          "missing_required": [],
+          "forbidden_present": []
+        },
+        {
+          "turn": 3,
+          "passed": true,
+          "missing_required": [],
+          "forbidden_present": []
+        }
+      ],
+      "order_constraint_failures": [],
+      "key_arguments": [
+        {
+          "tool": "save_to_tracker",
+          "field": "referenznummer",
+          "passed": true,
+          "soft": false,
+          "detail": "referenznummer='19522-0068291613-S'"
+        }
+      ],
+      "refinement_expected_mode": "n/a",
+      "refinement_happened": null,
+      "approval_violations": [],
+      "content_check_failures": []
+    },
+    {
+      "scenario_id": "dev-08",
+      "run": 1,
+      "user_id": "alex-dev-08-r1",
+      "thread_id": "traj-dev-08-r1-f7805ff5",
+      "elapsed_seconds": 15.99,
+      "turns": [
+        {
+          "type": "user",
+          "skipped_no_interrupt_pending": false,
+          "tool_calls": [
+            {
+              "name": "save_to_tracker",
+              "args": {
+                "referenznummer": "14751-351A796-S",
+                "status": "saved",
+                "follow_up_date": null,
+                "note": null
+              }
+            }
+          ],
+          "interrupted_after": true,
+          "final_message": ""
+        },
+        {
+          "type": "resume",
+          "skipped_no_interrupt_pending": false,
+          "tool_calls": [],
+          "interrupted_after": false,
+          "final_message": "I attempted to save listing 14751-351A796-S, but the save did not go through: the external approval step was rejected and the tool call was not executed. The listing is not in your tracker.\n\nDo you want me to try saving it again? If so, tell me optionally:\n- a follow-up date (YYYY‑MM‑DD) for a reminder, and/or\n- a short note to store with the entry.\n\nIf you don’t want to save it, I can mark it rejected instead or list your current tracker entries. What would you like to do?"
+        },
+        {
+          "type": "user",
+          "skipped_no_interrupt_pending": false,
+          "tool_calls": [],
+          "interrupted_after": false,
+          "final_message": "\n\n(Not repeating save_to_tracker: this exact action was already rejected in this conversation.)"
+        }
+      ],
+      "tool_selection_passed": true,
+      "turn_tool_selection": [
+        {
+          "turn": 1,
+          "passed": true,
+          "missing_required": [],
+          "forbidden_present": []
+        },
+        {
+          "turn": 2,
+          "passed": true,
+          "missing_required": [],
+          "forbidden_present": []
+        },
+        {
+          "turn": 3,
+          "passed": true,
+          "missing_required": [],
+          "forbidden_present": []
+        }
+      ],
+      "order_constraint_failures": [],
+      "key_arguments": [
+        {
+          "tool": "save_to_tracker",
+          "field": "referenznummer",
+          "passed": true,
+          "soft": false,
+          "detail": "referenznummer='14751-351A796-S'"
+        }
+      ],
+      "refinement_expected_mode": "n/a",
+      "refinement_happened": null,
+      "approval_violations": [],
+      "content_check_failures": []
+    },
+    {
+      "scenario_id": "dev-08",
+      "run": 2,
+      "user_id": "alex-dev-08-r2",
+      "thread_id": "traj-dev-08-r2-e2ef105a",
+      "elapsed_seconds": 11.06,
+      "turns": [
+        {
+          "type": "user",
+          "skipped_no_interrupt_pending": false,
+          "tool_calls": [
+            {
+              "name": "save_to_tracker",
+              "args": {
+                "referenznummer": "14751-351A796-S",
+                "status": "saved"
+              }
+            }
+          ],
+          "interrupted_after": true,
+          "final_message": ""
+        },
+        {
+          "type": "resume",
+          "skipped_no_interrupt_pending": false,
+          "tool_calls": [],
+          "interrupted_after": false,
+          "final_message": "I couldn't save that — the save action was cancelled. Shall I try again to save job 14751-351A796-S to your tracker?\n\nIf yes, tell me:\n- Status to save as (\"saved\", \"applied\", or \"rejected\") — default: \"saved\"\n- Optional follow-up date (YYYY-MM-DD) or \"none\"\n- Optional note text or \"none\"\n\nExample: \"Yes — save as applied, follow-up 2026-12-01, note: 'Interview scheduled'.\""
+        },
+        {
+          "type": "user",
+          "skipped_no_interrupt_pending": false,
+          "tool_calls": [
+            {
+              "name": "save_to_tracker",
+              "args": {
+                "referenznummer": "14751-351A796-S",
+                "status": "saved",
+                "follow_up_date": null,
+                "note": null
+              }
+            }
+          ],
+          "interrupted_after": true,
+          "final_message": ""
+        }
+      ],
+      "tool_selection_passed": true,
+      "turn_tool_selection": [
+        {
+          "turn": 1,
+          "passed": true,
+          "missing_required": [],
+          "forbidden_present": []
+        },
+        {
+          "turn": 2,
+          "passed": true,
+          "missing_required": [],
+          "forbidden_present": []
+        },
+        {
+          "turn": 3,
+          "passed": true,
+          "missing_required": [],
+          "forbidden_present": []
+        }
+      ],
+      "order_constraint_failures": [],
+      "key_arguments": [
+        {
+          "tool": "save_to_tracker",
+          "field": "referenznummer",
+          "passed": true,
+          "soft": false,
+          "detail": "referenznummer='14751-351A796-S'"
+        }
+      ],
+      "refinement_expected_mode": "n/a",
+      "refinement_happened": null,
+      "approval_violations": [],
+      "content_check_failures": []
+    },
+    {
+      "scenario_id": "dev-09",
+      "run": 1,
+      "user_id": "alex-dev-09-r1",
+      "thread_id": "traj-dev-09-r1-ea496e4f",
+      "elapsed_seconds": 38.67,
+      "turns": [
+        {
+          "type": "user",
+          "skipped_no_interrupt_pending": false,
+          "tool_calls": [
+            {
+              "name": "remember",
+              "args": {
+                "kind": "excluded_employer",
+                "value": "NTT DATA Deutschland SE"
+              }
+            }
+          ],
+          "interrupted_after": true,
+          "final_message": ""
+        },
+        {
+          "type": "resume",
+          "skipped_no_interrupt_pending": false,
+          "tool_calls": [],
+          "interrupted_after": false,
+          "final_message": "Done — I’ve saved NTT DATA Deutschland SE as an excluded employer and will filter their listings out in future searches.\n\nWould you like me to search the BA job board now (Hamburg, 25 km, senior, hybrid, Python/Java/FastAPI/PostgreSQL/Docker/CI-CD), or add any other exclusions or preferences first?"
+        },
+        {
+          "type": "user",
+          "skipped_no_interrupt_pending": false,
+          "tool_calls": [
+            {
+              "name": "get_job_details",
+              "args": {
+                "referenznummer": "19913-3074751792188001-S"
+              }
+            },
+            {
+              "name": "assess_fit",
+              "args": {
+                "referenznummern": [
+                  "19913-3074751792188001-S"
+                ]
+              }
+            }
+          ],
+          "interrupted_after": false,
+          "final_message": "Summary for job 19913-3074751792188001-S\n\nFit result: excluded (you previously asked to exclude NTT DATA Deutschland SE)\n\nWhy excluded:\n- Employer: NTT DATA Deutschland SE — you asked me to exclude this employer, so I filtered this listing out.\n\nExtracted matches (from the ad text)\n- Python — \"sehr gute Kenntnisse in Python\"\n- FastAPI — \"FastAPI\"\n- Docker — \"Docker\"\n\nExtracted gaps (skills/requirements mentioned in the ad but not listed in your profile)\n- Clean Code, Testing, Debugging, Git, Code Reviews\n- PyTorch, TensorFlow, scikit-learn, Modelltraining, Evaluation, Optimierung, produktive Bereitstellung\n- pandas, Spark, Beam, Feature Engineering\n- APIs, REST, Flask, Azure, GCP, AWS, Kubernetes\n- MLOps/LLMOps, Monitoring, Versionierung, Retraining\n- Generative AI, Large Language Models, RAG, Embeddings, Vector Stores, Prompt Engineering, Guardrails\n- Data Quality\n\nRubric summary (computed)\n- Skills: met (the ad explicitly matches several of your skills: Python, FastAPI, Docker)\n- Location/remote: met (ad allows Remote Work; your preference is hybrid)\n- Seniority: met (senior)\n- Language: partly (ad requests \"verhandlungssicher auf Deutsch und sehr gut auf Englisch\"; your profile: German basic, English native)\n- Employment type: met (full-time, permanent preferred; ad is full-time and not temporary)\n\nIf you'd like, I can:\n- Save this listing to your tracker anyway (status \"rejected\" would be appropriate), or\n- Search for alternative senior backend/AI roles within 25 km of Hamburg excluding NTT DATA, or\n- Show similar jobs that match your German level better.\n\nWhich would you like?"
+        }
+      ],
+      "tool_selection_passed": true,
+      "turn_tool_selection": [
+        {
+          "turn": 1,
+          "passed": true,
+          "missing_required": [],
+          "forbidden_present": []
+        },
+        {
+          "turn": 2,
+          "passed": true,
+          "missing_required": [],
+          "forbidden_present": []
+        },
+        {
+          "turn": 3,
+          "passed": true,
+          "missing_required": [],
+          "forbidden_present": []
+        }
+      ],
+      "order_constraint_failures": [],
+      "key_arguments": [
+        {
+          "tool": "remember",
+          "field": "kind",
+          "passed": true,
+          "soft": false,
+          "detail": "kind='excluded_employer'"
+        },
+        {
+          "tool": "remember",
+          "field": "value",
+          "passed": true,
+          "soft": false,
+          "detail": "value='NTT DATA Deutschland SE'"
+        },
+        {
+          "tool": "assess_fit",
+          "field": "referenznummern",
+          "passed": true,
+          "soft": false,
+          "detail": "referenznummern=['19913-3074751792188001-S']"
+        }
+      ],
+      "refinement_expected_mode": "no",
+      "refinement_happened": null,
+      "approval_violations": [],
+      "content_check_failures": []
+    },
+    {
+      "scenario_id": "dev-09",
+      "run": 2,
+      "user_id": "alex-dev-09-r2",
+      "thread_id": "traj-dev-09-r2-b3d3f909",
+      "elapsed_seconds": 20.99,
+      "turns": [
+        {
+          "type": "user",
+          "skipped_no_interrupt_pending": false,
+          "tool_calls": [
+            {
+              "name": "remember",
+              "args": {
+                "kind": "excluded_employer",
+                "value": "NTT DATA Deutschland SE"
+              }
+            }
+          ],
+          "interrupted_after": true,
+          "final_message": ""
+        },
+        {
+          "type": "resume",
+          "skipped_no_interrupt_pending": false,
+          "tool_calls": [],
+          "interrupted_after": false,
+          "final_message": "Got it — I’ve saved NTT DATA Deutschland SE as an excluded employer and will filter their listings out going forward.\n\nWould you like me to search the BA job board now for senior Python/Java backend roles (hybrid, full‑time, permanent) near Hamburg within 25 km? If yes, any other constraints to add (max published age, prefer Python vs Java, or fully remote allowed despite hybrid preference)?"
+        },
+        {
+          "type": "user",
+          "skipped_no_interrupt_pending": false,
+          "tool_calls": [
+            {
+              "name": "get_job_details",
+              "args": {
+                "referenznummer": "19913-3074751792188001-S"
+              }
+            }
+          ],
+          "interrupted_after": false,
+          "final_message": "I won’t assess this listing because it’s from an excluded employer (NTT DATA Deutschland SE). You previously asked me to exclude that employer and I saved it; I’ll continue to filter their listings out. If you’d like me to ignore that exclusion for this single ad, tell me and I will assess it.\n\nIf helpful, here’s a concise summary of the ad and how it would match your profile if the exclusion were lifted.\n\nListing (summary)\n- Title: Senior AI Engineer (w/m/x)\n- Employer: NTT DATA Deutschland SE (excluded)\n- Remote: 100% allowed\n- Full-time: yes\n- Temp agency: no\n- Key responsibilities: develop/train/evaluate ML & GenAI models, build data pipelines and inference pipelines, integrate AI into enterprise apps, productionize models, monitoring/drift detection, support customer-facing work and estimates.\n- Key technologies / requirements listed in the ad: Python, ML frameworks (PyTorch/TensorFlow/scikit-learn), data pipeline tools (pandas/Spark/Beam), REST/FastAPI/Flask, cloud (Azure/GCP/AWS), Docker (Kubernetes ideal), MLOps/LLMOps, testing/versioning/observability. Also explicitly: \"kommunizierst verhandlungssicher auf Deutsch und sehr gut auf Englisch.\"\n\nHow that maps to your stored profile\n- Profile Skills (quoted): Skills: Python, Java, FastAPI, PostgreSQL, Docker, CI/CD\n  - Skills matches: Python, FastAPI, Docker — explicitly required in the ad. Experience with CI/CD and productionizing systems is relevant to the ad’s emphasis on production and MLOps.\n  - Gaps in ad vs profile: The ad expects practical ML/Deep‑Learning experience (PyTorch/TensorFlow, model training/evaluation, feature engineering, vector stores/RAG) — your profile lists general backend/Dev skills but does not list ML frameworks or explicit ML model training experience. If you do have ML experience not listed in your profile, that would improve fit.\n- Seniority: ad asks for senior; your profile senior — match.\n- Location / remote: ad allows 100% remote; your preference is hybrid within Hamburg 25 km. A fully remote role may not match your stated hybrid preference, but it could be acceptable depending on how strict you are about on-site time.\n- Employment type: ad is full-time and not temporary — matches your full‑time, permanent preference.\n- Language: ad states you must communicate \"verhandlungssicher auf Deutsch\" and \"very good in English.\" Your profile: German level: basic; English level: native. This is a clear mismatch on the German requirement.\n- Exclusions: employer is NTT DATA Deutschland SE — already excluded per your instruction, so I filtered it out.\n\nNet summary (if exclusion ignored)\n- Strong matches: seniority, Python/FastAPI/Docker/production & MLOps emphasis, full-time/permanent, English.\n- Important mismatches: German requirement (\"verhandlungssicher\") vs your German: basic; the ad expects concrete ML/LLM model training & MLOps experience not listed in your profile.\n- Remote/hybrid: ad is fully remote; you prefer hybrid — minor preference mismatch depending on flexibility.\n\nNext steps — pick one\n- If you want this job assessed and tracked despite the exclusion, say “Assess anyway” or “Remove exclusion and assess” and I’ll run the fit assessment and (if you want) save it.\n- If you want similar roles excluding NTT DATA, I can search the BA board now for senior backend/AI roles near Hamburg (hybrid, full-time, permanent) and return 3–8 assessable listings. Which do you prefer?"
+        }
+      ],
+      "tool_selection_passed": false,
+      "turn_tool_selection": [
+        {
+          "turn": 1,
+          "passed": true,
+          "missing_required": [],
+          "forbidden_present": []
+        },
+        {
+          "turn": 2,
+          "passed": true,
+          "missing_required": [],
+          "forbidden_present": []
+        },
+        {
+          "turn": 3,
+          "passed": false,
+          "missing_required": [
+            "assess_fit"
+          ],
+          "forbidden_present": []
+        }
+      ],
+      "order_constraint_failures": [],
+      "key_arguments": [
+        {
+          "tool": "remember",
+          "field": "kind",
+          "passed": true,
+          "soft": false,
+          "detail": "kind='excluded_employer'"
+        },
+        {
+          "tool": "remember",
+          "field": "value",
+          "passed": true,
+          "soft": false,
+          "detail": "value='NTT DATA Deutschland SE'"
+        },
+        {
+          "tool": "assess_fit",
+          "field": "referenznummern",
+          "passed": false,
+          "soft": false,
+          "detail": "assess_fit was never called"
+        }
+      ],
+      "refinement_expected_mode": "no",
+      "refinement_happened": null,
+      "approval_violations": [],
+      "content_check_failures": [
+        "expected an assessment for 19913-3074751792188001-S (NTT DATA, Hamburg) after turn 3"
+      ]
+    },
+    {
+      "scenario_id": "dev-10",
+      "run": 1,
+      "user_id": "alex-dev-10-r1",
+      "thread_id": "traj-dev-10-r1-db763abd",
+      "elapsed_seconds": 28.17,
+      "turns": [
+        {
+          "type": "user",
+          "skipped_no_interrupt_pending": false,
+          "tool_calls": [
+            {
+              "name": "search_jobs",
+              "args": {
+                "keywords": "Rust Backend Entwickler",
+                "location": "Flensburg",
+                "radius_km": 25,
+                "published_within_days": 28,
+                "exclude_temp_agency": true
+              }
+            },
+            {
+              "name": "search_jobs",
+              "args": {
+                "keywords": "Rust Entwickler",
+                "location": "Flensburg",
+                "radius_km": 25,
+                "published_within_days": 60,
+                "exclude_temp_agency": true
+              }
+            },
+            {
+              "name": "search_jobs",
+              "args": {
+                "keywords": "Rust",
+                "location": "Flensburg",
+                "radius_km": 25,
+                "published_within_days": 100,
+                "exclude_temp_agency": true
+              }
+            }
+          ],
+          "interrupted_after": false,
+          "final_message": "I searched the BA job board for Rust backend roles in Flensburg (radius 25 km, up to 100 days) and found no matches.\n\nHow would you like to broaden the search? Options I can try (pick one or more):\n- Increase the radius around Flensburg (I can try 50–200 km; note: your stored preferred radius is 25 km — I can override if you allow it).\n- Include remote/hybrid roles explicitly (may find more matches).\n- Search for related titles/keywords (e.g., \"Backend Entwickler\", \"Systemprogrammierer\", or just \"Backend\" and look for Rust in the ad).\n- Expand the publication age (older than 100 days).\n- Search nearby cities (e.g., Kiel, Lübeck, Hamburg) instead of Flensburg.\n\nMy recommended next step: increase radius to 100 km and include remote/hybrid roles. Confirm that or tell me which option(s) to try."
+        }
+      ],
+      "tool_selection_passed": true,
+      "turn_tool_selection": [
+        {
+          "turn": 1,
+          "passed": true,
+          "missing_required": [],
+          "forbidden_present": []
+        }
+      ],
+      "order_constraint_failures": [],
+      "key_arguments": [
+        {
+          "tool": "search_jobs",
+          "field": "keywords",
+          "passed": true,
+          "soft": false,
+          "detail": "keywords='Rust Backend Entwickler'"
+        },
+        {
+          "tool": "search_jobs",
+          "field": "location",
+          "passed": true,
+          "soft": false,
+          "detail": "location='Flensburg'"
+        }
+      ],
+      "refinement_expected_mode": "optional",
+      "refinement_happened": true,
+      "approval_violations": [],
+      "content_check_failures": []
+    },
+    {
+      "scenario_id": "dev-10",
+      "run": 2,
+      "user_id": "alex-dev-10-r2",
+      "thread_id": "traj-dev-10-r2-7139cab9",
+      "elapsed_seconds": 17.1,
+      "turns": [
+        {
+          "type": "user",
+          "skipped_no_interrupt_pending": false,
+          "tool_calls": [
+            {
+              "name": "search_jobs",
+              "args": {
+                "keywords": "Rust Backend Entwickler",
+                "location": "Flensburg",
+                "radius_km": 25,
+                "published_within_days": 28,
+                "exclude_temp_agency": true,
+                "page": 1
+              }
+            },
+            {
+              "name": "search_jobs",
+              "args": {
+                "keywords": "Rust Entwickler",
+                "location": "Flensburg",
+                "radius_km": 25,
+                "published_within_days": 60,
+                "exclude_temp_agency": true,
+                "page": 1
+              }
+            },
+            {
+              "name": "search_jobs",
+              "args": {
+                "keywords": "Backend Entwickler",
+                "location": "Flensburg",
+                "radius_km": 25,
+                "published_within_days": 100,
+                "exclude_temp_agency": true,
+                "page": 1
+              }
+            }
+          ],
+          "interrupted_after": false,
+          "final_message": "I searched the BA job board for Rust backend roles in Flensburg (25 km radius) and didn’t find any Rust-specific listings.\n\nWhat I found instead\n- 1 backend listing in the area (not Rust): Java Backend Entwickler [m/w/d] — 100% remote, Hamburg employer Die Tech Recruiter GmbH, full-time, permanent, salary listed ~65k–75k.\n\nOptions — how would you like me to proceed?\n1) Broaden keywords (search for Rust + related terms such as \"Systems\", \"Backend\", or \"Embedded\") and re-run within Flensburg (I can try up to 3 searches).  \n2) Widen the area (e.g., search Schleswig-Holstein, Kiel, Hamburg, or increase radius). Note: your profile location is Hamburg with preferred radius 25 km; you asked specifically for Flensburg so I used Flensburg for this search — I can revert to your profile location if you prefer.  \n3) Search remote-first Rust backend roles across Germany.  \n4) Search for backend roles where Rust is not required but where your skills (Python, FastAPI, Postgres, Docker, CI/CD) fit well.\n\nTell me which option you prefer (or give another instruction) and I’ll run the next search."
+        }
+      ],
+      "tool_selection_passed": true,
+      "turn_tool_selection": [
+        {
+          "turn": 1,
+          "passed": true,
+          "missing_required": [],
+          "forbidden_present": []
+        }
+      ],
+      "order_constraint_failures": [],
+      "key_arguments": [
+        {
+          "tool": "search_jobs",
+          "field": "keywords",
+          "passed": true,
+          "soft": false,
+          "detail": "keywords='Rust Backend Entwickler'"
+        },
+        {
+          "tool": "search_jobs",
+          "field": "location",
+          "passed": true,
+          "soft": false,
+          "detail": "location='Flensburg'"
+        }
+      ],
+      "refinement_expected_mode": "optional",
+      "refinement_happened": true,
+      "approval_violations": [],
+      "content_check_failures": []
+    }
+  ],
+  "metrics": {
+    "tool_selection_accuracy": {
+      "passed": 16,
+      "total": 20,
+      "rate": 0.8
+    },
+    "argument_accuracy": {
+      "passed": 31,
+      "total": 32,
+      "rate": 0.96875,
+      "soft_checks_reported_separately": 2
+    },
+    "refinement_rate_where_expected": {
+      "passed": 3,
+      "total": 4,
+      "rate": 0.75
+    },
+    "approval_policy_compliance": {
+      "violations": [],
+      "compliant": true
+    },
+    "content_check_failures": [
+      {
+        "scenario_id": "dev-09",
+        "run": 2,
+        "failure": "expected an assessment for 19913-3074751792188001-S (NTT DATA, Hamburg) after turn 3"
+      }
+    ],
+    "run_to_run_spread": {
+      "dev-01": {
+        "same": false,
+        "tool_sequences": [
+          [
+            "search_jobs",
+            "get_job_details",
+            "get_job_details",
+            "get_job_details",
+            "get_job_details",
+            "get_job_details",
+            "get_job_details",
+            "assess_fit"
+          ],
+          [
+            "search_jobs",
+            "search_jobs",
+            "search_jobs",
+            "get_job_details",
+            "get_job_details",
+            "get_job_details",
+            "get_job_details",
+            "assess_fit"
+          ]
+        ],
+        "tool_selection_verdicts": [
+          false,
+          true
+        ]
+      },
+      "dev-02": {
+        "same": true,
+        "tool_sequences": [
+          [
+            "search_jobs",
+            "get_job_details",
+            "get_job_details",
+            "get_job_details",
+            "assess_fit"
+          ],
+          [
+            "search_jobs",
+            "get_job_details",
+            "get_job_details",
+            "get_job_details",
+            "assess_fit"
+          ]
+        ],
+        "tool_selection_verdicts": [
+          true,
+          true
+        ]
+      },
+      "dev-03": {
+        "same": true,
+        "tool_sequences": [
+          [
+            "save_to_tracker"
+          ],
+          [
+            "save_to_tracker"
+          ]
+        ],
+        "tool_selection_verdicts": [
+          true,
+          true
+        ]
+      },
+      "dev-04": {
+        "same": true,
+        "tool_sequences": [
+          [
+            "remember"
+          ],
+          [
+            "remember"
+          ]
+        ],
+        "tool_selection_verdicts": [
+          true,
+          true
+        ]
+      },
+      "dev-05": {
+        "same": true,
+        "tool_sequences": [
+          [
+            "search_jobs",
+            "search_jobs",
+            "search_jobs",
+            "get_job_details",
+            "assess_fit"
+          ],
+          [
+            "search_jobs",
+            "search_jobs",
+            "search_jobs",
+            "get_job_details",
+            "assess_fit"
+          ]
+        ],
+        "tool_selection_verdicts": [
+          false,
+          false
+        ]
+      },
+      "dev-06": {
+        "same": true,
+        "tool_sequences": [
+          [],
+          []
+        ],
+        "tool_selection_verdicts": [
+          true,
+          true
+        ]
+      },
+      "dev-07": {
+        "same": true,
+        "tool_sequences": [
+          [
+            "save_to_tracker",
+            "list_tracker"
+          ],
+          [
+            "save_to_tracker",
+            "list_tracker"
+          ]
+        ],
+        "tool_selection_verdicts": [
+          true,
+          true
+        ]
+      },
+      "dev-08": {
+        "same": false,
+        "tool_sequences": [
+          [
+            "save_to_tracker"
+          ],
+          [
+            "save_to_tracker",
+            "save_to_tracker"
+          ]
+        ],
+        "tool_selection_verdicts": [
+          true,
+          true
+        ]
+      },
+      "dev-09": {
+        "same": false,
+        "tool_sequences": [
+          [
+            "remember",
+            "get_job_details",
+            "assess_fit"
+          ],
+          [
+            "remember",
+            "get_job_details"
+          ]
+        ],
+        "tool_selection_verdicts": [
+          true,
+          false
+        ]
+      },
+      "dev-10": {
+        "same": true,
+        "tool_sequences": [
+          [
+            "search_jobs",
+            "search_jobs",
+            "search_jobs"
+          ],
+          [
+            "search_jobs",
+            "search_jobs",
+            "search_jobs"
+          ]
+        ],
+        "tool_selection_verdicts": [
+          true,
+          true
+        ]
+      }
+    }
+  },
+  "rescore": {
+    "date": "2026-11-17",
+    "reason": "D-28 step 1: dev-09's content check (assess_fit category correctness) was miscounted as an approval-policy violation; moved to content_check_failures. Records (tool calls, turns, final messages) unchanged; only derived scoring fields and top-level metrics recomputed."
+  }
+}
