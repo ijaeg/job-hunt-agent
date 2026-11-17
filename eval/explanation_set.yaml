@@ -11,7 +11,10 @@
 
 set: explanation_check
 date_drafted: '2026-11-17'
-approval: {}
+approval:
+  date: '2026-11-17'
+  by: Ingo
+  note: Approved after coach review with three changes
 
 data_check: |
   Listings chosen from eval/fit_set.yaml (the committed, PII-cleaned fixture set,

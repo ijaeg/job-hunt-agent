@@ -558,3 +558,13 @@ recorded search should check the literal-location proportion of its committed
 listings (not just that they exist), and should test more than one plausible
 date-phrase translation before trusting that a search-based scenario will reach
 the total its `data_check` reports.
+
+## Explanation-consistency metric (WP-15c, FR-08)
+
+D-13's follow-up-explanation-consistency check (`eval/explanation_set.yaml`,
+`eval/explanation_checks.py`) is a separate measurement next to the five §9.2
+metrics above - it checks whether a follow-up answer's quotes, match/gap
+framing and stated category agree with the thread's own stored
+`FitAssessment`, not whether the right tools were called. One run, 3 threads x
+2 runs, `eval/results/explanation_check.json`; full write-up, every flag read
+individually, and limitations in `docs/explanation_check.md`.

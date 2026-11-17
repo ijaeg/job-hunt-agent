@@ -2292,3 +2292,82 @@ WP-05 and D-28 already established for a post-HALT correction
 **Next:** WP-15c (the D-13 explanation-consistency check, spec §13); the
 test-01/test-02/test-03 findings above are documented limitations, not
 scheduled fixes, per the "no change after the run" rule for this package.
+
+## 2026-11-17 - WP-15c: explanation-consistency check (D-13 Option 2, FR-08)
+
+Branch `feature/explanation-check`, 1 commit so far (Step 1), Step 2 (the real
+run) built and executed in the same session, not yet committed.
+
+1. **Step 1 (committed):** `docs/prompts/WP-15c-explanation-check.md`;
+   `eval/explanation_set.yaml` - 3 threads x 3 named listings (one excluded/
+   temp-agency, one partial, one poor each, chosen without a model call by
+   re-scoring WP-14's two cached real-model extractions under the *current*
+   `rubric.py`) plus 4 neutral follow-up questions per thread (why one
+   listing's category, one dimension across all three, which skills match/are
+   missing for one listing, a question about a listing not assessed in this
+   thread); `eval/explanation_checks.py` - five pure checks C1-C5 (quote
+   fidelity, match/gap consistency, category consistency, no new tool call on
+   turns a-c, the turn-d invariant-2 guard) with 25 unit tests on fixed fake
+   data (`tests/test_explanation_checks.py`). HALT 1: coach review approved
+   with three changes (turn c retargeted to the partial listing in every
+   thread; C2 marker lists expanded with five match/five gap phrases plus a
+   fix so a gap phrase's substring - "not met" inside "met" - can no longer
+   also read as a match marker; confirmed C3 already checked referenznummer/
+   title/employer, added the missing title-only unit test) - applied, 5 more
+   unit tests added, approval block filled after Ingo's go-ahead.
+2. **Step 2 (this session, not yet committed):** `eval/run_explanation_check.py`
+   (reuses `scripts/_agent_run_helpers.py`, D-28's per-invocation fresh-DB/
+   fresh-user-id pattern) ran all 3 threads x 2 runs against the real model
+   (`openai/gpt-5-mini`, low effort), demo mode -
+   `eval/results/explanation_check.json`. Categories landed exactly as
+   estimated (excluded/partial/poor, 3 each) in both runs; all 6 turn-d cases
+   called a fresh `assess_fit` rather than guessing; no write tool was ever
+   called. C4/C5 100%/100% both runs. C1 (41.7%→75.0%) and C2 (66.7%→50.0%)
+   looked weak at face value, and C3 had one flag - but reading every single
+   flag (19 C1, 63 C2, 1 C3) individually against the stored assessment *and*
+   the real underlying ad text (substring checks only, nothing printed or
+   committed, invariant 4) found **1 confirmed (borderline) match/gap
+   contradiction in the 24 follow-up answers, no fabricated quote in any
+   follow-up**: thread 3 run 2's turn-d answer groups a stored `gaps` item
+   (SQL) together with a real match (Java) as "partial overlap" with the
+   profile, contradicting the authoritative `matches`/`gaps` split -
+   defensible in substance (the profile does have PostgreSQL) but exactly
+   D-13's error class. Every other flag was a heuristic artifact: every C1
+   "failure" was real ad text the check's narrow skills-only evidence scope
+   can't see (mid-quote ellipsis, German-level/remote/employment-type quotes
+   with no stored ground truth at all, one multi-skill evidence sentence
+   collapsed to per-skill bare names), the other 62 C2 flags were "met" inside
+   "method(s)"/"methodisch", negated/hedged phrasing like "does not match" or
+   "if you have X", or one marker anywhere in a long compound sentence, and
+   the one C3 flag was "strong" used as a plain adjective ("a strong
+   mismatch"), not a category claim. **One further D-13-class merged quote
+   observed outside the measured scope:** thread 1 run 2's *initial* (unchecked)
+   assessment answer quotes "ML-Flow, TensorFlow, PyTorch, Kubernetes" as one
+   evidence span, confirmed not a contiguous substring of the real ad -
+   spliced from two separate bracketed lists in the same evidence string.
+   Full per-flag table, root-cause buckets and limitations (heuristic C2;
+   C1's evidence scope narrower than full ad text; small set; one model; no
+   dev/test split since nothing here is tuned) in `docs/explanation_check.md`;
+   linked from `docs/trajectory_evaluation.md`'s new short section next to the
+   §9.2 metrics. `CLAUDE.md` "Commands" gained the run command.
+
+**Checks:** 551 tests, 0 skipped, 99% coverage. `ruff check .`/`ruff format
+--check .` clean (165 files). `mypy src app.py pages` clean (40 files,
+including the two new `eval/` modules). Real-model run: the one measurement
+run itself (24 follow-up answers against `openai/gpt-5-mini`). Data integrity:
+all 12 referenznummern used (9 assessed + 3 turn-d) confirmed present in
+`data/samples/fixtures/listings.json` before the run; no fixture data changed.
+No ad text, profile content or personal name written to the results file -
+only tool names, referenznummern, the model's own follow-up answers and the
+check results. Docs match the data: every number in `docs/explanation_check.md`
+and this entry taken from `eval/results/explanation_check.json`.
+
+**No new decision file.** HALT 1's only decision (approval of the listings,
+questions, marker lists and the five rules, with the coach's three changes)
+is recorded in `eval/explanation_set.yaml`'s own `approval` block.
+
+**Next:** propose the Step 2 commit for Ingo's review; after that, this closes
+out the §9 evaluation Must items per spec §13 (fit evaluation, tool-trajectory
+evaluation, safety tests, tracing, and now the FR-08 explanation-consistency
+metric). No further change to this package's question set or checks per the
+"no change after the run" rule.
