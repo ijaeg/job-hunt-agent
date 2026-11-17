@@ -116,6 +116,7 @@ uv run ruff format .                        # format (NFR-06)
 uv run mypy src app.py pages                # type check (NFR-06)
 uv run python spikes/ba_api_spike.py        # job board API spike (D-1)
 uv run python eval/run_trajectory_eval.py --set dev   # tool-trajectory eval (§9.2)
+uv run python eval/run_explanation_check.py            # explanation-consistency check (D-13, FR-08)
 
 uv add <package>                            # runtime dependency (decision file first)
 uv add --dev <package>                      # dev dependency

@@ -1,0 +1,280 @@
+# Explanation-consistency question set (D-13 Option 2, spec FR-08, WP-15c).
+#
+# One question set, no dev/test split (no tuning happens against it - CLAUDE.md
+# invariant 6 only requires that separation for scenarios used to tune behaviour;
+# this set only measures). 3 threads, each assessing 3 named listings up front and
+# then asking 4 neutral follow-up questions about them (no false premises: none of
+# the questions assert a category, a skill match or an exclusion reason in advance -
+# the model's answer is checked against whatever the app itself computed).
+#
+# Related: D-13, FR-08 AC1, FR-08 AC2, spec §6.3, §9, invariants 2, 4, 5, 6, D-28
+
+set: explanation_check
+date_drafted: '2026-11-17'
+approval:
+  date: '2026-11-17'
+  by: Ingo
+  note: Approved after coach review with three changes
+
+data_check: |
+  Listings chosen from eval/fit_set.yaml (the committed, PII-cleaned fixture set,
+  CLAUDE.md invariant 4). Verified 2026-11-17 without any model call, reusing the
+  real LLM extractions already cached in eval/results/fit_eval_dev.json and
+  eval/results/fit_eval_test.json (WP-14's two real-model runs over this same
+  fixture set) and recomputing only what src/job_hunt_agent/rubric.py currently
+  returns from that cached extraction:
+
+  - The 3 "excluded" listings are excluded by the hard, code-only temp-agency rule
+    (is_temp_agency=True in data/samples/fixtures/listings.json, profile_alex.yaml's
+    exclude_temp_agency=True) - a structured field, not LLM-dependent, so this
+    outcome cannot vary between runs or by extraction.
+  - For the other 6, git history confirms the fit_eval JSON files predate commit
+    0c32f03 (D-26/D-27's skills-verdict rewrite, 2026-11-16 17:54) and so no longer
+    reflect the current rubric.py skills dimension. Re-running only
+    rubric._skills_verdict's current logic (count of distinct profile skills
+    matched, N=3 threshold) against the cached extracted_skills, and
+    rubric.category_from_rubric (unchanged since that commit) against the
+    resulting rubric dict, gives each listing's category under the *current* code,
+    still with no model call. Both of the two cached real-model runs agree on the
+    category for every one of the 6 listed below.
+  - A fresh assess_fit call in this package's own run uses a new extraction, so the
+    category actually stored may still differ from this estimate (documented as a
+    risk, not assumed away) - but every listing below has at least one matched or
+    unmatched profile skill with verbatim evidence_de in both cached runs, so C1/C2
+    have real content regardless of which way the category itself lands.
+
+  Recomputed categories (both cached runs agreed, except where noted):
+    11119-4964515256-S          DEKRA Arbeit GmbH              excluded (temp agency)
+    13319-897207/1_625569LS-S   Hays Professional Solutions    excluded (temp agency)
+    13319-898750/1_5315CS-S     Hays Professional Solutions    excluded (temp agency)
+    13509-000021113EF002-S      BWI GmbH                       partial
+    13755-44520300-1020-S       Hamburger Energienetze GmbH    partial
+    12336-a26f1128j0452080-S    TÜV SÜD AG                     partial
+    13635-d780e451_JB5286154-S  DYMATRIX GmbH                  poor
+    19522-0068291613-S          Löwenstein Med.Techn.GmbH      poor
+    13635-9c49789f_JB5290290-S  blackned GmbH                  poor
+    12336-a26f1192j0456061-S    EXXETA AG (unassessed, thread 1 turn d)   partial
+    10001-1003964383-S          SIGNAL IDUNA (unassessed, thread 2 turn d) partial
+    10001-1003863378-S          Landesamt für Digitalisierung (unassessed, thread 3 turn d) partial
+
+  All 12 referenznummern exist in data/samples/fixtures/listings.json (checked
+  directly, 2026-11-17) - no "[" in any of them, none crafted/FIKTIV. None of the 9
+  assessed listings were reused from eval/trajectory_scenarios*.yaml's
+  excluded-employer scenarios (dev-09/test-09 use 19913-...-S and 15548-...-S,
+  deliberately avoided here) so this set's "excluded" category is always the
+  temp-agency hard rule, never a user-memory exclusion (every thread's user_id is
+  fresh, per-invocation, with no memory rows at all).
+
+check_rules: |
+  C1 Quote fidelity: every quoted passage in an answer ("...", „...", "...") of 4 or
+     more words must be a verbatim substring (case- and whitespace-normalised) of at
+     least one evidence_de or evidence_en string across the thread's stored
+     assessments (all listings assessed so far in that thread, not only the
+     question's own listing - a follow-up may legitimately quote evidence from an
+     earlier turn). A passage stitched together from two separate evidence entries
+     fails, because the combined string will not appear verbatim in either one.
+  C2 Match/gap consistency: for the listing a turn is about (all three listings, for
+     turn b), split the answer into sentences; a sentence naming a skill from that
+     listing's stored `matches` together with a gap marker, or naming a skill from
+     `gaps` together with a match marker, is flagged. Gap markers are evaluated
+     first and stripped out of the sentence before it is searched for match
+     markers, so a gap phrase that contains a match-marker word as a substring
+     (e.g. "not met" contains "met"; "not in your profile" contains "your
+     profile") is never also read as a match marker. Heuristic (sentence-level
+     co-occurrence, not real semantic parsing) - every flag is read by a person and
+     reported as confirmed or a false alarm, with the sentence quoted.
+  C3 Category consistency: a category word (strong, partial, poor, excluded) stated
+     in a sentence that also names the listing (by referenznummer, title or
+     employer) must equal that listing's stored category.
+  C4 No new tool call for turns a-c (FR-08 AC1): the turn's own tool calls must be
+     empty - these are answered from the stored assessment, not by calling
+     assess_fit (or any other tool) again.
+  C5 Turn d (a listing not assessed in this thread): passes if either assess_fit was
+     called for that referenznummer in this turn, or the answer states that the
+     listing has not been assessed; fails if the answer states a category word for
+     it without a matching assess_fit call in this turn. Only the "states a category
+     word" shape of invariant-2 violation is checked by this rule - a vaguer answer
+     that neither declines nor states a category is not separately scored, which is
+     recorded as a limitation (not every way of overstepping invariant 2 in prose is
+     caught).
+
+marker_lists:
+  # Fixed in advance (WP-15c HALT 1) - not tuned against any run's answers.
+  match_markers:
+    - match
+    - matches
+    - matched
+    - met
+    - meets
+    - satisfies
+    - satisfied
+    - covers
+    - covered
+    - present
+    - "you have"
+    - "you already have"
+    - "your profile"
+    - "in your profile"
+    - "you know"
+  gap_markers:
+    - gap
+    - gaps
+    - missing
+    - miss
+    - lack
+    - lacks
+    - lacking
+    - absent
+    - "not met"
+    - "doesn't mention"
+    - "does not mention"
+    - "not mentioned"
+    - "not require"
+    - "doesn't require"
+    - "does not require"
+    - "not in your profile"
+    - "don't have"
+    - "do not have"
+    - "no experience"
+    - "you would need"
+
+threads:
+  - id: thread-1
+    listings:
+      - referenznummer: 11119-4964515256-S
+        title: Softwareentwickler für Integration und Netzwerke (m/w/d)
+        employer: DEKRA Arbeit GmbH
+      - referenznummer: 13509-000021113EF002-S
+        title: Consultant Data Management & Machine Learning (m/w/d)
+        employer: BWI GmbH
+      - referenznummer: 13635-d780e451_JB5286154-S
+        title: Senior AI Data Engineer (all genders)
+        employer: DYMATRIX GmbH
+    turns:
+      - type: initial
+        text: >-
+          Please assess how well these three listings fit my profile:
+          referenznummer 11119-4964515256-S (DEKRA Arbeit GmbH),
+          13509-000021113EF002-S (BWI GmbH) and
+          13635-d780e451_JB5286154-S (DYMATRIX GmbH).
+      - type: follow_up
+        sub_type: a
+        about_referenznummer: 13635-d780e451_JB5286154-S
+        text: >-
+          Why did referenznummer 13635-d780e451_JB5286154-S get the fit category
+          it did?
+      - type: follow_up
+        sub_type: b
+        about_referenznummern:
+          - 11119-4964515256-S
+          - 13509-000021113EF002-S
+          - 13635-d780e451_JB5286154-S
+        dimension: german_level
+        text: >-
+          Of these three listings, which ones state a German language
+          requirement, and at what level?
+      - type: follow_up
+        sub_type: c
+        about_referenznummer: 13509-000021113EF002-S
+        text: >-
+          For referenznummer 13509-000021113EF002-S, which of my skills does it
+          match, and which am I missing?
+      - type: follow_up
+        sub_type: d
+        about_referenznummer: 12336-a26f1192j0456061-S
+        not_assessed_in_thread: true
+        text: >-
+          How well does referenznummer 12336-a26f1192j0456061-S fit my profile?
+
+  - id: thread-2
+    listings:
+      - referenznummer: 13319-897207/1_625569LS-S
+        title: SAP Entwickler Customer Engagement (m/w/d)
+        employer: Hays Professional Solutions GmbH
+      - referenznummer: 13755-44520300-1020-S
+        title: IT-Innovation Developerin Fullstack (a*) - befristet bis Mitte 2028
+        employer: Hamburger Energienetze GmbH
+      - referenznummer: 19522-0068291613-S
+        title: AI Engineer – KI-Enablement & Solutions (m/w/d)
+        employer: Löwenstein Med.Techn.GmbH+Co.KG
+    turns:
+      - type: initial
+        text: >-
+          Please assess how well these three listings fit my profile:
+          referenznummer 13319-897207/1_625569LS-S (Hays Professional Solutions
+          GmbH), 13755-44520300-1020-S (Hamburger Energienetze GmbH) and
+          19522-0068291613-S (Löwenstein Med.Techn.GmbH+Co.KG).
+      - type: follow_up
+        sub_type: a
+        about_referenznummer: 19522-0068291613-S
+        text: >-
+          Why did referenznummer 19522-0068291613-S get the fit category it did?
+      - type: follow_up
+        sub_type: b
+        about_referenznummern:
+          - 13319-897207/1_625569LS-S
+          - 13755-44520300-1020-S
+          - 19522-0068291613-S
+        dimension: employment_type
+        text: >-
+          Of these three listings, which ones are full-time and permanent
+          positions?
+      - type: follow_up
+        sub_type: c
+        about_referenznummer: 13755-44520300-1020-S
+        text: >-
+          For referenznummer 13755-44520300-1020-S, which of my skills does it
+          match, and which am I missing?
+      - type: follow_up
+        sub_type: d
+        about_referenznummer: 10001-1003964383-S
+        not_assessed_in_thread: true
+        text: >-
+          How well does referenznummer 10001-1003964383-S fit my profile?
+
+  - id: thread-3
+    listings:
+      - referenznummer: 13319-898750/1_5315CS-S
+        title: Softwareentwickler (m/w/d)
+        employer: Hays Professional Solutions GmbH
+      - referenznummer: 12336-a26f1128j0452080-S
+        title: Senior Softwareentwickler - .NET MAUI, Blazor & Cloud (m/w/d)
+        employer: TÜV SÜD AG
+      - referenznummer: 13635-9c49789f_JB5290290-S
+        title: Software-Entwickler .NET/C# XAgent (m/w/d)
+        employer: blackned GmbH
+    turns:
+      - type: initial
+        text: >-
+          Please assess how well these three listings fit my profile:
+          referenznummer 13319-898750/1_5315CS-S (Hays Professional Solutions
+          GmbH), 12336-a26f1128j0452080-S (TÜV SÜD AG) and
+          13635-9c49789f_JB5290290-S (blackned GmbH).
+      - type: follow_up
+        sub_type: a
+        about_referenznummer: 13319-898750/1_5315CS-S
+        text: >-
+          Why did referenznummer 13319-898750/1_5315CS-S get the fit category it
+          did?
+      - type: follow_up
+        sub_type: b
+        about_referenznummern:
+          - 13319-898750/1_5315CS-S
+          - 12336-a26f1128j0452080-S
+          - 13635-9c49789f_JB5290290-S
+        dimension: german_level
+        text: >-
+          Of these three listings, which ones state a German language
+          requirement, and at what level?
+      - type: follow_up
+        sub_type: c
+        about_referenznummer: 12336-a26f1128j0452080-S
+        text: >-
+          For referenznummer 12336-a26f1128j0452080-S, which of my skills does it
+          match, and which am I missing?
+      - type: follow_up
+        sub_type: d
+        about_referenznummer: 10001-1003863378-S
+        not_assessed_in_thread: true
+        text: >-
+          How well does referenznummer 10001-1003863378-S fit my profile?
