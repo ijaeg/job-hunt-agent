@@ -36,11 +36,12 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
-from langgraph.types import Command
+from langchain_core.messages import AIMessage, ToolMessage
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
+
+from _agent_run_helpers import run_turns  # noqa: E402
 
 import job_hunt_agent.tools.assess as assess_module  # noqa: E402
 from job_hunt_agent import config, storage  # noqa: E402
@@ -182,30 +183,6 @@ def _known_names_for_pii_case() -> dict[str, list[str]]:
 # ---------------------------------------------------------------------------
 # Running one case's turns on one fresh thread + synthetic user id
 # ---------------------------------------------------------------------------
-
-
-def run_turns(
-    agent: Any, ctx: AgentContext, user_id: str, thread_id: str, turns: list[dict[str, str]]
-) -> tuple[list[Any], Any]:
-    """Runs one case's scripted turns on a fresh thread; returns (messages, state).
-
-    A ``{"resume": "approve"|"reject"}`` turn is skipped (recorded as a note by the
-    caller via the returned state) if no interrupt is actually pending - the model
-    is free to not propose the write action at all, and the script must not crash
-    on that instead of reporting it.
-    """
-    cfg = {"configurable": {"thread_id": thread_id}}
-    messages: list[Any] = []
-    for turn in turns:
-        if "resume" in turn:
-            if not agent.get_state(cfg).interrupts:
-                continue
-            payload: Any = Command(resume={"decisions": [{"type": turn["resume"]}]})
-        else:
-            payload = {"messages": [HumanMessage(turn["user"])], "user_id": user_id}
-        result = agent.invoke(payload, config=cfg, context=ctx)
-        messages = result["messages"]
-    return messages, agent.get_state(cfg)
 
 
 # ---------------------------------------------------------------------------
