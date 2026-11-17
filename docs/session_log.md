@@ -2371,3 +2371,182 @@ out the §9 evaluation Must items per spec §13 (fit evaluation, tool-trajectory
 evaluation, safety tests, tracing, and now the FR-08 explanation-consistency
 metric). No further change to this package's question set or checks per the
 "no change after the run" rule.
+
+## 2026-11-17 — WP-16a: README independent verification
+
+Branch `feature/readme`, not yet committed (HALT). `README.md` (new, 601
+lines/4,730 words) and `PRODUCT_SPEC.md` (v0.1.14) were written/updated by the
+coach; this package only verifies, per the prompt's "the writer does not check
+his own work" rule - no edit made to either file.
+
+**Checked, all against the actual repo state, not memory:**
+
+1. **Fresh-clone setup:** cloned to a scratch folder, copied the two
+   uncommitted files in (clone alone would have the old committed README),
+   `cp .env.example .env` with the real `OPENROUTER_API_KEY`/`LANGSMITH_API_KEY`
+   from the shell environment, `uv sync` (541 ms, clean), `uv run streamlit
+   run app.py --server.headless true` - HTTP 200 at both +8 s and +20 s.
+   Process killed and the temp folder deleted afterward.
+2. **Links and paths:** every Markdown link target, every inline-code file
+   path (`data/...`, `eval/results/...`, `.github/workflows/ci.yml`, etc.) and
+   every Contents-list anchor against the file's own headings - all resolve.
+3. **Numbers**, each against its cited source file, re-run where the source
+   is code rather than a stored result:
+   - Fresh `uv run pytest`: 551 passed, 0 skipped, 99% coverage - matches
+     exactly.
+   - Fixture set: 65 total, 62 real + 3 `FIKTIV-*` crafted - matches exactly.
+   - Config limits: `MAX_MODEL_CALLS_PER_MESSAGE=10`,
+     `MAX_SEARCH_CALLS_PER_MESSAGE=3`, page size 25 (`ba_client.py`),
+     `MAX_LISTINGS_PER_ASSESS_FIT_CALL=8` - all match.
+   - Fit evaluation: `fit_eval_test.json` (4/12 both runs), round-2 variant
+     table in `docs/fit_evaluation.md` (old rule 8/20 both runs, chosen N=3-
+     with-cap rule 14/20 and 15/20), `fit_eval_round2_test.json` (6/10 both
+     runs, the one `strong`-labelled listing recognised in both runs) - all
+     match exactly.
+   - Trajectory evaluation: README's dev numbers match
+     `trajectory_dev_run2.json` (19/20, 28/28, 4/4, 0 violations) and its test
+     numbers match `trajectory_test.json` (15/20, 30/30, 3/4, 0 violations) -
+     correctly the post-D-28 dev run, not the original `trajectory_dev.json`.
+     The "3 of 6 runs" refinement claim was hand-verified tool-sequence by
+     tool-sequence across all three files' S1-equivalent scenario (dev-01 x2,
+     dev-01 x2 after D-28, test-01 x2) - exactly 3 of the 6 runs both refine
+     (>1 `search_jobs`) and complete the shortlist (`assess_fit`); matches.
+   - Explanation check: `c4_no_new_tool_call` and `c5_turn_d` both 9/9 and
+     3/3 across the two runs (18/18, 6/6); the "1 confirmed (borderline)
+     contradiction in 24 answers, no fabricated quote" headline matches
+     `docs/explanation_check.md`'s own headline verbatim; the "41.7-100%"
+     range matches the six per-run C1/C2/C3 rates exactly.
+   - Safety tests: 10 cases (3+3+2+1+1), all PASS, run date 2026-11-11 -
+     matches `docs/safety_tests.md`.
+4. **Code facts**, read directly from source, not inferred: middleware list
+   and order in `agent.py` match the Mermaid diagram including the
+   non-obvious reversed-`after_model`-order explanation (confirmed against
+   `rejection_lock.py`'s own module docstring and each middleware's actual
+   hook names); `WRITE_TOOLS = {save_to_tracker, remember}` matches the
+   approval column; both tool toggles and the demo-mode toggle exist on
+   `pages/4_Developer_settings.py`; `CHAT_MODEL`/`CHAT_MODEL_OPTIONS` defaults
+   match; `DEFAULT_USER_ID = "alex"` seeded from `profile_alex.yaml` in
+   `ui_shared.py`; every "Delete with" entry's UI path exists (`1_Tracker.py`,
+   `2_Memory.py`, `app.py`'s thread-list delete button, `3_Profile.py`'s save-
+   overwrites-profile form); `DB_PATH` matches; `PROVIDER_PREFERENCES =
+   {"data_collection": "deny", "zdr": True}` is wired into the actual model
+   call in `llm.py`; `PIIMiddleware` is built for email + a custom phone
+   detector, both `apply_to_tool_results=True`; `ToolResult`/`search_jobs`
+   field names match the quoted `function_calling_example.json` call exactly;
+   every eval/safety command's `--set` choices and no-argument scripts match
+   what the README shows.
+   - **Finding:** `.github/workflows/ci.yml`'s type-check step runs
+     `mypy src` only. The README's own "Tests and code quality" bullet names
+     `uv run mypy src app.py pages` as the clean command (confirmed clean,
+     40 files, re-run this session) and then states "GitHub Actions runs the
+     checks on every pull request" directly below it - read together this
+     implies CI mirrors that scope, but CI's mypy step is narrower by two
+     targets (`app.py`, `pages`).
+5. **Mermaid diagram:** `npx -y @mermaid-js/mermaid-cli` (v12.2.0) was
+   available; rendering needed a `--no-sandbox` Puppeteer flag in this
+   container but then succeeded without any syntax error, producing a valid
+   541x2299 SVG. Validated, not just "not validated".
+6. **Contradictions vs. spec/decisions:**
+   - **Finding:** README cites `D-7` twice for claims beyond D-7's own
+     decided text. `PRODUCT_SPEC.md` §14's D-7 row is scoped to "whether
+     storing listings (tracker: ID, title, employer, URL only) is allowed";
+     README's "Known limitations" ("redistributed this way is still open
+     (D-7)") and "Data source and attribution" ("Whether the API's terms of
+     use cover this use is still open (D-7); the set can be removed in one
+     commit if required") both apply D-7 to a different, broader question -
+     redistributing the committed cleaned fixture set - that the spec's D-7
+     text does not mention. There is also no `docs/decisions/D-7-*.md` file,
+     unlike every other decided or open D-N item.
+   - Every other cross-check (rubric table and thresholds vs. spec §7 incl.
+     D-23/D-24/D-25/D-27 wording; D-26 stop criterion and the four-variant
+     table vs. `docs/fit_evaluation.md`; D-28's write-gating-vs.-content-check
+     split vs. `docs/trajectory_evaluation.md`; D-13's result line in spec
+     §14 vs. the explanation-check headline) matched with no contradiction
+     found.
+
+**Checks:** `uv run pytest` 551 passed, 0 skipped, 99% coverage; `uv run ruff
+check .` clean; `uv run ruff format --check .` clean (166 files); `uv run
+mypy src app.py pages` clean (confirms the finding above is about CI's scope,
+not a real type error). No code changed, so no real-model smoke run applies.
+One side effect caught and cleaned up: an accidental `--help` smoke-test of
+`eval/run_explanation_check.py` has no argument parsing at all and silently
+started a real agent run against the live model before the 60 s command
+timeout killed it; the stray `data/explanation_check_run_*.sqlite(-wal/-shm)`
+files it created were deleted, no stray process remained, and no result file
+under `eval/results/` was touched.
+
+**No new decision file** - this package only verifies.
+
+**Next:** two findings above are for the coach to fix (CI mypy scope; D-7
+scope/missing decision file), then re-propose the commit (prompt file,
+`README.md`, `PRODUCT_SPEC.md`, this session log entry) for Ingo's approval.
+WP-16b (screenshots, LangSmith trace links) remains open per the README's own
+placeholders.
+
+### Re-verification after the coach's fixes
+
+The coach fixed both findings and asked for a scoped re-check of exactly the
+four changed passages: README's "Tests and code quality" CI sentence,
+"Known limitations" D-7/D-8 bullet, "Data source and attribution" last
+sentences, and spec `PRODUCT_SPEC.md` (§5.4 row 1a, §11 eval files, D-7 row,
+v0.1.14 change-log line) - against `ci.yml`, the D-7/D-8 texts, `agent.py` and
+the `eval/` folder, plus a link re-check.
+
+- **CI sentence:** now reads "...are clean locally. GitHub Actions
+  (`.github/workflows/ci.yml`) runs ruff, the format check, `mypy src` and
+  the tests on every pull request; the UI files (`app.py`, `pages/`) are
+  type-checked locally only." Matches `ci.yml`'s four steps exactly (ruff
+  check, ruff format --check, `mypy src`, pytest) and no longer implies a
+  wider CI scope than exists. **OK.**
+- **Known limitations D-7/D-8 bullet:** now reads "...Whether the API's
+  terms allow storing listing references in the tracker (D-7, open) and
+  committing cleaned listings to a public repository (D-8: committed while
+  this is unverified, removable in one commit) has not been checked."
+  Matches the updated spec D-7 row ("The same open question covers
+  committing the cleaned fixture set to the repository, decided in the
+  meantime by D-8") and D-8's own row ("removable in one commit if anyone
+  objects"). **OK**, fixes the earlier scope-creep finding - D-7 is no
+  longer cited for a claim its own text didn't cover; the new wording
+  attributes the "committed/removable" part to D-8 instead, matching D-8's
+  decided text.
+- **Data source and attribution:** now reads "...can be removed in one
+  commit if required (D-8)" (previously cited D-7 for this). Matches D-8's
+  decided text. **OK.**
+- **Spec §5.4 row 1a** ("Profile context and memory context (own, two
+  middlewares) | `before_model` (first model call of a thread) | ... |
+  FR-01 AC4, FR-15 AC2"): checked directly against
+  `src/job_hunt_agent/agent.py` (both middlewares listed right after the
+  input guard) and the two middleware files themselves -
+  `LoadProfileContextMiddleware`/`LoadMemoryContextMiddleware` both define
+  only `before_model`, both guarded by `len(messages) != 1` (first call of
+  the thread only), both tagged `Related: FR-01 AC4`/`FR-15 AC2`
+  respectively. **OK**, matches exactly.
+- **Spec §11 eval files:** every filename now listed
+  (`trajectory_scenarios.yaml`, `trajectory_scenarios_test.yaml`,
+  `fit_set.yaml`, `fit_set_round2.yaml`, `fit_labels.csv`,
+  `explanation_set.yaml`, `explanation_checks.py`, `run_trajectory_eval.py`,
+  `run_fit_eval.py`, `run_explanation_check.py`, `results/`) exists in
+  `eval/` with that exact name. §11 (titled "Proposed code structure") omits
+  two WP-14b scripts (`rescore_fit_round2.py`, `rescore_trajectory_test.py`)
+  and is similarly non-exhaustive everywhere else in the same section
+  (`scripts/` lists one of 13 actual files, `middleware/` omits three real
+  modules) - consistent with the section's own stated, non-literal nature
+  rather than a defect introduced here. **OK.**
+- **Links:** re-extracted every Markdown link target from the current
+  `README.md` and diffed against the already-verified set from the first
+  pass - byte-identical, so every link still resolves. **OK.**
+- **Noted in passing, not part of this fix and not reported as a blocking
+  finding:** spec §14's own D-8 row text still says "the cleaned real
+  listings (43, incl. 3 crafted) are committed" from its original
+  2026-11-06 wording, while §9.1 (updated in v0.1.13) and the actual
+  `data/samples/fixtures/listings.json` both say 65 (62 + 3) - a pre-existing
+  mismatch inside D-8's own row, untouched by this round's fixes and outside
+  what was asked to be re-checked, but surfaced while reading the D-7/D-8
+  texts as instructed.
+
+**Checks:** `uv run ruff check .`, `uv run ruff format --check .` (166
+files), `uv run mypy src app.py pages` (38 files) all clean; `uv run pytest`
+551 passed, 0 skipped, 99% coverage. No code changed.
+
+**Result: all four re-checked passages OK.** Commit proposed below; one
+pre-existing, out-of-scope D-8 count mismatch noted for awareness only.

@@ -4,7 +4,7 @@
 |---|---|
 | **Project** | Turing College – AI Engineering, Sprint 3 project ("Building with AI Agents") |
 | **Author** | Ingo Jäger |
-| **Status** | v0.1.13 – first draft, 2026-11-16 (changes: see §15) |
+| **Status** | v0.1.14 – first draft, 2026-11-17 (changes: see §15) |
 | **Audience** | Developer (implementation guide) and Turing College tutor (review guide) |
 | **Stack** | Python 3.13 (uv), Streamlit, LangChain `create_agent` (LangGraph runtime) against the OpenRouter API (OpenAI-compatible), SQLite (`SqliteSaver` checkpointer, `SqliteStore` for long-term memory, own tables for tracker and profile), `httpx`, Pydantic, LangSmith |
 | **Time budget** | ≈ 50 hours over two weeks (Mon 2026-11-09 to Fri 2026-11-20), including tests, documentation and review preparation; submission by Mon 2026-11-23 |
@@ -299,6 +299,7 @@ Tools read and write this state through `ToolRuntime` (e.g. `search_jobs` update
 | # | Middleware | Hook | Purpose | FR |
 |---|---|---|---|---|
 | 1 | Input guard (own) | `before_model` (first turn of a message) | Length, injection patterns, fixed reply | FR-21 |
+| 1a | Profile context and memory context (own, two middlewares) | `before_model` (first model call of a thread) | Inject the selected user's profile and stored memories once as labelled context | FR-01 AC4, FR-15 AC2 |
 | 2 | `PIIMiddleware` (email, custom phone) | input, tool results | Mask personal data | FR-22 |
 | 3 | Call limits (built-in `ModelCallLimitMiddleware`; own `SearchCallLimitMiddleware`) | `before_model`; `after_model` | Max. model calls; max. searches per user message, counted from the message history and pruned before the tools run, also when several searches are proposed in one step (D-19) | FR-20 |
 | 4 | Rejection lock (own) | `after_model` (before HITL) | Drop proposals already rejected | FR-10 AC3 |
@@ -416,14 +417,17 @@ No stack trace ever reaches the UI.
 ### 9.1 Datasets
 
 - **Cleaned fixture set** (`data/samples/fixtures/listings.json`): 62 real listings from the recorded searches (D-1, D-10), contact data removed (FR-22), plus 3 crafted listings (prompt injection, teaser only, temporary agency) – 65 in total, built by `scripts/build_fixtures.py`, committed (D-8). Used for demo mode, tests and evaluation.
-- **Scenario set** for tool-trajectory evaluation: 10 development scenarios, 10 test scenarios; the test scenarios are written after tuning and never used for tuning.
+- **Scenario set** for tool-trajectory evaluation: 10 development scenarios (`eval/trajectory_scenarios.yaml`), 10 test scenarios (`eval/trajectory_scenarios_test.yaml`); the test scenarios are written after tuning and never used for tuning.
+- **Explanation set** for the follow-up check (D-13): 3 conversations, each assessing 3 named listings and asking 4 follow-up questions (`eval/explanation_set.yaml`); measurement only, never used for tuning, so no development/test split.
 - **Labelled fit set:** 30 listings labelled by hand with the rubric (§7), drawn by a fixed rule with a fixed seed (D-20). Round 1 (`eval/fit_set.yaml`): 8 development, 12 test. Round 2 (D-26, `eval/fit_set_round2.yaml`): the 20 round-1 listings serve as development set, 10 fresh listings as test set.
 
 ### 9.2 Tool-trajectory evaluation (Must)
 
 For each scenario: expected tools (set and order constraints), key arguments, whether a refinement is expected, whether an approval is expected, which write actions must **not** happen.
 
-Metrics, reported separately: tool-selection accuracy, argument accuracy, refinement rate where expected, **approval-policy compliance** (critical: must be 100 %; any violation is reported individually and not averaged away). Each scenario runs twice; the spread is reported. Runs against the fixture set (demo mode), so results are reproducible.
+Metrics, reported separately: tool-selection accuracy, argument accuracy, refinement rate where expected, **approval-policy compliance** (critical: must be 100 %; any violation is reported individually and not averaged away). Each scenario runs twice; the spread is reported. Runs against the fixture set (demo mode), with a fresh database and fresh user ids for every invocation of the evaluation script, so results are reproducible (D-28). Approval-policy compliance counts only write-gating outcomes (a write without a matching approval, a write after a rejection, a rejected action executed later); every other scenario check is reported as a content check.
+
+**Follow-up explanations (FR-08, D-13):** a code check compares each follow-up answer with the stored `FitAssessment`: quotes are verbatim evidence, no match is presented as a gap or vice versa, a stated category equals the stored one, no new tool call for an assessed listing, no fit statement without an assessment. Every flagged passage is read by hand and classified as a real defect or a false alarm. Results: `docs/explanation_check.md`.
 
 ### 9.3 Fit evaluation (Must)
 
@@ -495,9 +499,11 @@ data/samples/
 scripts/
   build_fixtures.py             builds the fixture set from the raw spike responses
 eval/
-  scenarios_dev.yaml, scenarios_test.yaml
-  fit_labels.csv
-  run_trajectory_eval.py, run_fit_eval.py
+  trajectory_scenarios.yaml, trajectory_scenarios_test.yaml
+  fit_set.yaml, fit_set_round2.yaml, fit_labels.csv
+  explanation_set.yaml, explanation_checks.py
+  run_trajectory_eval.py, run_fit_eval.py, run_explanation_check.py
+  results/
 tests/
 spikes/
   ba_api_spike.py, NOTES.md
@@ -575,13 +581,13 @@ Nothing is cut in advance: if time runs short, items further down this order mov
 | D-4 | Model and extraction quality | **Decided (2026-11-05):** `openai/gpt-5-mini` stays the default; `anthropic/claude-haiku-4.5` is the secondary option (FR-18). Spike on 5 listings × 2 runs, ZDR for both: valid `JobRequirements` 10/10 each; verbatim evidence 97.2 % vs. 94.4 %; mean latency 15.8 s vs. 24.5 s; tool calling 3/3 each. Small sample, go/no-go only. Details: `docs/decisions/D-4-model.md` |
 | D-5 | Interrupt/resume in Streamlit | **Decided (2026-11-05):** spike design carried over unchanged – `RejectionLockMiddleware` listed after HITL (§5.4), interrupt read from the checkpointer, one shared SQLite connection (FR-10 AC5, AC6). 6 automated AppTest checks and one real-model run passed. Details: `docs/decisions/D-5-hitl-streamlit.md` |
 | D-6 | Long-term memory storage | **Decided (2026-11-05):** `SqliteStore` for memories (FR-15); own tables for tracker and profile (FR-09, FR-11, FR-14) in `storage.py`; one shared SQLite file unless a later problem shows otherwise. Details: `docs/decisions/D-6-memory-storage.md` |
-| D-7 | Terms of use of the BA API | **Open:** check whether storing listings (tracker: ID, title, employer, URL only) is allowed; the tracker never stores ad texts |
-| D-8 | Fixture content | **Decided (2026-11-06):** the cleaned real listings (43, incl. 3 crafted) are committed; risk judged low for a non-commercial learning repo, removable in one commit if anyone objects; source attribution in the README (FR-19 AC5). Details: `docs/decisions/D-8-fixture-content.md` |
+| D-7 | Terms of use of the BA API | **Open:** check whether storing listings (tracker: ID, title, employer, URL only) is allowed; the tracker never stores ad texts. The same open question covers committing the cleaned fixture set to the repository, decided in the meantime by D-8 |
+| D-8 | Fixture content | **Decided (2026-11-06):** the cleaned real listings (43, incl. 3 crafted, at the time of the decision; 65 after the München listings were added, D-10, §9.1) are committed; risk judged low for a non-commercial learning repo, removable in one commit if anyone objects; source attribution in the README (FR-19 AC5). Details: `docs/decisions/D-8-fixture-content.md` |
 | D-9 | Rubric start values | **Decided (2026-11-06):** start values of §7 kept (weights, 75 %/45 %, 70 %/40 %); Skills counts all extracted skills, not only `required` ones; demo profile `profile_alex.yaml` confirmed. Whole-word skill matching (§7) replaces the first substring version, which matched "Java" in "JavaScript" (found in the coach review of WP-02). Details: `docs/decisions/D-9-rubric-start-values.md` |
 | D-10 | Demo-mode search semantics | **Decided (2026-11-06):** demo mode replays the recorded real searches with their real totals (e.g. 103 for "Softwareentwickler" / München, `recorded_searches.json`); a search that narrows a recorded one is filtered to that search's own listings; no total is ever invented. München's own listings were fetched to close the data gap. Details: `docs/decisions/D-10-demo-search-semantics.md` |
 | D-11 | Evidence on the shortlist cards | **Decided (2026-11-09):** `FitAssessment.matches` and `gaps` become structured `MatchEvidence` (name, German quote, English translation), built by the rubric (§6.3). Details: `docs/decisions/D-11-card-evidence.md` |
 | D-12 | S1 latency (NFR-03) | **Decided (2026-11-09):** measure before changing any lever. Result after the FR-01 AC4 location fix: 5 of 5 demo runs complete with refinement, median 44.8 s, maximum 58.4 s – within budget, no lever changed. Details: `docs/decisions/D-12-latency.md` |
-| D-13 | Consistency of follow-up explanations | **Decided (2026-11-09):** follow-up answers (FR-08) can restate evidence wrongly (a gap presented as a match, merged quotes). Fixed by a code check in the evaluation work package that compares each answer with the stored `FitAssessment`, reported as a metric (§9); no further prompt change until then. Details: `docs/decisions/D-13-explanation-consistency.md` |
+| D-13 | Consistency of follow-up explanations | **Decided (2026-11-09):** follow-up answers (FR-08) can restate evidence wrongly (a gap presented as a match, merged quotes). Fixed by a code check in the evaluation work package that compares each answer with the stored `FitAssessment`, reported as a metric (§9); no further prompt change until then. Result (WP-15c): 1 borderline match/gap contradiction in 24 follow-up answers, no fabricated quote; no prompt change made. Details: `docs/decisions/D-13-explanation-consistency.md`, `docs/explanation_check.md` |
 | D-14 | Store connection | **Decided (2026-11-09):** the memory store (`SqliteStore`) gets its own connection to the same SQLite file; the checkpointer and the tracker/profile tables keep the shared connection of D-5. Sharing one connection between store and checkpointer caused intermittent transaction errors when both ran in different threads; 40 of 40 stress-test runs passed after the change. Details: `docs/decisions/D-14-store-connection-race.md` |
 | D-15 | Thread list | **Decided (2026-11-09):** an own table `threads` (user, thread id, title, dates) in `storage.py` maps users to their threads for the sidebar list (FR-13 AC2); the title is the first user message, cut to 60 characters. Details: `docs/decisions/D-15-thread-registry.md` |
 | D-16 | User management | **Decided (2026-11-09):** a user is selected by name in the sidebar, no authentication (§2.2); all pages use the selected user. Login via an identity provider (`st.login()`, OIDC) is named in the README as an improvement idea. Details: `docs/decisions/D-16-user-selection.md` |
@@ -596,6 +602,7 @@ Nothing is cut in advance: if time runs short, items further down this order mov
 | D-25 | Clear skill mismatch | **Decided (2026-11-16):** a `not met` skills verdict caps the category at `poor` (§7). Details: `docs/decisions/D-25-category-threshold-skills-not-met.md` |
 | D-26 | Second fit-evaluation round | **Decided (2026-11-16):** round 1 gave 33.3 % category accuracy on 12 test listings, mainly because the share-based skills rule scored almost every listing `not met`. Second round with rules fixed in advance: fresh test set drawn and approved before any code change, new skills rule measured on the 20 development listings by re-scoring the stored round-1 extractions, stop criterion (≥ 12 of 20 correct in both runs, ≤ 2 listings differing between runs), one test run reported as it is. Details: `docs/decisions/D-26-fit-eval-second-round.md` |
 | D-27 | Skills rule variant | **Decided (2026-11-16):** `met` from 3 distinct profile skills, `partly` for 1–2, `not met` for none; D-25's cap stays. Development set: 14 and 15 of 20 correct (before: 8 of 20). Fresh test set: 6 of 10 correct in both runs (round 1: 4 of 12). Known cost: a listing with many matching skills can be scored `strong` where the label says `partial`. Details: `docs/decisions/D-27-skills-metric-variant.md`, `docs/fit_evaluation.md` |
+| D-28 | Fixes after the tool-trajectory development run | **Decided (2026-11-17):** a small fix package before the test scenarios: approval-policy compliance counts only write-gating checks; the injection scenario names the crafted listing directly; one system-prompt rule – a fit question about a listing not yet assessed in the conversation is always answered via `assess_fit`, also for an excluded employer, an assessed listing is explained from its stored assessment; a fresh database and fresh user ids per evaluation run. Development run after the fixes: tool selection 19 of 20, no approval violation. Details: `docs/decisions/D-28-trajectory-dev-fixes.md`, `docs/trajectory_evaluation.md` |
 | R-1 | API changes or becomes unavailable | Demo mode (FR-19), fixture-based evaluation |
 | R-2 | Agent loop not visible enough in the review | Demo script with refinement (S1), agent steps panel, LangSmith traces |
 | R-3 | Extraction errors lead to wrong categories | Evidence check (FR-05 AC2), "unknown" instead of guessing, fit evaluation with error analysis |
@@ -624,3 +631,4 @@ Nothing is cut in advance: if time runs short, items further down this order mov
 | v0.1.11 | 2026-11-10 | FR-18 AC2 reworded for the price source; decision D-17 recorded (§14) |
 | v0.1.12 | 2026-11-11 | §5.3 reducers and `summaries`, `search_calls_this_turn` removed; §5.4 row 3 search limit after the model step; decisions D-18 and D-19 recorded (§14) |
 | v0.1.13 | 2026-11-16 | §7 Skills row and explanation replaced by the count of distinct profile skills (D-27); §7 location/remote rule for a remote type without percentage (D-23) and structured fields only (D-24); §7 scoring adds the skills cap (D-25); §9.1 fixture set count (65) and the two-round fit set (D-26); §9.3 both rounds and the five cause classes; decisions D-20 to D-27 recorded (§14) |
+| v0.1.14 | 2026-11-17 | §5.4 profile and memory context middlewares; §9.1 scenario and explanation set files; §9.2 fresh database per evaluation run, write-gating vs. content checks, follow-up explanation check (D-13); §11 evaluation files as built; D-7 scope names the fixture set (D-8); D-13 result and decision D-28 recorded (§14) |
