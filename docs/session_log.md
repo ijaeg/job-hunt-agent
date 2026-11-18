@@ -2550,3 +2550,52 @@ files), `uv run mypy src app.py pages` (38 files) all clean; `uv run pytest`
 
 **Result: all four re-checked passages OK.** Commit proposed below; one
 pre-existing, out-of-scope D-8 count mismatch noted for awareness only.
+
+## 2026-11-18 — WP-16b part 1: S1 wording check, fresh LangSmith traces, public share links (spec §3.2, §9.5, FR-03 AC1/AC3, NFR-03, D-10, D-12, D-18)
+
+**Done:**
+
+- **Step 1, S1 wording check** (`scripts/run_s1_wording_check_wp16b.py`, new;
+  reuses `ui_smoke_wp04.py`'s `run_s1_once`/`_build_context`, which gained an
+  optional `query` parameter defaulting to its existing München wording - no
+  change to any existing caller). Demo mode, real model (`openai/gpt-5-mini`,
+  `low`), 5 fresh-thread runs each of three S1 wordings (W1 D-12's own wording,
+  W2 adds a publication-age clause, W3 adds a no-temp-agency clause). All three
+  completed 5/5 (refined and at least one listing assessed); max elapsed time
+  W1 64.4 s, W2 61.5 s, W3 54.6 s - **only W3 stayed inside NFR-03's 60 s budget
+  on every run**. Results: `eval/results/s1_wording_wp16b.json`.
+- **Decisions (Ingo, 2026-11-18, Addendum 1 to
+  `docs/prompts/WP-16b-traces-screenshots-demo.md`):** (1) S1 wording for the
+  demo and the README is **W3**; (2) the eight WP-16b traces get **public
+  share links**, plus one screenshot of the S1 trace tree as a fallback once
+  links expire (base retention 14 days, ~2026-12-02).
+- **Step 2, fresh traces** (`scripts/run_langsmith_traces_wp16b.py`, new;
+  reuses `run_langsmith_traces.py`'s `_run_with_tracer` and
+  `ui_smoke_wp04.py`'s `_tool_sequence_of`; keeps the WP-10 result file
+  untouched). One thread S1 (W3) -> S2 -> S3 (propose, approve) -> S4
+  (propose, reject); S5 and S6 on their own threads (README wording). S1
+  refined on the first attempt. A first recording with W1 (the tie-break
+  default before Ingo's decision) is kept in the same result file under a
+  `"superseded"` key for traceability (NFR-09) - thread
+  `langsmith-demo-wp16b-8dc6b392`, never shared. Verified directly against
+  both runs' SQLite file (not just the model's own words): the tracker table
+  has exactly the two expected `saved` entries, the memory store is empty (no
+  rejected `remember` call ever persisted). Results:
+  `eval/results/langsmith_wp16b.json`.
+- **Public share links** (`scripts/share_langsmith_traces_wp16b.py`, new;
+  idempotent - reads back an existing link via `read_run_shared_link` instead
+  of creating a second one): called `Client.share_run` on exactly the eight
+  current (W3/S5/S6) runs, added each `share_url` to its entry. Confirmed
+  public with a plain `curl` GET (no auth, no cookies) on one link: HTTP 200,
+  `cache-control: public`.
+
+**Checks:** `uv run pytest` 551 passed, 0 skipped, 99% coverage; `uv run ruff
+check .`, `uv run ruff format --check .`, `uv run mypy src` all clean. No
+change to the agent, a tool, middleware or any prompt in `prompts/*.md`
+(invariant per the WP-16b prompt).
+
+**Next:** HALT 1 is answered (Addendum 1). Waiting on Ingo for a demo
+rehearsal and six image files (5 UI screenshots + 1 S1 trace-tree screenshot)
+before Step 3 (README/`docs/langsmith.md` update). Commit proposed below for
+the work so far; Step 3's commit follows separately once the images are in
+`docs/images/`.

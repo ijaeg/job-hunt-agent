@@ -1,0 +1,93 @@
+{
+  "project": "job-hunt-agent",
+  "endpoint": "https://eu.api.smith.langchain.com",
+  "model": "openai/gpt-5-mini",
+  "reasoning_effort": "low",
+  "s1_query": "Find Softwareentwickler jobs in München from the last 4 weeks, no temp agencies.",
+  "run_date": "2026-11-18",
+  "run_datetime_utc": "2026-11-18T08:40:15.332090+00:00",
+  "user_id": "alex",
+  "runs": [
+    {
+      "scenario": "S1",
+      "thread_id": "langsmith-demo-wp16b-0efec743",
+      "run_id": "01a1edcf-3ca2-71c7-b6f2-c5cf636aed31",
+      "refined": true,
+      "share_url": "https://eu.smith.langchain.com/public/2695e649-e98c-4cc6-8239-25f8dd6705e0/r"
+    },
+    {
+      "scenario": "S2",
+      "thread_id": "langsmith-demo-wp16b-0efec743",
+      "run_id": "01a1edd0-0ca6-7100-8b66-5530b28463c1",
+      "share_url": "https://eu.smith.langchain.com/public/8298ad83-792a-41ec-8930-a1a839d07e36/r"
+    },
+    {
+      "scenario": "S3_propose",
+      "thread_id": "langsmith-demo-wp16b-0efec743",
+      "run_id": "01a1edd0-25b9-73ea-aec7-9dd482647aff",
+      "share_url": "https://eu.smith.langchain.com/public/e6ab3465-029d-43c0-ae97-13c36e13a928/r"
+    },
+    {
+      "scenario": "S3_approve",
+      "thread_id": "langsmith-demo-wp16b-0efec743",
+      "run_id": "01a1edd0-3595-7582-abd8-6d24b7cebe90",
+      "share_url": "https://eu.smith.langchain.com/public/38202a12-523a-4621-b5a8-436bea6f9c51/r"
+    },
+    {
+      "scenario": "S4_propose",
+      "thread_id": "langsmith-demo-wp16b-0efec743",
+      "run_id": "01a1edd0-3dfd-76ff-ae99-9e10ab3b3c6f",
+      "share_url": "https://eu.smith.langchain.com/public/b86f8008-5c43-4f45-b503-47d54d0dc724/r"
+    },
+    {
+      "scenario": "S4_reject",
+      "thread_id": "langsmith-demo-wp16b-0efec743",
+      "run_id": "01a1edd0-4650-7620-bc2b-6e08c922cbc7",
+      "share_url": "https://eu.smith.langchain.com/public/c06e6b12-6b18-44a4-8633-e27ad408aed3/r"
+    },
+    {
+      "scenario": "S5",
+      "thread_id": "langsmith-demo-wp16b-60465661",
+      "run_id": "01a1edc1-e467-7068-98fc-e0879839753b",
+      "share_url": "https://eu.smith.langchain.com/public/70de8933-477d-4a45-b28d-4b78554f5a50/r"
+    },
+    {
+      "scenario": "S6",
+      "thread_id": "langsmith-demo-wp16b-7e06e58e",
+      "run_id": "01a1edc2-684d-75e5-9b0b-d14dc4771391",
+      "share_url": "https://eu.smith.langchain.com/public/e6140a30-c22f-44f6-84b6-672ba7fa12c5/r"
+    }
+  ],
+  "superseded": {
+    "reason": "First S1 -> S2 -> S3 -> S4 recording, made before Addendum 1's wording decision; used W1 (the tie-break default). Superseded by the W3 recording above once Ingo chose W3 (max elapsed time inside the 60s NFR-03 budget on all 5 Step 1 runs). Kept for traceability (NFR-09, CLAUDE.md); never shared - not part of the eight runs scripts/share_langsmith_traces_wp16b.py shares.",
+    "s1_query": "Find Softwareentwickler jobs in München.",
+    "thread_id": "langsmith-demo-wp16b-8dc6b392",
+    "runs": [
+      {
+        "scenario": "S1",
+        "run_id": "01a1edc0-ec75-719d-a590-9ecdcf05c0e6",
+        "refined": true
+      },
+      {
+        "scenario": "S2",
+        "run_id": "01a1edc1-a081-701b-81ec-764c559e1820"
+      },
+      {
+        "scenario": "S3_propose",
+        "run_id": "01a1edc1-b6f5-70ff-a71a-20a16c374241"
+      },
+      {
+        "scenario": "S3_approve",
+        "run_id": "01a1edc1-c640-77ec-bace-4f3f2e5d4fbc"
+      },
+      {
+        "scenario": "S4_propose",
+        "run_id": "01a1edc1-d08e-71fd-83af-604d84f5c17c"
+      },
+      {
+        "scenario": "S4_reject",
+        "run_id": "01a1edc1-d915-7410-8f24-de663afa1597"
+      }
+    ]
+  }
+}

@@ -142,12 +142,18 @@ def _assess_fit_stats_of(messages: list[Any]) -> tuple[float, int]:
     return extraction_seconds, listings_assessed
 
 
-def run_s1_once(agent: Any, ctx: AgentContext, thread_id: str) -> dict[str, Any]:
-    """Runs S1 once on a fresh thread and records the D-12 latency metrics."""
+def run_s1_once(
+    agent: Any, ctx: AgentContext, thread_id: str, query: str = DEMO_QUERY
+) -> dict[str, Any]:
+    """Runs S1 once on a fresh thread and records the D-12 latency metrics.
+
+    ``query`` defaults to the D-10/D-12 München wording so existing callers are
+    unaffected; WP-16b's wording check passes alternative wordings (spec §3.2).
+    """
     cfg = {"configurable": {"thread_id": thread_id}}
     started = time.perf_counter()
     result = agent.invoke(
-        {"messages": [HumanMessage(DEMO_QUERY)], "user_id": "alex"}, config=cfg, context=ctx
+        {"messages": [HumanMessage(query)], "user_id": "alex"}, config=cfg, context=ctx
     )
     elapsed = time.perf_counter() - started
 
