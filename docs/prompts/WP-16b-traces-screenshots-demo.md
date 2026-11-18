@@ -79,3 +79,18 @@ Decisions (Ingo, following the coach):
    trace tree** as a permanent fallback (base retention is 14 days, so the links expire
    around 2026-12-02; they can be renewed by re-running the recording script).
    Ingo approves `share_run` for these eight runs.
+
+## Addendum 2 (2026-11-18, coach review of the screenshots, recorded by the coach)
+
+Decisions (Ingo, following the coach):
+
+1. The "Agent steps" arguments show the umlaut in "München" as a JSON unicode escape
+   (backslash, u00fc) instead of the letter itself (`steps_view.py` dumps the arguments
+   as ASCII-escaped JSON). Fix it in the display
+   only (`ensure_ascii=False`), with a test, and re-take `agent-steps.png`. No change to
+   the agent, the tools or any evaluation result.
+2. The README gets one line under the demo table with the public links of all eight
+   traces and a link to `docs/langsmith.md` (added by the coach).
+3. The shortlist screenshot keeps answer item 3 ("Matches: Java" and "Gaps: focuses on
+   Java, ...") as it is: a visible example of the free-text explanation limitation
+   (D-13), documented in the README.

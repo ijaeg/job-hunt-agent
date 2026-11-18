@@ -89,7 +89,7 @@ def _truncate(text: str, max_len: int = _MAX_TEXT_LEN) -> str:
 
 def compact_args(args: dict[str, object]) -> str:
     """One-line, length-capped rendering of a tool call's arguments."""
-    return _truncate(json.dumps(args, default=str, separators=(", ", ": ")))
+    return _truncate(json.dumps(args, default=str, separators=(", ", ": "), ensure_ascii=False))
 
 
 def short_result_for_message(message: ToolMessage) -> str:

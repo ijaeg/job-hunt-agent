@@ -2599,3 +2599,105 @@ rehearsal and six image files (5 UI screenshots + 1 S1 trace-tree screenshot)
 before Step 3 (README/`docs/langsmith.md` update). Commit proposed below for
 the work so far; Step 3's commit follows separately once the images are in
 `docs/images/`.
+
+## 2026-11-18 — WP-16b part 2: coach-check follow-ups, screenshots, README/docs update (spec §3.2, §9.5, FR-07, FR-10 AC2, FR-11, FR-15 AC3, FR-17 AC1, FR-18, D-10, D-12, D-18)
+
+**Done:**
+
+- **Coach check follow-ups on part 1** (before the commit): restored the
+  superseded W1 recording (thread `langsmith-demo-wp16b-8dc6b392`) into
+  `eval/results/langsmith_wp16b.json` under a `"superseded"` key, kept but
+  never shared; confirmed one public share link with a plain `curl` GET (no
+  auth, no cookies) - HTTP 200, `cache-control: public`. Committed on
+  `feature/traces-screenshots` (`c5a31fe`).
+- **Ingo's decision: Claude Code takes the screenshots, not Ingo.** New
+  `scripts/take_screenshots_wp16b.py` (Playwright, modelled on
+  `~/projects/turing-college/take_screenshots.py` from Sprint 2 - same
+  `click_sidebar_button`/`open_expander`/`hide_popups`/`shot` helper shapes,
+  adapted to this app's multipage sidebar nav). Run against
+  `DB_PATH=data/screenshots_wp16b.sqlite` (gitignored, `data/*.sqlite`;
+  confirmed not staged) so no write landed in Ingo's real data; demo mode
+  switched on explicitly from Developer settings (not relied on from
+  auto-detection - the real BA API was reachable from this machine);
+  Streamlit's own multipage client-side nav (not `page.goto()`, which starts
+  a fresh session and would have dropped the demo-mode toggle) used to move
+  between pages while keeping one thread. One real run: S1 (W3 wording) ->
+  approve a `save_to_tracker` -> approve a `remember` -> Tracker -> Memory ->
+  Developer settings, plus the public S1 LangSmith trace page. Seven PNGs
+  written to `docs/images/`: `chat-shortlist.png`, `agent-steps.png`,
+  `approval-dialog.png`, `tracker.png`, `memory.png`,
+  `developer-settings.png`, `langsmith-s1-trace.png`. Opened and read every
+  one: readable, no Streamlit pop-up, no API key, no e-mail, no real person's
+  data - all OK on the first take, no retakes needed.
+- **README update:** all five `added in WP-16b` screenshot placeholders
+  replaced with the images (plus `agent-steps.png`, not one of the original
+  five, placed next to `chat-shortlist.png`); both `Trace: ... - added in
+  WP-16b` placeholders replaced with the public share links (S1; S3_propose,
+  S3_approve, S4_propose, S4_reject) plus the S1 screenshot as a stated
+  fallback for when the links expire (~2026-12-02, 14-day base retention).
+  S1's demo-script row updated to the W3 wording with one sentence on Step
+  1's result (5 of 5 complete runs, only wording whose max elapsed time
+  stayed inside the 60s NFR-03 budget); the existing "3 of 6 runs" known
+  limitation keeps its own number and gets this check's result added next to
+  it, per Addendum 1. Traceability table's Hard-2 row points at the two
+  sections with the trace links instead of a forward reference.
+- **`docs/langsmith.md`:** new "WP-16b real-model trace recording" section
+  (all eight run ids, share links, the superseded-W1 note) added after the
+  WP-10 section, which is marked superseded but left otherwise untouched for
+  traceability (NFR-09).
+- **Link check:** every README image/link target extracted and checked - 0
+  missing local paths, all 21 in-page anchors resolve to a real heading, the
+  5 new external LangSmith links match exactly what was added.
+
+**Checks:** `uv run pytest` 551 passed, 0 skipped, 99% coverage; `uv run ruff
+check .`, `uv run ruff format --check .`, `uv run mypy src app.py pages` (38
+files) all clean. No change to the agent, a tool, middleware or any prompt in
+`prompts/*.md`.
+
+**Next:** HALT 2 - commit proposed below and awaiting Ingo's go-ahead. Nothing
+further scheduled after this package closes spec §9.5's Must item and the
+README's last WP-16b placeholders.
+
+## 2026-11-18 — WP-16b part 3: coach review of the screenshots, display fix, link verification (spec §9.5, FR-17 AC1, D-18, WP-16b Addendum 2)
+
+**Done:**
+
+- **Display bug, found by the coach reading `agent-steps.png`:**
+  `steps_view.py::compact_args` called `json.dumps(args, default=str,
+  separators=(", ", ": "))` without `ensure_ascii=False`, so any non-ASCII
+  argument value (e.g. `"location": "München"`) rendered as a `ü`
+  escape in the Agent steps panel instead of the actual letter - display
+  only, nothing the agent, a tool or an evaluation result ever saw
+  differently. Fixed with `ensure_ascii=False`; new test
+  `test_compact_args_renders_non_ascii_unescaped` (`tests/test_steps_view.py`)
+  asserts "München" appears unescaped and `ü` does not.
+- **Re-took `docs/images/agent-steps.png`** only, not the other six images:
+  `scripts/take_screenshots_wp16b.py` gained `--agent-steps-only` (S1 on a
+  fresh thread, open the Agent steps expander, screenshot, stop - skips
+  S3/remember/Tracker/Memory/Developer settings/the LangSmith page, so the
+  retake cost one real-model turn instead of a full run). Opened and
+  checked the new image: all three `search_jobs` rows now show `München`
+  correctly, no pop-up, no PII.
+- **Coach-added README line** (under the demo table): public links to all
+  eight WP-16b traces plus a link to `docs/langsmith.md`. Checked every one
+  of the eight links with a plain `curl` GET (no auth, no cookies): all
+  HTTP 200, `cache-control: public`. `docs/langsmith.md` confirmed to exist
+  with the matching run-id table (added in part 2 of this session).
+- **Addendum 2** to `docs/prompts/WP-16b-traces-screenshots-demo.md`,
+  appended by the coach, recorded Ingo's three decisions: fix the display
+  bug (above); keep the coach's new README line; keep the shortlist
+  screenshot's visible "Java"-as-match-for-"SQL"-gap example as a real
+  illustration of the free-text explanation limitation (D-13) rather than
+  retaking it to avoid showing a known limitation.
+
+**Checks:** `uv run pytest` 552 passed (551 + the new test), 0 skipped, 99%
+coverage; `uv run ruff check .`, `uv run ruff format --check .`,
+`uv run mypy src app.py pages` (38 files) all clean. No change to the agent,
+a tool, middleware, any prompt in `prompts/*.md`, or any evaluation result
+file (`eval/results/langsmith_wp16b.json` unchanged - the trace recording
+itself was not re-run, only the display bug and one screenshot).
+
+**Next:** HALT 2 - commit proposed below for the rest of WP-16b
+(`steps_view.py` and its test, the screenshot script, `docs/images/*.png`,
+`README.md`, `docs/langsmith.md`, the prompt file with Addendum 2, session
+log). Awaiting Ingo's go-ahead; nothing further scheduled after this.

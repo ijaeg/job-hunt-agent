@@ -70,6 +70,12 @@ def test_compact_args_truncates_long_values() -> None:
     assert text.endswith("…")
 
 
+def test_compact_args_renders_non_ascii_unescaped() -> None:
+    text = compact_args({"location": "München"})
+    assert "München" in text
+    assert "\\u00fc" not in text
+
+
 # ---------------------------------------------------------------------------
 # short_result_for_message
 # ---------------------------------------------------------------------------
