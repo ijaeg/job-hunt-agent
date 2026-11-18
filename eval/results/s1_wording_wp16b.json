@@ -1,0 +1,536 @@
+{
+  "model": "openai/gpt-5-mini",
+  "reasoning_effort": "low",
+  "n_runs_per_wording": 5,
+  "wordings": {
+    "W1": "Find Softwareentwickler jobs in München.",
+    "W2": "Find Softwareentwickler jobs in München, posted in the last 4 weeks.",
+    "W3": "Find Softwareentwickler jobs in München from the last 4 weeks, no temp agencies."
+  },
+  "runs": {
+    "W1": [
+      {
+        "thread_id": "s1-wording-wp16b-W1-0",
+        "elapsed_seconds": 57.53,
+        "within_nfr03_budget": true,
+        "tool_sequence": [
+          "search_jobs",
+          "search_jobs",
+          "search_jobs",
+          "get_job_details",
+          "get_job_details",
+          "get_job_details",
+          "get_job_details",
+          "get_job_details",
+          "get_job_details",
+          "assess_fit"
+        ],
+        "search_jobs_calls": 3,
+        "reached_assess_fit": true,
+        "assess_fit_extraction_seconds": 29.8,
+        "listings_assessed": 6,
+        "card_count": {
+          "visible": 6,
+          "excluded": 0,
+          "total": 6
+        },
+        "token_usage": {
+          "input_tokens": 34071,
+          "output_tokens": 1886,
+          "total_tokens": 35957
+        },
+        "refined": true,
+        "complete": true
+      },
+      {
+        "thread_id": "s1-wording-wp16b-W1-1",
+        "elapsed_seconds": 54.85,
+        "within_nfr03_budget": true,
+        "tool_sequence": [
+          "search_jobs",
+          "search_jobs",
+          "search_jobs",
+          "get_job_details",
+          "get_job_details",
+          "get_job_details",
+          "get_job_details",
+          "get_job_details",
+          "get_job_details",
+          "assess_fit"
+        ],
+        "search_jobs_calls": 3,
+        "reached_assess_fit": true,
+        "assess_fit_extraction_seconds": 31.4,
+        "listings_assessed": 6,
+        "card_count": {
+          "visible": 6,
+          "excluded": 0,
+          "total": 6
+        },
+        "token_usage": {
+          "input_tokens": 34234,
+          "output_tokens": 1664,
+          "total_tokens": 35898
+        },
+        "refined": true,
+        "complete": true
+      },
+      {
+        "thread_id": "s1-wording-wp16b-W1-2",
+        "elapsed_seconds": 64.39,
+        "within_nfr03_budget": false,
+        "tool_sequence": [
+          "search_jobs",
+          "search_jobs",
+          "search_jobs",
+          "get_job_details",
+          "get_job_details",
+          "get_job_details",
+          "get_job_details",
+          "get_job_details",
+          "assess_fit"
+        ],
+        "search_jobs_calls": 3,
+        "reached_assess_fit": true,
+        "assess_fit_extraction_seconds": 26.8,
+        "listings_assessed": 5,
+        "card_count": {
+          "visible": 5,
+          "excluded": 0,
+          "total": 5
+        },
+        "token_usage": {
+          "input_tokens": 29667,
+          "output_tokens": 1918,
+          "total_tokens": 31585
+        },
+        "refined": true,
+        "complete": true
+      },
+      {
+        "thread_id": "s1-wording-wp16b-W1-3",
+        "elapsed_seconds": 47.3,
+        "within_nfr03_budget": true,
+        "tool_sequence": [
+          "search_jobs",
+          "search_jobs",
+          "get_job_details",
+          "get_job_details",
+          "get_job_details",
+          "get_job_details",
+          "get_job_details",
+          "get_job_details",
+          "assess_fit"
+        ],
+        "search_jobs_calls": 2,
+        "reached_assess_fit": true,
+        "assess_fit_extraction_seconds": 26.8,
+        "listings_assessed": 6,
+        "card_count": {
+          "visible": 6,
+          "excluded": 0,
+          "total": 6
+        },
+        "token_usage": {
+          "input_tokens": 28671,
+          "output_tokens": 1696,
+          "total_tokens": 30367
+        },
+        "refined": true,
+        "complete": true
+      },
+      {
+        "thread_id": "s1-wording-wp16b-W1-4",
+        "elapsed_seconds": 50.44,
+        "within_nfr03_budget": true,
+        "tool_sequence": [
+          "search_jobs",
+          "search_jobs",
+          "get_job_details",
+          "get_job_details",
+          "get_job_details",
+          "get_job_details",
+          "get_job_details",
+          "assess_fit"
+        ],
+        "search_jobs_calls": 2,
+        "reached_assess_fit": true,
+        "assess_fit_extraction_seconds": 29.8,
+        "listings_assessed": 5,
+        "card_count": {
+          "visible": 5,
+          "excluded": 0,
+          "total": 5
+        },
+        "token_usage": {
+          "input_tokens": 28802,
+          "output_tokens": 1669,
+          "total_tokens": 30471
+        },
+        "refined": true,
+        "complete": true
+      }
+    ],
+    "W2": [
+      {
+        "thread_id": "s1-wording-wp16b-W2-0",
+        "elapsed_seconds": 45.84,
+        "within_nfr03_budget": true,
+        "tool_sequence": [
+          "search_jobs",
+          "search_jobs",
+          "get_job_details",
+          "get_job_details",
+          "get_job_details",
+          "assess_fit"
+        ],
+        "search_jobs_calls": 2,
+        "reached_assess_fit": true,
+        "assess_fit_extraction_seconds": 18.9,
+        "listings_assessed": 3,
+        "card_count": {
+          "visible": 3,
+          "excluded": 0,
+          "total": 3
+        },
+        "token_usage": {
+          "input_tokens": 32628,
+          "output_tokens": 1647,
+          "total_tokens": 34275
+        },
+        "refined": true,
+        "complete": true
+      },
+      {
+        "thread_id": "s1-wording-wp16b-W2-1",
+        "elapsed_seconds": 61.52,
+        "within_nfr03_budget": false,
+        "tool_sequence": [
+          "search_jobs",
+          "search_jobs",
+          "get_job_details",
+          "get_job_details",
+          "get_job_details",
+          "get_job_details",
+          "get_job_details",
+          "get_job_details",
+          "assess_fit"
+        ],
+        "search_jobs_calls": 2,
+        "reached_assess_fit": true,
+        "assess_fit_extraction_seconds": 32.7,
+        "listings_assessed": 6,
+        "card_count": {
+          "visible": 6,
+          "excluded": 0,
+          "total": 6
+        },
+        "token_usage": {
+          "input_tokens": 45827,
+          "output_tokens": 1791,
+          "total_tokens": 47618
+        },
+        "refined": true,
+        "complete": true
+      },
+      {
+        "thread_id": "s1-wording-wp16b-W2-2",
+        "elapsed_seconds": 53.96,
+        "within_nfr03_budget": true,
+        "tool_sequence": [
+          "search_jobs",
+          "search_jobs",
+          "search_jobs",
+          "get_job_details",
+          "get_job_details",
+          "get_job_details",
+          "get_job_details",
+          "get_job_details",
+          "assess_fit"
+        ],
+        "search_jobs_calls": 3,
+        "reached_assess_fit": true,
+        "assess_fit_extraction_seconds": 27.5,
+        "listings_assessed": 5,
+        "card_count": {
+          "visible": 5,
+          "excluded": 0,
+          "total": 5
+        },
+        "token_usage": {
+          "input_tokens": 32256,
+          "output_tokens": 1890,
+          "total_tokens": 34146
+        },
+        "refined": true,
+        "complete": true
+      },
+      {
+        "thread_id": "s1-wording-wp16b-W2-3",
+        "elapsed_seconds": 53.31,
+        "within_nfr03_budget": true,
+        "tool_sequence": [
+          "search_jobs",
+          "search_jobs",
+          "search_jobs",
+          "get_job_details",
+          "get_job_details",
+          "get_job_details",
+          "get_job_details",
+          "get_job_details",
+          "get_job_details",
+          "assess_fit"
+        ],
+        "search_jobs_calls": 3,
+        "reached_assess_fit": true,
+        "assess_fit_extraction_seconds": 26.9,
+        "listings_assessed": 6,
+        "card_count": {
+          "visible": 6,
+          "excluded": 0,
+          "total": 6
+        },
+        "token_usage": {
+          "input_tokens": 35006,
+          "output_tokens": 1780,
+          "total_tokens": 36786
+        },
+        "refined": true,
+        "complete": true
+      },
+      {
+        "thread_id": "s1-wording-wp16b-W2-4",
+        "elapsed_seconds": 47.95,
+        "within_nfr03_budget": true,
+        "tool_sequence": [
+          "search_jobs",
+          "search_jobs",
+          "get_job_details",
+          "get_job_details",
+          "get_job_details",
+          "assess_fit"
+        ],
+        "search_jobs_calls": 2,
+        "reached_assess_fit": true,
+        "assess_fit_extraction_seconds": 25.5,
+        "listings_assessed": 3,
+        "card_count": {
+          "visible": 3,
+          "excluded": 0,
+          "total": 3
+        },
+        "token_usage": {
+          "input_tokens": 33797,
+          "output_tokens": 1487,
+          "total_tokens": 35284
+        },
+        "refined": true,
+        "complete": true
+      }
+    ],
+    "W3": [
+      {
+        "thread_id": "s1-wording-wp16b-W3-0",
+        "elapsed_seconds": 50.62,
+        "within_nfr03_budget": true,
+        "tool_sequence": [
+          "search_jobs",
+          "search_jobs",
+          "search_jobs",
+          "get_job_details",
+          "get_job_details",
+          "get_job_details",
+          "get_job_details",
+          "get_job_details",
+          "get_job_details",
+          "assess_fit"
+        ],
+        "search_jobs_calls": 3,
+        "reached_assess_fit": true,
+        "assess_fit_extraction_seconds": 25.9,
+        "listings_assessed": 6,
+        "card_count": {
+          "visible": 6,
+          "excluded": 0,
+          "total": 6
+        },
+        "token_usage": {
+          "input_tokens": 51769,
+          "output_tokens": 1140,
+          "total_tokens": 52909
+        },
+        "refined": true,
+        "complete": true
+      },
+      {
+        "thread_id": "s1-wording-wp16b-W3-1",
+        "elapsed_seconds": 53.75,
+        "within_nfr03_budget": true,
+        "tool_sequence": [
+          "search_jobs",
+          "search_jobs",
+          "search_jobs",
+          "get_job_details",
+          "get_job_details",
+          "get_job_details",
+          "get_job_details",
+          "get_job_details",
+          "get_job_details",
+          "assess_fit"
+        ],
+        "search_jobs_calls": 3,
+        "reached_assess_fit": true,
+        "assess_fit_extraction_seconds": 26.9,
+        "listings_assessed": 6,
+        "card_count": {
+          "visible": 6,
+          "excluded": 0,
+          "total": 6
+        },
+        "token_usage": {
+          "input_tokens": 33604,
+          "output_tokens": 1744,
+          "total_tokens": 35348
+        },
+        "refined": true,
+        "complete": true
+      },
+      {
+        "thread_id": "s1-wording-wp16b-W3-2",
+        "elapsed_seconds": 50.14,
+        "within_nfr03_budget": true,
+        "tool_sequence": [
+          "search_jobs",
+          "search_jobs",
+          "search_jobs",
+          "get_job_details",
+          "get_job_details",
+          "get_job_details",
+          "get_job_details",
+          "get_job_details",
+          "get_job_details",
+          "assess_fit"
+        ],
+        "search_jobs_calls": 3,
+        "reached_assess_fit": true,
+        "assess_fit_extraction_seconds": 26.4,
+        "listings_assessed": 6,
+        "card_count": {
+          "visible": 6,
+          "excluded": 0,
+          "total": 6
+        },
+        "token_usage": {
+          "input_tokens": 35028,
+          "output_tokens": 1717,
+          "total_tokens": 36745
+        },
+        "refined": true,
+        "complete": true
+      },
+      {
+        "thread_id": "s1-wording-wp16b-W3-3",
+        "elapsed_seconds": 49.96,
+        "within_nfr03_budget": true,
+        "tool_sequence": [
+          "search_jobs",
+          "search_jobs",
+          "search_jobs",
+          "assess_fit"
+        ],
+        "search_jobs_calls": 3,
+        "reached_assess_fit": true,
+        "assess_fit_extraction_seconds": 28.3,
+        "listings_assessed": 7,
+        "card_count": {
+          "visible": 7,
+          "excluded": 0,
+          "total": 7
+        },
+        "token_usage": {
+          "input_tokens": 20091,
+          "output_tokens": 1590,
+          "total_tokens": 21681
+        },
+        "refined": true,
+        "complete": true
+      },
+      {
+        "thread_id": "s1-wording-wp16b-W3-4",
+        "elapsed_seconds": 54.56,
+        "within_nfr03_budget": true,
+        "tool_sequence": [
+          "search_jobs",
+          "search_jobs",
+          "get_job_details",
+          "get_job_details",
+          "get_job_details",
+          "get_job_details",
+          "get_job_details",
+          "get_job_details",
+          "assess_fit"
+        ],
+        "search_jobs_calls": 2,
+        "reached_assess_fit": true,
+        "assess_fit_extraction_seconds": 33.4,
+        "listings_assessed": 6,
+        "card_count": {
+          "visible": 6,
+          "excluded": 0,
+          "total": 6
+        },
+        "token_usage": {
+          "input_tokens": 30791,
+          "output_tokens": 1505,
+          "total_tokens": 32296
+        },
+        "refined": true,
+        "complete": true
+      }
+    ]
+  },
+  "summary": {
+    "W1": {
+      "query": "Find Softwareentwickler jobs in München.",
+      "complete_of_5": 5,
+      "refined_of_5": 5,
+      "shortlist_shown_of_5": 5,
+      "elapsed_seconds_all_runs": {
+        "median": 54.85,
+        "mean": 54.9,
+        "min": 47.3,
+        "max": 64.39
+      },
+      "elapsed_seconds_median": 54.85,
+      "elapsed_seconds_max": 64.39
+    },
+    "W2": {
+      "query": "Find Softwareentwickler jobs in München, posted in the last 4 weeks.",
+      "complete_of_5": 5,
+      "refined_of_5": 5,
+      "shortlist_shown_of_5": 5,
+      "elapsed_seconds_all_runs": {
+        "median": 53.31,
+        "mean": 52.52,
+        "min": 45.84,
+        "max": 61.52
+      },
+      "elapsed_seconds_median": 53.31,
+      "elapsed_seconds_max": 61.52
+    },
+    "W3": {
+      "query": "Find Softwareentwickler jobs in München from the last 4 weeks, no temp agencies.",
+      "complete_of_5": 5,
+      "refined_of_5": 5,
+      "shortlist_shown_of_5": 5,
+      "elapsed_seconds_all_runs": {
+        "median": 50.62,
+        "mean": 51.81,
+        "min": 49.96,
+        "max": 54.56
+      },
+      "elapsed_seconds_median": 50.62,
+      "elapsed_seconds_max": 54.56
+    }
+  }
+}

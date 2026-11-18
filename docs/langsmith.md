@@ -50,6 +50,10 @@ just the model's own words): the `tracker` table has exactly the one S3 entry
 (`17338-c2de5ff0cd55000215-S`, status `saved`, follow-up `2026-11-18`); the
 memory store is empty (the rejected S4 `remember` call never persisted).
 
+**Superseded by WP-16b** (below): the README now links the WP-16b traces, not
+these WP-10 ones. Kept here for traceability (NFR-09); the steps below were
+WP-10's own open items at the time, not a current to-do.
+
 **What Ingo needs to do for WP-14** (these run ids are only visible in
 Ingo's own LangSmith account right now; the README cannot link to a private
 page):
@@ -67,6 +71,53 @@ page):
    traces before the review - check the tier/retention setting before
    submission and extend it or re-run the script closer to the review date if
    needed.
+
+## WP-16b real-model trace recording (2026-11-18)
+
+Fresh traces for the README (spec §9.5), replacing WP-10's as the ones linked
+there - WP-10's own result file (`eval/results/langsmith_wp10.json`) and the
+table above are left untouched, for traceability (NFR-09).
+`scripts/run_langsmith_traces_wp16b.py`, demo mode, user `alex`, model
+`openai/gpt-5-mini` (reasoning effort `low`). One continuous thread S1 -> S2 ->
+S3 (propose, approve) -> S4 (propose, reject); S5 and S6 on their own threads.
+S1's wording is W3 ("Find Softwareentwickler jobs in München from the last 4
+weeks, no temp agencies.") - the only one of three candidate wordings whose
+slowest run stayed inside the 60s NFR-03 budget on all 5 runs of a dedicated
+check (`eval/results/s1_wording_wp16b.json`, Addendum 1 to
+`docs/prompts/WP-16b-traces-screenshots-demo.md`). Full record:
+`eval/results/langsmith_wp16b.json`.
+
+| Scenario | What it demonstrates | LangSmith run id | Public share link |
+|---|---|---|---|
+| S1 | Search (103 results), refinement, details, assessment | `01a1edcf-3ca2-71c7-b6f2-c5cf636aed31` | [link](https://eu.smith.langchain.com/public/2695e649-e98c-4cc6-8239-25f8dd6705e0/r) |
+| S2 | No new tool call; explanation from the stored assessment | `01a1edd0-0ca6-7100-8b66-5530b28463c1` | [link](https://eu.smith.langchain.com/public/8298ad83-792a-41ec-8930-a1a839d07e36/r) |
+| S3_propose | `save_to_tracker` proposed, interrupt | `01a1edd0-25b9-73ea-aec7-9dd482647aff` | [link](https://eu.smith.langchain.com/public/e6ab3465-029d-43c0-ae97-13c36e13a928/r) |
+| S3_approve | Resume after approval; the entry is written | `01a1edd0-3595-7582-abd8-6d24b7cebe90` | [link](https://eu.smith.langchain.com/public/38202a12-523a-4621-b5a8-436bea6f9c51/r) |
+| S4_propose | `remember` proposed, interrupt | `01a1edd0-3dfd-76ff-ae99-9e10ab3b3c6f` | [link](https://eu.smith.langchain.com/public/b86f8008-5c43-4f45-b503-47d54d0dc724/r) |
+| S4_reject | Resume after rejection; nothing is stored | `01a1edd0-4650-7620-bc2b-6e08c922cbc7` | [link](https://eu.smith.langchain.com/public/c06e6b12-6b18-44a4-8633-e27ad408aed3/r) |
+| S5 | Prompt-injection resistance (FIKTIV listing) | `01a1edc1-e467-7068-98fc-e0879839753b` | [link](https://eu.smith.langchain.com/public/70de8933-477d-4a45-b28d-4b78554f5a50/r) |
+| S6 | Off-topic guard, no tool call | `01a1edc2-684d-75e5-9b0b-d14dc4771391` | [link](https://eu.smith.langchain.com/public/e6140a30-c22f-44f6-84b6-672ba7fa12c5/r) |
+
+Project: `job-hunt-agent`, endpoint `https://eu.api.smith.langchain.com` (EU
+region). Verified directly against the run's own SQLite file (not just the
+model's own words): the `tracker` table has exactly the one S3 entry (status
+`saved`, follow-up `2026-11-25`); the memory store is empty (the rejected S4
+`remember` call never persisted).
+
+**Public share links** (Addendum 1, Ingo's decision): created with
+`scripts/share_langsmith_traces_wp16b.py` (`Client.share_run`, idempotent).
+Confirmed public with a plain `curl` GET (no auth, no cookies) on one link:
+HTTP 200, `cache-control: public`. Links expire after LangSmith's 14-day base
+retention (~2026-12-02); re-run the script closer to the review date if
+needed - it reads back an existing link instead of creating a duplicate. The
+README's S1 and S3/S4 trace mentions (spec §9.5) link directly to these;
+`docs/images/langsmith-s1-trace.png` is the S1 trace's permanent screenshot
+fallback for once the links expire.
+
+**Superseded recording (not shared):** a first S1 -> S2 -> S3 -> S4 thread used
+W1 (the tie-break default before the wording decision above) - thread
+`langsmith-demo-wp16b-8dc6b392`, kept under `"superseded"` in
+`eval/results/langsmith_wp16b.json` for traceability, never linked or shared.
 
 ## Manual check (for Ingo)
 
