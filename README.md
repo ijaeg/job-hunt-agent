@@ -93,8 +93,8 @@ stored in this repository.
 (tracing only).
 
 ```bash
-git clone <this repository>
-cd <repository folder>
+git clone https://github.com/ijaeg/job-hunt-agent.git
+cd job-hunt-agent
 cp .env.example .env          # then put your OPENROUTER_API_KEY into .env
 uv sync                       # installs all dependencies, including dev tools
 uv run streamlit run app.py   # opens the app in the browser
